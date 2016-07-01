@@ -35,6 +35,8 @@ use Log::Log4perl;
 use MediaWiki::Bot;
 use Time::Piece;
 use Time::Seconds;
+use Encode qw(encode decode);
+use utf8;
 
 our $VERSION = '0.1';
 
@@ -261,6 +263,7 @@ sub _update {
     $this->logger->debug( 'updating revid for some entries' );
 
     foreach my $title ( @{ $this->_articles } ) {
+      $title = _decodeUTF8($title);
       my $row = $this->schema->resultset( 'Wikipedia' )
                              ->find( { title => $title } );
       push @articles, $row if $row;
@@ -292,6 +295,7 @@ sub _update {
   foreach my $article ( @articles ) {
 		sleep 1;
     $num_checked++;
+    my $title = _decodeUTF8($article->title);
     my $latest_edit = $this->_get_last_edit( $article->title );
     my $latest_revid = $latest_edit->{'revid'};
 
@@ -302,7 +306,7 @@ sub _update {
       }
     };
     if ($@) {
-      $this->logger->error("Failed during redirection of: ".$article->title);
+      $this->logger->error("Failed during redirection of: ".$title);
     }
 
 
@@ -364,7 +368,7 @@ Returns data for the last edit to the specified page.
 sub _get_last_edit {
   my ( $this, $title ) = @_;
   $this->logger->debug( "getting wikipedia version for |$title|" );
-
+  $title = _decodeUTF8($title);
   my @history = $this->_mw_bot->get_history( $title, 1 );
   unless ( @history ) {
     $this->logger->error("Failed to retrieve history for wikipedia article '$title'");
@@ -373,11 +377,28 @@ sub _get_last_edit {
 
   my $last_revision = $history[0]->{revid};
   $this->logger->debug( "last revision of '$title' was |$last_revision|" );
-
   return $history[0];
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 _decodeUTF8
+
+Takes a perl text string with utf characters encoded as %hex. These are found in
+pfam/rfam desc files. The string is converted to a UTF8 text string and returned.
+
+=cut
+
+sub _decodeUTF8 {
+  my ($string) = @_;
+  #convert unicode references to produce binary string
+  $string =~ s/%([a-fA-F0-9][a-fA-F0-9])/chr(hex($1))/eg;
+  #convert from utf8 binary string to text string
+  #see http://perldoc.perl.org/perlunifaq.html
+  $string = decode("utf8", $string);
+  return $string;
+}
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
