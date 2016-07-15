@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use File::Slurp;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -12,6 +13,14 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 unless($pfamDB){
   die "Could not connect to pfam database\n";  
 }
+
+#Mapping between types and DE lines
+my %desc = ( 'Family' => 'Family',
+             'Domain' => 'Domain',
+             'Motif'  => 'Motif',
+             'Repeat' => 'Repeat',
+             'Disordered' => 'Disordered region',
+             'Coiled-coil' => 'Coiled-coil region');
 
 #Need to get a list of all pfam ids;
 my @dufNos;
@@ -31,22 +40,41 @@ my $id="DUF$no";
 print "\n The next available DUF number is: $id\n\n";
 
 # Now check if in family dir overwrite DESC info
-if (! -e "DESC"){exit 0;}
+if (! -e "DESC"){
+  #This is bad
+  warn "Could not find DESC file, expected it in the current working directory\n";
+  exit 0;}
 
-open (DESC, "DESC") or die "Cannot open DESC";
+
+#Read in the desc file
+my @desc = read_file("DESC");
+
+#Now determine the type of the family.
+my $type = 'Domain';
+foreach my $line (@desc){
+  if($line =~ /^TP\s+(\S+)/){
+    $type = $1;
+  }
+}
+
+
+#Open up a new DESC file
 open (DESCNEW, "> DESCNEW") or die "Cannot write to file DESCNEW";
+print DESCNEW "ID   $id\nDE   ".$desc{$type}." of unknown function ($id)\n";
 
-print DESCNEW "ID   $id\nDE   Domain of unknown function ($id)\n";
-
-while(<DESC>){
+#Now transfer everything across from the existing DESC file!
+foreach (@desc){
     if (/^ID/){
-	next;
+    #We have just written this above
+	  next;
     }
     if (/^DE/){
+      #We have just written this above
 	next;
     }
     if (/^WK/){
-	next;
+      #Defaults to the DUF wikipedia line  
+	    next;
     }
 
     print DESCNEW;
@@ -55,9 +83,8 @@ while(<DESC>){
         print DESCNEW "WK   Domain_of_unknown_function\n";
     }
 }
-close DESC;
 close DESCNEW;
 
-# Do file moves
+# Do file moves, such that we can fall back.
 system("cp DESC DESCOLD");
 system("cp DESCNEW DESC");
