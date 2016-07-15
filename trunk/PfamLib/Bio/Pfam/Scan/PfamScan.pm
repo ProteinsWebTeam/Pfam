@@ -31,9 +31,6 @@ use strict;
 use warnings;
 
 use Bio::Pfam::HMM::HMMResultsIO;
-use Bio::Pfam::Active_site::as_search;
-use Bio::SimpleAlign;
-use Bio::Pfam::Scan::Seq;
 
 use Carp;
 use IPC::Run qw( start finish );
@@ -607,47 +604,112 @@ each results object.
 sub _pred_act_sites {
   my $self = shift;
 
-  # print STDERR "predicting active sites...\n";
+  foreach my $result ( @{ $self->{_all_results} } ) {
 
-  my $hmm_file = $self->{_dir} . '/Pfam-A.hmm';
+    foreach my $unit ( @{ $result->units } ) {
 
-RESULT: foreach my $result ( @{ $self->{_all_results} } ) {
+      next unless ( $self->{_act_site_data}->{ $unit->name } ); #No active site data for this family
+      my @seq=split(//, $unit->hmmalign->{seq});
 
-    # print STDERR "result: |" . $result->seqName . "|\n";
+      my $subpattern;
+      my %matched_patterns; #Store matched hmm positions in this hash. Use to see if future patterns are subpatterns 
 
-  UNIT: foreach my $unit ( @{ $result->units } ) {
+      foreach my $as_pattern (@{$self->{_act_site_data}->{ $unit->name }}) { #$as_pattern contains active site residues from a single seq, eg 'S:23 T:34 S:56'
 
-      # print STDERR "family: |" . $unit->name . "|\n";
+        #Check this isn't a subpattern of a bigger pattern already found on the sequence
+        #Patterns were added to @{$self->{_act_site_data}} in order of size (longest pattern first)
+        foreach my $asp (keys %matched_patterns) {
+          my $different=0;
+          while($as_pattern  =~ m/(\S):(\d+)/g) {  #eg 'S:23 T:34 S:56'
+            my ($residue, $hmm_position) = ($1, $2);
+            if(exists($matched_patterns{$asp}{$hmm_position})) {
+            }
+            else {
+              $different=1;
+              last;
+            }
+          }
+          unless($different) { #Unless it contains a different pattern to those already added, it's a subpattern
+            $subpattern=1;
+            last;
+          }
+        }
+        if($subpattern) {
+          next;
+        }
 
-      next UNIT
-        unless ( $self->{_act_site_data}->{ $unit->name }->{'alignment'} );
+        my $match;
 
-      my $seq_region = substr(
-        $self->{_seq_hash}->{ $result->seqName },
-        $unit->seqFrom - 1,
-        $unit->seqTo - $unit->seqFrom + 1
-      );
+        #Set up the counters so we know which position we are at
+        my $hmm_counter=$unit->hmmFrom;
+        my $residue_counter=$unit->seqFrom;
 
-      my $seq_se = $unit->seqFrom . '-' . $unit->seqTo;
 
-      # print STDERR "seq_id:     |" . $result->seqName . "|\n";
-      # print STDERR "seq_se:     |" . $seq_se . "|\n";
-      # print STDERR "seq_region: |" . $seq_region . "|\n";
-      # print STDERR "family:     |" . $unit->name . "|\n";
-      # print STDERR "hmm_file:   |" . $hmm_file . "|\n";
-      # print STDERR "dir:        |" . $self->{_dir} . "|\n";
+        #Now check to see if pattern is in this sequence 
+        #Put pattern into a hash
+        my %as_positions;
+        my $in_seq;
+        pos($as_pattern) = 0; #Have to reset to 0 as already performed reg ex on it, otherwise it may start looking from the position of the last match
+        while($as_pattern  =~ m/(\S):(\d+)/g) {  #$as_pattern contains active site residues from a single seq, eg 'S:23 T:34 S:56'
+          my ($residue, $hmm_position) = ($1, $2);
+          $as_positions{$hmm_position}=$residue;
+          $in_seq=1 if($hmm_position >= $unit->hmmFrom and $hmm_position <= $unit->hmmTo);
+        }
+        next unless($in_seq); #Active site residue positions are not located in this region
 
-      $unit->{act_site} = Bio::Pfam::Active_site::as_search::find_as(
-        $self->{_act_site_data}->{ $unit->name }->{'alignment'},
-        $self->{_act_site_data}->{ $unit->name }->{'residues'},
-        $result->seqName,
-        $seq_se,
-        $seq_region,
-        $unit->name,
-        $hmm_file
-      );
+        #Look for the active site pattern in the sequence
+        #Active site residues will be in match postions only
+        foreach my $aa (@seq) {
+          if ($aa =~ /[A-Z]/) {  #Uppercase residues are match states
+            if(exists($as_positions{$hmm_counter})) { #It's an active site residue position
+              if($aa eq $as_positions{$hmm_counter}) { #Does it have the correct aa at that position
+                $match.="," if($match);
+                $match.=$residue_counter;
+                $matched_patterns{$as_pattern}{$hmm_counter}=1; 
+                delete $as_positions{$hmm_counter};
+                last unless(keys %as_positions);
+              }
+              else {
+                last;
+              }
+            }
+
+            $hmm_counter++;
+            $residue_counter++;
+          }
+          elsif($aa eq "-") { #Deletion in a match state position
+            if(exists($as_positions{$hmm_counter})) {
+              last;
+            }
+            $hmm_counter++; 
+          }
+          elsif ($aa =~ /[a-z]/)  { #Lowercase residues are not match state positions
+            if(exists($as_positions{$hmm_counter})) {
+              last;
+            } 
+            $residue_counter++;
+          }
+          elsif($aa eq ".") { #'.' is not a match state position
+            if(exists($as_positions{$hmm_counter})) {
+              last;
+            } 
+          }     
+          else {
+            die "Unrecognised character [$aa] in ".$unit->hmmalign->{seq};
+          }
+        }
+
+        #If it matched all residues in the pattern, add it, if not delete the pattern from the matched patterns hash
+        if(keys %as_positions) {  #This hash will be empty if all positions were matched
+          delete $matched_patterns{$as_pattern};
+        }
+        else {
+          push(@{$unit->{'act_site'}}, $match); #$match eg '30,55,67' 
+        }
+      }
     }
   }
+
 }
 
 #-------------------------------------------------------------------------------
@@ -716,7 +778,7 @@ sub _read_pfam_data {
 
 #-------------------------------------------------------------------------------
 
-=head2 _read_act_site_data
+=head2 _parse_act_site_data
 
 Reads the Pfam active site data file ("active_site.dat") and populates
 the C<act_site_data> hashes on the object.
@@ -727,46 +789,25 @@ sub _parse_act_site_data {
   my $self   = shift;
   my $as_dat = $self->{_dir} . '/active_site.dat';
 
-  $self->{_act_site_data} = {};
+  $self->{_act_site_data} = {}; 
 
   open( AS, $as_dat )
     or croak qq(FATAL: Couldn\'t open "$as_dat" data file: $!);
 
-  my ( $fam_id, $aln );
+  my ( $fam_id);
 
   while (<AS>) {
     if (/^ID\s+(\S+)/) {
       $fam_id = $1;
-      $aln    = new Bio::SimpleAlign;
     }
-    elsif (/^AL\s+(\S+)\/(\d+)\-(\d+)\s+(\S+)/) {
-      my ( $seq_id, $st, $en, $seq ) = ( $1, $2, $3, $4 );
-
-      $aln->add_seq(
-        Bio::Pfam::Scan::Seq->new(
-          '-seq'   => $seq,
-          '-id'    => $seq_id,
-          '-start' => $st,
-          '-end'   => $en,
-          '-type'  => 'aligned'
-        )
-      );
+    elsif(/^RE\s+\S+\s+\S+/) {
+      croak qq(FATAL: You are using an older version of the active_site.dat file which is incompatible with this version of pfam_scan.pl. Please download the current Pfam HMMs and active_site.dat file from the Pfam ftp site.\n);
     }
-    elsif (/^RE\s+(\S+)\s+(\d+)/) {
-      my ( $seq_id, $res ) = ( $1, $2 );
-      push(
-        @{ $self->{_act_site_data}->{$fam_id}->{'residues'}->{$seq_id} },
-        $res
-      );
-
+    elsif (/^\S+\s+(.+)$/) { #P06959 C:150 H:206 D:210
+      push(@{ $self->{_act_site_data}->{$fam_id}}, $1);
     }
     elsif (/^\/\//) {
-
-      $self->{_act_site_data}->{$fam_id}->{'alignment'} = $aln;
-
       $fam_id = "";
-      $aln    = "";
-
     }
     else {
       warn "Ignoring line:\n[$_]";
