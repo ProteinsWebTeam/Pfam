@@ -450,6 +450,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 active_site_hmm_positions
+
+Type: has_many
+
+Related object: L<PfamLive::Result::ActiveSiteHmmPosition>
+
+=cut
+
+__PACKAGE__->has_many(
+  "active_site_hmm_positions",
+  "PfamLive::Result::ActiveSiteHmmPosition",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 alignments_and_tree
 
 Type: has_many
@@ -780,6 +795,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 pfam_a_ncbi_uniprots
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamANcbiUniprot>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfam_a_ncbi_uniprots",
+  "PfamLive::Result::PfamANcbiUniprot",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 pfam_a_ncbis
 
 Type: has_many
@@ -931,8 +961,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 16:00:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pB0mxqKU6nLWHaYDKXJWmQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-07-06 13:42:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zpMYqLuEZiFYvgVyZeiTcA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
