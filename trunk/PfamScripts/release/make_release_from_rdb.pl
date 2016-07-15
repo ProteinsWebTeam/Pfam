@@ -688,40 +688,27 @@ sub makePfamAScanFile {
 sub makeActiveSiteDat {
   my ( $releaseDir, $pfamDB ) = @_;
 
-  my @allData =
-    $pfamDB->getSchema->resultset("ActiveSiteAlignment")
-    ->search( {}, { join => [qw(pfama_acc)] } );
-
+  my @allData=$pfamDB->getSchema->resultset('ActiveSiteHmmPosition')->search({}, { join => [qw(pfama_acc)]});
+  
   my $file = $releaseDir . "/active_site.dat";
   open( FH, ">$file" ) or die "Couldn't open $file $!";
 
+
+  my %asData;
   foreach my $row (@allData) {
-    
-    my $id = $row->pfama_acc->pfama_id;
-    print FH "ID  $id\n";
+    $asData{$row->pfama_acc->pfama_id}{$row->pfamseq_acc}.=" " if(exists($asData{$row->pfama_acc->pfama_id}{$row->pfamseq_acc}));
+    $asData{$row->pfama_acc->pfama_id}{$row->pfamseq_acc}.= $row->residue.":".$row->hmm_position;
+  }
 
-    my @residues = split( /, /, $row->get_column('as_residues') );
+  foreach my $pfamA_id (sort keys %asData) {
+    print FH "ID  ".$pfamA_id."\n";
 
-    foreach my $r (@residues) {
-      print FH "RE  $r\n";
-    }
-
-    my $al = Compress::Zlib::memGunzip( $row->get_column('alignment') );
-
-    my @al = split( /\n/, $al );
-    foreach my $row (@al) {
-      if ( $row =~ /(\S+)\.\d+(\/.+)/ ) {
-        print FH "AL  $1$2\n";
-      }
-      else {
-        print FH "AL  $row\n";
-      }
+    foreach my $pfamseq_acc (sort { length($asData{$pfamA_id}{$b}) <=> length($asData{$pfamA_id}{$a}) } keys %{$asData{$pfamA_id}}) {  #Sort by length of pattern (this is important for removing subpatterns in pfam_scan.pl)
+      print FH "$pfamseq_acc $asData{$pfamA_id}{$pfamseq_acc}\n";
     }
     print FH "//\n";
-
   }
   close FH;
-
 }
 
 sub checkReleaseNumbers {
