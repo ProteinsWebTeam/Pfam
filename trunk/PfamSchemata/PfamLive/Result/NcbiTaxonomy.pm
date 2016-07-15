@@ -71,6 +71,21 @@ __PACKAGE__->set_primary_key("ncbi_taxid");
 
 =head1 RELATIONS
 
+=head2 pfam_a_ncbi_uniprots
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamANcbiUniprot>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfam_a_ncbi_uniprots",
+  "PfamLive::Result::PfamANcbiUniprot",
+  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 pfam_a_ncbis
 
 Type: has_many
@@ -117,8 +132,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 16:00:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tVkm/KtgO8nP8B3XCMjUJw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-07-06 13:42:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sOCPSPOjTTfsOARrnSwDGg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
