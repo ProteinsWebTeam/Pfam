@@ -510,7 +510,7 @@ sub processALIGN {
   my $aliIds = $self->_alignAcc2id( $ali, $regs );
 
   #Populate pdb_pfamA_reg using data from pdb_residue_data for family
-  #$self->pdbPfamAReg();
+  $self->pdbPfamAReg();
   
   #Add secondary structure strings
   my ($ssStrings) = $self->addSecondaryStructure( $aliIds, $type );
