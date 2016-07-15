@@ -62,7 +62,7 @@ $view->versionFiles;
 my $GFAnn = $view->getGFAnnotations;
 
 #Active site prediction object
-$view->initiateActiveSiteObj($GFAnn);
+$view->initiateActiveSiteObj();
 $view->processALIGN( $GFAnn );
 $view->processSEED( $GFAnn );
 $view->processHMMs( );
