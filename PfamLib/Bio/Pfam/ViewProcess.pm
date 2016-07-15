@@ -27,7 +27,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::AlignPfam;
-use Bio::Pfam::Active_site::as_align;
+use Bio::Pfam::ViewProcess::ActiveSite;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::PfamLiveDBManager;
@@ -115,26 +115,16 @@ sub pfam {
   return( $self->{pfam}); 
 }
 
+
+
 sub initiateActiveSiteObj {
-  my ($self, $GFAnn) = @_;
-  my $asp;
-    $asp = Bio::Pfam::Active_site::as_align->new(
-        -pfama_acc      => $self->pfam->pfama_acc,
-      -database  => $self->pfamdb,
-      -nested    => $GFAnn->{nestA}
-    );
-  $self->activeSite($asp); 
+  my ($self) = @_;
+  my $asp = Bio::Pfam::ViewProcess::ActiveSite->new(
+             -pfama_acc  => $self->pfam->pfama_acc,
+             -database   => $self->pfamdb);
+  $self->{asp} = $asp; 
 }
 
-sub activeSite{
-  my ( $self, $asp) = @_;
-  
-  if( $asp ){
-    $self->{asp} = $asp;  
-  }
- 
-  return( $self->{asp}); 
-}
 
 sub initiateViewProcess {
   my ( $self, $famObj, $name ) = @_;
@@ -511,19 +501,16 @@ sub processALIGN {
   my $ali =  $self->_verifyFullRegions( $regs, $a );
 
 #-------------------------------------------------------------------------------
-#Adding annotations.
-#TODO remove print below (debugging)
-#print "Ali: " . p($ali);
 
   #Predict active site residues
   $self->logger->debug("Going to add active site data to FULL");
-  $ali = $self->activeSite->full($ali);
+  $ali = $self->{asp}->active_site_prediction($ali);
 
   #By default, the ids are actually accesions. This swaps them over.
   my $aliIds = $self->_alignAcc2id( $ali, $regs );
 
   #Populate pdb_pfamA_reg using data from pdb_residue_data for family
-  $self->pdbPfamAReg();
+  #$self->pdbPfamAReg();
   
   #Add secondary structure strings
   my ($ssStrings) = $self->addSecondaryStructure( $aliIds, $type );
@@ -1004,9 +991,9 @@ sub processSEED {
   my $regs = $self->_getSeedRegions;
   $self->_verifySeedRegions( $regs, $ali );
 
-  #Add predicted active site residues
+  #Markup predicted active site residues
   $self->logger->debug("Going to add active site data to SEED");
-  $ali = $self->activeSite->seed($ali);
+  $ali = $self->{asp}->active_site_display_line($ali);
 
   #Make a tree for the alignment.
   $self->make_tree( $filename, $regs, "pfamseq" );
