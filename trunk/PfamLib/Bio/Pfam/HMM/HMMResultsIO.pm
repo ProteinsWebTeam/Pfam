@@ -1147,8 +1147,11 @@ sub write_ascii_out {
 	
 	    
 	    if($unit->{'act_site'}) {
-		local $" = ",";
-		print $fh "predicted_active_site[@{$unit->{'act_site'}}]";
+        local $" = ",";
+        print $fh "predicted_active_site";
+        foreach my $active_site (@{$unit->{'act_site'}}) {
+          print "[$active_site]";
+        }
 	    }
 	
 	    if($scanData->{_translate}){
