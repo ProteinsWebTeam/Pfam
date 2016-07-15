@@ -44,53 +44,6 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 #set uniprot location
 my $uniprot_location = $config->uniprotPrivateLoc;
 
-##Email to see if it is safe to update sequence db
-#unless (-e "$status_dir/maileduniprot.txt"){
-#    open( FH, "> $status_dir/maileduniprot.txt" ) or die "Can not write to file $status_dir/maileuniprotd.txt";
-#    close(FH);
-#    $logger->info("Sending email to UniProt production team\n");
-#
-#my $message = <<EOF;
-#Dear UniProt Production Team,
-#
-#The Pfam team have just begun a sequence update. 
-#
-#Before we continue with our sequence update we would like to check with you that you are not currently copying data over to the following files:
-#$uniprot_location/uniprot_trembl.dat.gz
-#$uniprot_location/uniprot_sprot.dat.gz
-#
-#Please can you reply to this email and let us know if data is currently being copied to these files.
-#
-#Many thanks
-#
-#The Pfam Team
-#
-#EOF
-#
-#	my $user = $ENV{USER};
-#
-#    my %header = (
-#	To => 'ruthe@ebi.ac.uk',
-#	From => $user . '@ebi.ac.uk',
-#	Subject => 'UniProt pre-release data'
-#	);
-#
-#    my $mailer = Mail::Mailer->new;
-#    $mailer -> open( \%header );
-#    print $mailer $message or $logger->logdie("Failed to email UniProt production\n");
-#    $mailer->close;
-#
-##check if reply has been recieved from uniprot?
-#    print "Has a reply been recieved from UniProt? Please enter Y/N:\n";
-#    my $reply = <STDIN>;
-#    chomp $reply;
-#    my $lc_reply = lc($reply);
-#    if ( $lc_reply ne "y") {
-#	$logger->logdie("No reply has been recieved from UniProt. Exiting.\n");
-#    }
-#
-#}
-
 
 #Get reldate.txt from UniProt ftp directory
 if(-s "$pfamseq_dir/reldateRP.txt") {
@@ -204,8 +157,14 @@ else {
           }
 
         }
-        elsif( $line =~ /^ID\s+(\S+)/){
+        elsif( $line =~ /^ID\s+(\S+)\s+(\S+)/){
           $record{'ID'} = $1;  
+          if($2 eq 'Reviewed') {
+            $record{'SWISSPROT'}=1;
+          }
+          else {
+            $record{'SWISSPROT'}=0;
+          }
         }
         elsif( $line =~ /^DT\s+.+sequence\s+version\s+(\d+)/) {
           $record{'SEQ_VER'} = $1;
@@ -362,32 +321,11 @@ else {
 
       chop $record{'OS'} if($record{'OS'} =~ /\.$/); #Remove trailing '.'
 
-      my $is_frag;
-      if($record{'DE_FLAG'}) {
-        $is_frag = 1;
-      } 
-      else {
-        $is_frag = 0;
-      }
+      my $is_frag=0;
+      $is_frag = 1 if($record{'DE_FLAG'});
 
-      my $complete;
-      my $reference;
-      if($record{'Reference_proteome'}) {
-        $reference = 1;
-      } 
-      else {
-        $reference = 0;
-      }
-
-      if($record{'Complete_proteome'}) {
-        $complete = 1;
-      } 
-      else {
-        $complete = 0;
-
-      }
       #This will be uploaded into the tmp_pfamseq table.
-      print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\n";
+      print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\t$record{'SWISSPROT'}\n";
       
 #count for debugging
       $count2++;
@@ -398,28 +336,41 @@ else {
         }
       }
 
-####need to parse out evidence tags here###	    
+####need to parse out evidence tags here###	    i
       if($record{'AS'}) {
         foreach my $residue (keys %{$record{'AS'}}) {
-          if( lc($record{'AS'}{$residue}) =~ /(potential|probable|similarity)/) {
-            print ACT_METAL "$record{'AC'}\t3\t$residue\t$record{'AS'}{$residue}\n";
+          #Treat following codes as experimental evidence:
+          #ECO:0000269 - Experimental evidence
+          #ECO:0000305 - Curator inference evidence
+          #ECO:0000303 - Non-traceable author statement evidence
+          if($record{'AS'}{$residue} =~ /ECO:0000269/ or $record{'AS'}{$residue} =~ /ECO:0000305/ or $record{'AS'}{$residue} =~ /ECO:0000303/) { 
+            print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\n"; #auto_markup 1 = expermentally determined active site
           }
-          else {
+          elsif( lc($record{'AS'}{$residue}) =~ /(potential|probable|similarity)/ or $record{'AS'}{$residue} =~ /ECO:/) {  #Predicted feature
+            print ACT_METAL "$record{'AC'}\t3\t$residue\t$record{'AS'}{$residue}\n"; #auto_markup 3 = uniprot predicted active site
+          }
+          else {  #If it doesn't have an ECO code and doesn't have potential/probable/similarity, assume it's an expermentally determined feature  
             print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\n";
-
           } 
+          
         }
       }
 
 ####need to parse out evidence tags here###	    
       if($record{'ME'}) {
         foreach my $residue (keys %{$record{'ME'}}) {
-          if( lc($record{'ME'}{$residue}) =~ /(potential|probable|similarity)/) {
+          #Treat following codes as experimental evidence:
+          #ECO:0000269 - Experimental evidence
+          #ECO:0000305 - Curator inference evidence
+          #ECO:0000303 - Non-traceable author statement evidence
+          if($record{'ME'}{$residue} =~ /ECO:0000269/ or $record{'ME'}{$residue} =~ /ECO:0000305/ or $record{'ME'}{$residue} =~ /ECO:0000303/) { #Evidence code for experimentally determined feature
+            print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\n"; #auto_markup 4 = experimentally determined metal ion binding 
+          }
+          elsif( lc($record{'ME'}{$residue}) =~ /(potential|probable|similarity)/ or $record{'ME'}{$residue} =~ /ECO:/) { #auto_markup 5 = uniprot predicted metal ion binding
             print ACT_METAL "$record{'AC'}\t5\t$residue\t$record{'ME'}{$residue}\n";
           }
-          else {
+          else { #If it doesn't have an ECO code and doesn't have potential/probable/similarity, assume it's an expermentally determined feature
             print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\n";
-
           } 
         }
       }
@@ -505,8 +456,8 @@ if ( -e "$status_dir/uploaded_pfamseq" ) {
 }
 else {
   $logger->info("Uploading $cwd/$pfamseq_dir/pfamseq.dat to tmp_pfamseq\n");
-  my $sth = $dbh->prepare( 'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'); #mySQL statement updated for new schema
-  _loadTable( $dbh, "$cwd/$pfamseq_dir/pfamseq.dat", $sth, 17 ); 
+  my $sth = $dbh->prepare( 'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'); 
+  _loadTable( $dbh, "$cwd/$pfamseq_dir/pfamseq.dat", $sth, 18 ); 
 
   system("touch $status_dir/uploaded_pfamseq")
     and $logger->logdie("Couldn't touch $status_dir/uploaded_pfamseq:[$!]\n");
