@@ -697,7 +697,7 @@ sub makeActiveSiteDat {
   my %asData;
   foreach my $row (@allData) {
     $asData{$row->pfama_acc->pfama_id}{$row->pfamseq_acc}.=" " if(exists($asData{$row->pfama_acc->pfama_id}{$row->pfamseq_acc}));
-    $asData{$row->pfama_acc->pfama_id}{$row->pfamseq_acc}.= $row->residue.":".$row->hmm_position;
+    $asData{$row->pfama_acc->pfama_id}{$row->pfamseq_acc}.= $row->residue.$row->hmm_position;
   }
 
   foreach my $pfamA_id (sort keys %asData) {
