@@ -179,7 +179,7 @@ sub _extract_act_site_positions {
         $match_state++;
         if(exists($self->{_as_positions}->{$acc}->{$residue_number})) {
           $pattern.=" " if($pattern);
-          $pattern.="$aa:$match_state";
+          $pattern.="$aa"."$match_state";
           delete $self->{_as_positions}->{$acc}->{$residue_number};
         }
         unless(keys %{$self->{_as_positions}->{$acc}}) {
@@ -227,13 +227,13 @@ sub _remove_subpatterns {
       #Put active site positions and residues into a hash
       my %asp;
       pos($asp)=0;
-      while($asp  =~ m/(\S):(\d+)/g) { #$1=residue $2=hmm_position
+      while($asp  =~ m/(\S)(\d+)/g) { #$1=residue $2=hmm_position
         $asp{$2}=$1;
       }   
       
       #Check this isn't a subpattern of a bigger pattern already found on the sequence
       my $different;
-      while($as_pattern  =~ m/(\S):(\d+)/g) {
+      while($as_pattern  =~ m/(\S)(\d+)/g) {
         unless(exists($asp{$2})) {
           $different=1;
           last;
@@ -323,7 +323,7 @@ sub _upload_patterns {
 
   foreach my $pattern (sort { length($b) <=> length($a) } keys %{$self->{_patterns}}) { #Sort the patterns according to length
     push(@{$self->{_as_hmm_positions}}, $pattern);
-    while($pattern  =~ m/(\S):(\d+)/g) { #$1=residue $2=hmm_position
+    while($pattern  =~ m/(\S)(\d+)/g) { #$1=residue $2=hmm_position
       my ($residue, $hmm_position) = ($1, $2);
 
       $self->{database}->getSchema->resultset('ActiveSiteHmmPosition')->create( {
@@ -357,13 +357,13 @@ sub _pred_act_sites {
     my $subpattern;
     my %matched_patterns; #Store matched hmm positions in this hash. Use to see if future patterns are subpatterns 
 
-    foreach my $as_pattern (@{$self->{_as_hmm_positions}}) { #$as_pattern contains active site residues from a single seq, eg 'S:23 T:34 S:56'
+    foreach my $as_pattern (@{$self->{_as_hmm_positions}}) { #$as_pattern contains active site residues from a single seq, eg 'S23 T34 S56'
 
       #Check this isn't a subpattern of a bigger pattern already found on the sequence
       #Patterns were added to @{$self->{_as_hmm_positions}} in order of size (longest pattern first)
       foreach my $asp (keys %matched_patterns) {
         my $different=0;
-        while($as_pattern  =~ m/(\S):(\d+)/g) {  #eg 'S:23 T:34 S:56'
+        while($as_pattern  =~ m/(\S)(\d+)/g) {  #eg 'S23 T34 S56'
           my ($residue, $hmm_position) = ($1, $2);
           if(exists($matched_patterns{$asp}{$hmm_position})) {
           }
@@ -392,7 +392,7 @@ sub _pred_act_sites {
       #Put pattern into a hash
       my %as_positions;
       pos($as_pattern) = 0; #Have to reset to 0 as already performed reg ex on it, otherwise it may start looking from the position of the last match
-      while($as_pattern  =~ m/(\S):(\d+)/g) {  #$as_pattern contains active site residues from a single seq, eg 'S:23 T:34 S:56'
+      while($as_pattern  =~ m/(\S)(\d+)/g) {  #$as_pattern contains active site residues from a single seq, eg 'S23 T34 S56'
         my ($residue, $hmm_position) = ($1, $2);
         $as_positions{$hmm_position}=$residue;
       }
