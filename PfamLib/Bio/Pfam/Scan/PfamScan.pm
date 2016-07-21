@@ -614,13 +614,13 @@ sub _pred_act_sites {
       my $subpattern;
       my %matched_patterns; #Store matched hmm positions in this hash. Use to see if future patterns are subpatterns 
 
-      foreach my $as_pattern (@{$self->{_act_site_data}->{ $unit->name }}) { #$as_pattern contains active site residues from a single seq, eg 'S:23 T:34 S:56'
+      foreach my $as_pattern (@{$self->{_act_site_data}->{ $unit->name }}) { #$as_pattern contains active site residues from a single seq, eg 'S23 T34 S56'
 
         #Check this isn't a subpattern of a bigger pattern already found on the sequence
         #Patterns were added to @{$self->{_act_site_data}} in order of size (longest pattern first)
         foreach my $asp (keys %matched_patterns) {
           my $different=0;
-          while($as_pattern  =~ m/(\S):(\d+)/g) {  #eg 'S:23 T:34 S:56'
+          while($as_pattern  =~ m/(\S)(\d+)/g) {  #eg 'S23 T34 S56'
             my ($residue, $hmm_position) = ($1, $2);
             if(exists($matched_patterns{$asp}{$hmm_position})) {
             }
@@ -650,7 +650,7 @@ sub _pred_act_sites {
         my %as_positions;
         my $in_seq;
         pos($as_pattern) = 0; #Have to reset to 0 as already performed reg ex on it, otherwise it may start looking from the position of the last match
-        while($as_pattern  =~ m/(\S):(\d+)/g) {  #$as_pattern contains active site residues from a single seq, eg 'S:23 T:34 S:56'
+        while($as_pattern  =~ m/(\S)(\d+)/g) {  #$as_pattern contains active site residues from a single seq, eg 'S23 T34 S56'
           my ($residue, $hmm_position) = ($1, $2);
           $as_positions{$hmm_position}=$residue;
           $in_seq=1 if($hmm_position >= $unit->hmmFrom and $hmm_position <= $unit->hmmTo);
