@@ -12,11 +12,13 @@ use IO::File;
 use Bio::Pfam::Config;
 
 #Get user options
-my ($help, $fasta, $split_number, $hmm_dir, $output);
+my ($help, $fasta, $split_number, $hmm_dir, $output, $clan_overlap, $as);
 &GetOptions ("fasta=s" => \$fasta,
              "split=i" => \$split_number,
-	     "hmm_dir=s" => \$hmm_dir, 
-	     "output=s"  => \$output);
+	         "hmm_dir=s" => \$hmm_dir, 
+	         "output=s"  => \$output,
+        "clan_overlap" => \$clan_overlap,
+         "as"          => \$as );
 
 #Does fasta file exist
 unless($fasta and -s $fasta) {
@@ -103,17 +105,30 @@ print STDERR "Submitting $j+1 pfam_scan.pl jobs to farm\n";
 my $num_files = "1-$j";
 my $fh = IO::File->new();
 
+my $options="";
+if($as) {
+  $options.="-as";
+}
+if($clan_overlap) {
+  $options.=" " if($options);
+  $options.="-clan_overlap";
+}
 
-$fh->open( "| bsub -q ". $config->farm->{lsf}->{queue}." -o $name.err -J$name\"[$num_files]\" -R \"rusage[mem=2000]\" -M 2000") or die "Couldn't open file handle\n";
-$fh->print( "pfam_scan.pl -dir $hmm_dir -fasta $name\$\{LSB_JOBINDEX} -cpu 4 > $name\$\{LSB_JOBINDEX}.out\n"); 
+#Use process id to make the jobname unique
+my $jobname = $$.$name;
+
+$fh->open( "| bsub -q ". $config->farm->{lsf}->{queue}." -o $name.err -J$jobname\"[$num_files]\" -R \"rusage[mem=2000]\" -M 2000") or die "Couldn't open file handle\n";
+$fh->print( "pfam_scan.pl -dir $hmm_dir -fasta $name\$\{LSB_JOBINDEX} $options -cpu 4 > $name\$\{LSB_JOBINDEX}.out\n"); 
 $fh->close;
+
 
 
 #Concatenate output files into one
 #Remove intermediate files
+my $jobname2=$jobname."_cat";
 my $fh2 = IO::File->new();
 
-$fh2->open( "| bsub -q ". $config->farm->{lsf}->{queue}." -o $name.log -Jcat_$name -w 'done($name)' " ) or die "Couldn't open file handle\n";
+$fh2->open( "| bsub -q ". $config->farm->{lsf}->{queue}." -o $name.log -J$jobname2 -w 'done($jobname)' " ) or die "Couldn't open file handle\n";
 $fh2->print("cat $name*out > $output\n");
 $fh2->print("rm -fr $name*\[0-9\]\n");
 $fh2->print("rm -fr $name*out\n");
@@ -134,10 +149,11 @@ EXAMPLE:
 $0 -fasta NR_PDB.fasta -hmm_dir <directory location of HMMs>
 
 OPTIONS:
-  -split <integer>    Number of sequences to put in each smaller file 
-                      (value must be >=50 and <=10000, default: 1000)
-
-  -output <filename>  Name of output file (default: pfam_scan_result)
+  -split <integer>   : Number of sequences to put in each smaller file 
+                       (value must be >=50 and <=10000, default: 1000)
+  -output <filename> : Name of output file (default: pfam_scan_result)
+  -clan_overlap      : Show overlapping hits within clan member families
+  -as                : Predict active site residues for Pfam-A matches
  
 EOF
  
