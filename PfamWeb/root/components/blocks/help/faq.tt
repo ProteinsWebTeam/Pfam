@@ -18,33 +18,32 @@
     <div class="sections">
       <p>Contents:</p>
       <ol id="questionSelector">
-        <li><a class="link" rel="whatispfam">What is Pfam ?</a></li>
-        <li><a class="link" rel="family">What is on a Pfam-A family page ?</a></li>
-        <li><a class="link" rel="clan">What is a clan ?</a></li>
+        <li><a class="link" rel="whatispfam">What is Pfam?</a></li>
+        <li><a class="link" rel="family">What is on a Pfam-A family page?</a></li>
+        <li><a class="link" rel="clan">What is a clan?</a></li>
         <li><a class="link" rel="clanBuilding">What criteria do you use for putting families<br />
-          into clans ?</a></li>
-        <li><a class="link" rel="lsfs">What happened to the Pfam_ls and Pfam_fs files ?</a></li>
+          into clans?</a></li>
+        <li><a class="link" rel="lsfs">What happened to the Pfam_ls and Pfam_fs files?</a></li>
         <li><a class="link" rel="wise">I was wondering if it is possible to build Wise2 with<br />
-          HMMER3 support ? </a></li>
-        <li><a class="link" rel="dnaSearch">Can I search DNA against Pfam ?</a></li>
-        <li><a class="link" rel="localSearch">How can I search Pfam locally ?</a></li>
-        <li><a class="link" rel="noSeq">Why doesn't Pfam include my sequence ?</a></li>
+          HMMER3 support?</a></li>
+        <li><a class="link" rel="localSearch">How can I search Pfam locally?</a></li>
+        <li><a class="link" rel="noSeq">Why doesn't Pfam include my sequence?</a></li>
         <li><a class="link" rel="whyDup">Why is there apparent redundancy of UniProt IDs in the<br />
-          full-length FASTA sequence file ?</a></li>
-        <li><a class="link" rel="howMany">How many accurate alignments do you have ?</a></li>
-        <li><a class="link" rel="submit">How can I submit a new domain ?</a></li>
-        <li><a class="link" rel="ipfam">What is iPfam ?</a></li>
-        <li><a class="link" rel="mySearch">Can I search my protein against Pfam ?</a></li>
+          full-length FASTA sequence file?</a></li>
+        <li><a class="link" rel="howMany">How many accurate alignments do you have?</a></li>
+        <li><a class="link" rel="submit">How can I submit a new domain?</a></li>
+        <li><a class="link" rel="ipfam">What is iPfam?</a></li>
+        <li><a class="link" rel="mySearch">Can I search my protein against Pfam?</a></li>
         <li><a class="link" rel="gaps">What is the difference between the '-' and '.'<br />
-          characters in your full alignments ?</a></li>
-        <li><a class="link" rel="sssa">What do the SS lines in the alignment mean ?</a></li>
-        <li><a class="link" rel="missing">You don't have domain YYYY in Pfam !</a></li>
-        <li><a class="link" rel="other">Are there other databases which do this ?</a></li>
-        <li><a class="link" rel="best">So which database is better ?</a></li>
+          characters in your full alignments?</a></li>
+        <li><a class="link" rel="sssa">What do the SS lines in the alignment mean?</a></li>
+        <li><a class="link" rel="missing">You don't have domain YYYY in Pfam!</a></li>
+        <li><a class="link" rel="other">Are there other databases which do this?</a></li>
+        <li><a class="link" rel="best">So which database is better?</a></li>
       </ol> 
     </div>
   
-    <h3><a name="whatispfam">What is Pfam ?</a></h3>
+    <h3><a name="whatispfam">What is Pfam?</a></h3>
   
     <p>
       Pfam is a collection of multiple sequence alignments and profile hidden Markov
@@ -63,7 +62,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="family">What is on a Pfam-A family page ?</a></h3>
+    <h3><a name="family">What is on a Pfam-A family page?</a></h3>
   
     <p>
       From the family page you can view the Pfam annotation for a family. We
@@ -90,7 +89,7 @@
     </ul> 
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="clan">What is a clan ?</a></h3>
+    <h3><a name="clan">What is a clan?</a></h3>
   
     <p>
       Some of the Pfam families are grouped into <em>clans</em>. Pfam defines a
@@ -107,7 +106,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="clanBuilding">What criteria do you use for putting families into clans ?</a></h3>
+    <h3><a name="clanBuilding">What criteria do you use for putting families into clans?</a></h3>
   
     <p>
       We use a variety of measures. Where possible we do use structures to guide 
@@ -129,7 +128,7 @@
     <p><a class="link" rel="faqTop">back to top</a></p>
   
     <h3><a name="wise">I was wondering if it is possible to build Wise2 with HMMER3 
-		  support ?</a></h3>
+		  support?</a></h3>
   
     <p>
 			The way we get round the problem with the difference in HMMER versions,
@@ -161,20 +160,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="dnaSearch">Can I search DNA against Pfam ?</a></h3>
-  
-    <p>
-      The Wise2 software package allows the comparison of protein HMMs to genomic
-      DNA. We use this package to allow users to search single DNA sequences
-      against the library of Pfam HMMs. Paste your DNA sequence into the DNA 
-      search box on the
-      <a href="[% c.uri_for('/search', tab='searchDnaBlock') %]">search page</a>.
-      The results take approximately 2 minutes for
-      a 1kb sequence, and approximately 1 hour for a 80kb sequence. 
-    </p>
-    <p><a class="link" rel="faqTop">back to top</a></p>
-  
-    <h3><a name="localSearch">How can I search Pfam locally ?</a></h3>
+    <h3><a name="localSearch">How can I search Pfam locally?</a></h3>
   
     <p>
       If you have a large number of sequences or you don't want to post your
@@ -195,7 +181,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="noSeq">Why doesn't Pfam include my sequence ?</a></h3>
+    <h3><a name="noSeq">Why doesn't Pfam include my sequence?</a></h3>
   
     <p>
       Pfam is built from a fixed release of UniProt. At each Pfam release we
@@ -208,7 +194,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="whyDup">Why is there apparent redundancy of UniProt IDs in the full-length FASTA sequence file ?</a></h3>
+    <h3><a name="whyDup">Why is there apparent redundancy of UniProt IDs in the full-length FASTA sequence file?</a></h3>
   
     <p>
       A given Pfam family may match a single protein sequence multiple times,
@@ -220,7 +206,7 @@
 
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="howMany">How many accurate alignments do you have ?</a></h3>
+    <h3><a name="howMany">How many accurate alignments do you have?</a></h3>
   
     <p>
       Release [% relData.pfam_release %] has [% relData.number_families %]
@@ -230,7 +216,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="submit">How can I submit a new domain ?</a></h3>
+    <h3><a name="submit">How can I submit a new domain?</a></h3>
   
     <p>
       If you know of a domain that is not present in Pfam, you can
@@ -245,7 +231,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="ipfam">What is iPfam ?</a></h3>
+    <h3><a name="ipfam">What is iPfam?</a></h3>
   
     <p>
       iPfam is a resource that describes domain-domain interactions
@@ -257,7 +243,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="mySearch">Can I search my protein against Pfam ?</a></h3>
+    <h3><a name="mySearch">Can I search my protein against Pfam?</a></h3>
   
     <p>
       Of course! Please use  
@@ -266,16 +252,16 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
     
-    <h3><a name="gaps">What is the difference between the - and . characters in 
-    your full alignments ?</a></h3>
+    <h3><a name="gaps">What is the difference between the '-' and '.' characters in 
+    your full alignments?</a></h3>
   
     <p>
-      The &#39;-&#39; and &#39;.&#39; characters both represent gap 
+      The '-' and '.' characters both represent gap 
       characters. However they do tell you some extra information about how the 
-      HMM has generated the alignment. The &#39;-&#39; symbols are where the 
+      HMM has generated the alignment. The '-' symbols are where the 
       alignment of the sequence has used a delete state in the HMM to jump past a 
       match state. This means that the sequence is missing a column that the HMM 
-      was expecting to be there. The &#39;.&#39; character is used to pad gaps 
+      was expecting to be there. The '.' character is used to pad gaps 
       where one sequence in the alignment has sequence from the HMMs insert state. 
       See the alignment below where both characters are used. The HMM states 
       emitting each column are shown. Note that residues emitted from the 
@@ -296,7 +282,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
     </pre>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="sssa">What do the SS lines in the alignment mean ?</a></h3>
+    <h3><a name="sssa">What do the SS lines in the alignment mean?</a></h3>
   
     <p>
       These lines are structural information. The SS stands for secondary
@@ -318,7 +304,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
   
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="missing">You don't have domain YYYY in Pfam !</a></h3>
+    <h3><a name="missing">You don't have domain YYYY in Pfam!</a></h3>
   
     <p>
       We are very keen to be alerted to new domains. If you can
@@ -330,7 +316,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="other">Are there other databases which do this ?</a></h3>
+    <h3><a name="other">Are there other databases which do this?</a></h3>
   
     <p>
       To a certain extent yes, there are a number of &quot;second generation&quot;
@@ -361,7 +347,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
     </dl>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="best">So which database is better ?</a></h3>
+    <h3><a name="best">So which database is better?</a></h3>
   
     <p>
       As with everything, it depends on your problem: we would
