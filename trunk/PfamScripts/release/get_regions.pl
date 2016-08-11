@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
 #create pfamA-regions.tsv file
+#If -uniprot flag is used, will create Pfam-A.regions.uniprot.tsv file instead
 
 use strict;
 use warnings;
@@ -17,24 +18,34 @@ my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
-my $num;
+my ($num, $uniprot);
 &GetOptions(
     'num=s' => \$num,
+    'uniprot' => \$uniprot
 );
 
-my $file = "regions_" . $num;
 
 #query for version, crc, md5
-my $st = $dbh->prepare("select seq_version, crc64, md5 from pfamseq where pfamseq_acc = ?") or die "Cannot prepare statement\n";
+my ($st, $file, $outfile);
+if($uniprot) {
+  $file = "uniprot_regions_" . $num;
+  $outfile = "uniprot_regionsout_" . $num;
+  $st = $dbh->prepare("select seq_version, crc64, md5 from uniprot where uniprot_acc = ?") or die "Cannot prepare statement\n";
+}
+else {
+  $file  = "regions_" . $num;
+  $outfile = "regionsout_" . $num;
+  $st = $dbh->prepare("select seq_version, crc64, md5 from pfamseq where pfamseq_acc = ?") or die "Cannot prepare statement\n";
+}
 
 #set up outfile
-my $outfile = "regionsout_" . $num;
 open (OUTFILE, ">$outfile") or die "Can't open file to write";
+
 #read in file
 my @data = read_file($file);
 
 foreach my $line (@data){
-    if ($line =~ /^pfamseq_acc/){
+    if ($line =~ /^pfamseq_acc/ or $line =~ /^uniprot_acc/){
         next;
     } elsif ($line =~ /(\w{6,10})\s+(PF\d{5})\s+(\d+)\s+(\d+)/){
         my $seq = $1;
