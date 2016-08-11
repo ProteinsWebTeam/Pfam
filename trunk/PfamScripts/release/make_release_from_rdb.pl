@@ -485,6 +485,70 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
 
 }
 
+unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
+  $logger->info("Making Pfam-A.unkprot.tsv");
+  my $host = $pfamDB->{host};
+  my $user = $pfamDB->{user};
+  my $password = $pfamDB->{password};
+  my $port = $pfamDB->{port};
+  my $db = $pfamDB->{database};
+  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select uniprot_acc, pfamA_acc, seq_start, seq_end from uniprot_reg_full where in_full=1\" > uniprot_regions";
+  system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
+  #split regions file
+  system("split -d -l 1000000 uniprot_regions uniprot_regions_") and $logger->logdie("Could not split uniprot regions file");
+  my $dir = getcwd;
+  my %filenames;
+
+  opendir(DIR, $dir) or $logger->logdie("Couldn't open $dir $!");
+  my @files = readdir(DIR);
+  closedir(DIR);
+  
+  foreach my $file (@files){
+    if ( $file =~ /uniprot_regions_(\d+)/ ){
+        $filenames{$1}=1;
+    }    
+  }
+
+  #submit jobs to farm
+  foreach my $number (keys %filenames){
+      my $fh         = IO::File->new();
+       $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Juniprotregions") or $logger->logdie("Couldn't open file handle [$!]\n");
+       $fh->print( "get_regions.pl -uniprot -num $number\n"); 
+       $fh->close;     
+  }
+  #have jobs finished?
+    if (-e "$logDir/finisheduniprotregions"){
+      $logger->info("Already checked uniprot regions farm jobs have finished\n");
+    } else {
+      my $fin = 0; 
+      while (!$fin){
+          open( FH, "bjobs -Juniprotregions|" );
+          my $jobs;
+          while (<FH>){
+            if (/^\d+/){
+              $jobs++;
+            }    
+          }    
+          close FH;
+          if ($jobs){
+            $logger->info("Uniprot regions farm jobs still running - checking again in 10 minutes\n");
+            sleep(600);
+          } else {
+            $fin = 1; 
+            open( FH, "> $logDir/finisheduniprotregions" ) or $logger->logdie("Can not write to file");
+            close(FH);
+          }    
+      }    
+    }    
+
+    #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
+    open (REGIONS, ">$thisRelDir/Pfam-A.regions.uniprot.tsv") or $logger->logdie("Can't open file to write");
+    print REGIONS "uniprot_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
+    close (REGIONS);
+
+    system("cat uniprot_regionsout_* >> $thisRelDir/Pfam-A.regions.uniprot.tsv") and $logger->logdie("Failed to concatenate uniprot regions files");
+}
+
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
   $logger->info("Making Pfam-A.clans.tsv");
 
@@ -1541,6 +1605,7 @@ sub make_ftp {
     userman.txt
     Pfam.version
     Pfam-A.regions.tsv
+    Pfam-A.regions.uniprot.tsv
     Pfam-A.clans.tsv
     trees.tgz
   );
