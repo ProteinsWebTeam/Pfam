@@ -61,7 +61,7 @@ sub main {
     "E=s"        => \$evalCut,
     "Z=s"        => \$dbsize,
     "max"        => \$max,
-    "biasfilter" => \$bFilt,
+    "nobias"     => \$bFilt,
     'nonull2'    => \$null2,
     'F1=s'       => \$f1,
     'F2=s'       => \$f2,
@@ -394,7 +394,7 @@ sub main {
   }
 
   if ($bFilt) {
-    $searchOptions{"--biasfilter"} = 0;
+    $searchOptions{"--nobias"} = 0;
   }
 
   if ($null2) {
