@@ -732,9 +732,7 @@ Options that influence hmmsearch:
               : not recommended for genral Pfam building as it will run very slowly, 
               : but useful for ensuring that no sequences are rejected by the 
               : filtering.
-  -biasfilter : Turn on composition bias filter.  This can increase speed in some 
-              : cases where there the query domain has bias composition 
-              : e.g. transmembrane domains. 
+  -nobias     : Turn off composition bias filter. **Do not check in a family with this option**
 
 Options for gurus:
   -nonull2    : turn off biased sequence composition corrections to scores    
