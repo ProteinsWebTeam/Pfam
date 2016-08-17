@@ -164,7 +164,7 @@ foreach my $acc (keys %fasta_reduced) {
     ID    => 'ShortName',
     DE    => 'Family description',
     AU    => 'Who RU',
-    SE    => $pdb_id,
+    SE    => 'pdb:$pdb_id',
     CUTGA => { seq => '27.00', dom => '27.00' },
     CUTNC => { seq => '27.00', dom => '27.00' },
     CUTTC => { seq => '27.00', dom => '27.00' },
