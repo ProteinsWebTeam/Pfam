@@ -170,7 +170,7 @@ foreach my $acc (keys %fasta_reduced) {
     CUTTC => { seq => '27.00', dom => '27.00' },
     BM    => 'hmmbuild  -o /dev/null HMM SEED;',
     SM    => 'hmmsearch -Z ' . $config->dbsize . ' -E 1000 HMM pfamseq',
-    TP    => 'Family'
+    TP    => 'Domain'
   );
 
   my $io = Bio::Pfam::FamilyIO->new;
