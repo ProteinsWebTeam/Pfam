@@ -1,13 +1,13 @@
 [%
 # batch.tt
 # jt6 20070419 WTSI
-# 
+#
 # build the batch search block
 #
 # $Id: batch.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -26,84 +26,93 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
+    <div style="border: 2px solid darkred; padding: 5px 10px;">
+      <p>
+        Batch search will be
+        <span style="font-weight: bold; color: darkred;">unavailable from August 26th to 30th</span> due to maintenance.
+        The service will be suspended at 12:00 <abbr title="British Summer Time">BST</abbr> on August 26th.
+        The service is expected to resume by 14:00 on August 30th.
+      </p>
+    </div>
+
     <p>
-      Upload a FASTA-format file containing multiple nucleotide sequences to 
-      be searched for matching Rfam families. Results of the search will be 
-      returned to you at the email address that you specify. Please check the 
+      Upload a FASTA-format file containing multiple nucleotide sequences to
+      be searched for matching Rfam families. Results of the search will be
+      returned to you at the email address that you specify. Please check the
       notes below for the restrictions on uploaded sequence files.
       <span id="batchNotesSwitch"
-            class="moreLink" 
+            class="moreLink"
             onclick="reveal(this,'batchNotes',false, true);">More...</span>
     </p>
 
     <div id="batchNotes" style="display: none">
 
       <h2>File contents</h2>
-  
+
       <p>
-        We accept only nucleotide sequences and your uploaded file must conform 
-        to a fairly strict interpretation of the FASTA file format. We apply the 
+        We accept only nucleotide sequences and your uploaded file must conform
+        to a fairly strict interpretation of the FASTA file format. We apply the
         following checks to the format of uploaded sequence files. Files that do
         not conform to the following rules will be rejected by the server.
       </p>
-  
+
       <h3>File contents</h3>
-  
+
       <p>
-        Files must contain only header lines and sequence lines. Header lines, 
-        which begin with &quot;>&quot;, can be used to describe the sequence that 
-        follows. There is no fixed format for header lines but we restrict the 
+        Files must contain only header lines and sequence lines. Header lines,
+        which begin with &quot;>&quot;, can be used to describe the sequence that
+        follows. There is no fixed format for header lines but we restrict the
         characters that are allowed. If your header lines contain any of the following characters, your file will be rejected:
       </p>
       <strong><code>; \ ! *</code></strong>
       <p>
-        Note that we explicitly include the semi-colon (;) in the list of 
-        forbidden characters, although this may be used to denote comments in 
-        some versions of the FASTA-format. Please do not use comments in the 
+        Note that we explicitly include the semi-colon (;) in the list of
+        forbidden characters, although this may be used to denote comments in
+        some versions of the FASTA-format. Please do not use comments in the
         FASTA files that you upload here.
       </p>
-  
+
       <h3>Header rows</h3>
-  
+
       <p>
-        The FASTA-format specification recommends that header lines are kept 
-        shorter than 80 characters. Note that, although we do not restrict the 
-        length of header lines, the output that you will receive only shows the 
-        first 20 characters of each header line. You should therefore ensure that 
-        the sequence is identifiable using only the first twenty characters of 
+        The FASTA-format specification recommends that header lines are kept
+        shorter than 80 characters. Note that, although we do not restrict the
+        length of header lines, the output that you will receive only shows the
+        first 20 characters of each header line. You should therefore ensure that
+        the sequence is identifiable using only the first twenty characters of
         its header.
       </p>
-  
+
       <h3>Sequence symbols</h3>
       <p>
-        Your sequence should be a valid nucleotide sequence. As such, the 
-        sequence line should contain only valid IUPAC nucleotide symbols, 
-        i.e. the characters A,C,G,U,T,R,Y,S,W,M,K,B,D,H,V and N, in either 
-        upper and/or lower case. In the context of a Rfam search, gaps and 
+        Your sequence should be a valid nucleotide sequence. As such, the
+        sequence line should contain only valid IUPAC nucleotide symbols,
+        i.e. the characters A,C,G,U,T,R,Y,S,W,M,K,B,D,H,V and N, in either
+        upper and/or lower case. In the context of a Rfam search, gaps and
         translation stops have little meaning and should not be used.
         <strong>We no longer accept gap characters</strong> such as
         &quot;-&quot; or &quot;*&quot;.
       </p>
-  
+
       <h2>Service limits</h2>
 
       <p>
-        Searches run on a &quot;compute farm&quot; with a limited number of 
-        &quot;slots&quot;. Each search takes one slot and once all slots are in 
-        use, new jobs wait in a queue for the next slot to become free. In 
-        order to prevent large jobs occupying slots for very long periods, 
-        which can impact the availability of the system for other users, we 
+        Searches run on a &quot;compute farm&quot; with a limited number of
+        &quot;slots&quot;. Each search takes one slot and once all slots are in
+        use, new jobs wait in a queue for the next slot to become free. In
+        order to prevent large jobs occupying slots for very long periods,
+        which can impact the availability of the system for other users, we
         place a number of restrictions on the size of job that we will accept.
       </p>
       <p>
-        If you are planning to submit a lot of sequence searches, we recommend 
-        installing 
+        If you are planning to submit a lot of sequence searches, we recommend
+        installing
         <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/tools/rfam_scan.pl">rfam_scan.pl</a>
         locally.
       </p>
 
       <h3>File size</h3>
-      
+
       <p>
         Files must have fewer than 100,000 lines and fewer than 1000 sequences.
       </p>
@@ -115,7 +124,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </p>
 
       <hr />
-      
+
     </div>
 
     <div class="formWrapper">
@@ -127,24 +136,24 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
       [% END %]
 
-      <form method="post" 
+      <form method="post"
             id="batchSearchForm"
             action="[% c.uri_for( "/search/batch" ) %]"
             enctype="multipart/form-data">
-    
+
         <div class="row">
           <label for="batchSeq">Sequences file</label>
-          <input type="file" 
+          <input type="file"
                  size="20"
                  name="batchSeq"
                  id="batchSeq" />
         </div>
-  
+
         <div class="row">
           <label for="pEmail">Email address</label>
           <input type="text" size="20" maxlength="100" name="email" id="pEmail" />
         </div>
-  
+
         <div class="row">
           <label class="blankLabel">Submit</label>
           <input class="submit"  type="submit" name="submit" value="Submit" />
@@ -152,7 +161,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </div>
 
       </form>
-      
+
     </div>
   </div>
 </div>
