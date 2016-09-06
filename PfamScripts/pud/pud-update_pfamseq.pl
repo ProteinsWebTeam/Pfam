@@ -609,14 +609,14 @@ else {
 
 
 #Delete old active site alignments
-if(-e "$status_dir/delete_active_site_alignments") {
-  $logger->info("Already deleted old active site alignments\n");
+if(-e "$status_dir/delete_active_site_hmm_positions") {
+  $logger->info("Already deleted old active site hmm positions\n");
 }
 else {
-  $logger->info("Deleting old active site alignments\n");
-  my $as_aln = $dbh->prepare("delete from _active_site_alignments");
-  $as_aln->execute() or $logger->logdie("Failed to delete old data from _active_site_alignments");
-  system("touch $status_dir/delete_active_site_alignments") and $logger->logdie("Couldn't touch $status_dir/delete_active_site_alignments:[$!]\n"); 
+  $logger->info("Deleting old active site hmm positions\n");
+  my $as_aln = $dbh->prepare("delete from _active_site_hmm_positions");
+  $as_aln->execute() or $logger->logdie("Failed to delete old data from _active_site_hmm_positions");
+  system("touch $status_dir/delete_active_site_hmm_positions") and $logger->logdie("Couldn't touch $status_dir/delete_active_site_hmm_positions:[$!]\n"); 
 }
 
 sub _crc64 {
