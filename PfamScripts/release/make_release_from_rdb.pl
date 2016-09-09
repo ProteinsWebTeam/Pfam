@@ -445,9 +445,10 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   }
 
   #submit jobs to farm
+  my $queue = $config->{farm}->{lsf}->{queue};
   foreach my $number (keys %filenames){
       my $fh         = IO::File->new();
-       $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Jregions") or $logger->logdie("Couldn't open file handle [$!]\n");
+       $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Jregions") or $logger->logdie("Couldn't open file handle [$!]\n");
        $fh->print( "get_regions.pl -num $number\n"); 
        $fh->close;        
   }
@@ -510,9 +511,10 @@ unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
   }
 
   #submit jobs to farm
+  my $queue = $config->{farm}->{lsf}->{queue};
   foreach my $number (keys %filenames){
       my $fh         = IO::File->new();
-       $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Juniprotregions") or $logger->logdie("Couldn't open file handle [$!]\n");
+       $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Juniprotregions") or $logger->logdie("Couldn't open file handle [$!]\n");
        $fh->print( "get_regions.pl -uniprot -num $number\n"); 
        $fh->close;     
   }
