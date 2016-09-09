@@ -53,7 +53,7 @@ while (1) {
     #Step 1 - There is a job to run!
     my $error = 0;
     my ( @cmds, $memory, $tmpDir, $queue, $resource );
-    $queue = 'production-rh6'; #queue will always be production-rh6
+    $queue = $qsout->{queue};
 
     #Step 2 - Build up the resource requirements!
     if ( $ref->{'job_type'} eq "family" ) {
