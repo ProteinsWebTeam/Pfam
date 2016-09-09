@@ -74,7 +74,7 @@ foreach my $file (@files){
 
 #farm parameters
 $logger->debug("Submitting $count farm jobs");
-my $queue = 'production-rh6';
+my $queue = $config->{farm}->{lsf}->{queue};
 my $resource = "rusage[mem=25000]";
 my $memory = 25000;  
 my $fh = IO::File->new();
