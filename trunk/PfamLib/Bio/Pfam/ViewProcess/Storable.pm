@@ -53,7 +53,7 @@ sub submitToFarm {
   $self->logger->debug("Submitting $noJobs storable farm jobs");
   
   #Now submit the jobs
-  my $queue = 'production-rh6';
+  my $queue = $self->{config}->{farm}->{lsf}->{queue};
   my $resource = "rusage[mem=4000]";
   my $memory = 4000;  
   my $fh = IO::File->new();
