@@ -363,7 +363,7 @@ if (! $proteomeView->statusCheck('done pfamA_ncbi')){
     foreach my $acc (keys %pfam_acc){
     #bsub the next bit using job group pfamview
 
-        my $queue = 'production-rh6';
+        my $queue = $view->{config}->{farm}->{lsf}->{queue};
         my $resource = "rusage[mem=1000]";
         my $memory = 1000;  
         my $fh = IO::File->new();
