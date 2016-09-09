@@ -124,7 +124,8 @@ sub uniprotSearch {
     
     #Submit to farm
     print STDERR "$pfamA_acc\n";
-    system("bsub -q production-rh6 -J$job_name -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$uniprot_search $pfamA_acc'");
+    my $queue = $config->{farm}->{lsf}->{queue};
+    system("bsub -q $queue -J$job_name -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$uniprot_search $pfamA_acc'");
   }
 
   if($clan_acc) {
