@@ -61,6 +61,7 @@ sub new {
   $self->getSchema( $config->pfamjobs );
   #Start setting up the local information for setting up the jobs
   my $farmConfig = $config->farm;
+  $self->{queue} = $config->{farm}->{lsf}->{queue};
   $self->tmpDir($farmConfig->{lsf}->{scratch});
   $self->group($farmConfig->{lsf}->{group});
   $self->pollInt($farmConfig->{lsf}->{pollInt});
