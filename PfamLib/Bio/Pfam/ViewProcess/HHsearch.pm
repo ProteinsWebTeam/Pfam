@@ -153,7 +153,7 @@ sub submitToFarm {
   my $chunkSize = ceil($rs->count/$noJobs);
   
   #Now submit the jobs
-  my $queue = 'production-rh6';
+  my $queue = $self->{config}->{farm}->{lsf}->{queue};
   my $resource = "-M 3500 -R  rusage[mem=3500]";
   my $memory = 3500;  
   my $fh = IO::File->new();

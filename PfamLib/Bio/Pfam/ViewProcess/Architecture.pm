@@ -366,7 +366,7 @@ sub submitToFarm {
   my $chunkSize = ceil($count/$noJobs);
   
 #Now submit the jobs
-  my $queue = 'production-rh6';
+  my $queue = $self->{config}->{farm}->{lsf}->{queue};
   my $resource = "rusage[mem=2500]";
   my $memory = 2500;  
   my $group = '/PfamViewGroup';

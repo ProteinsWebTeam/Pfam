@@ -89,13 +89,13 @@ sub active_site_prediction {
       $self->_upload_patterns();
 
       #Predict active sites in alignment
-      $self->_pred_act_sites();
+      #    $self->_pred_act_sites();
 
       #Upload Pfam predicted active sites to db
-      $self->_upload_pred_act_sites();
+      #$self->_upload_pred_act_sites();
 
       #Add display line to alignment
-      $alignment=$self->active_site_display_line();
+      #$alignment=$self->active_site_display_line();
     }
   }
 

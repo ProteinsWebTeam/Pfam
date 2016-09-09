@@ -205,7 +205,7 @@ sub submitToFarm {
     #Now submit the jobs, determinig roughly how much memory we are going to use.
     my $memory_gb = ceil(($max * 40000 * 48 * $self->cpus)/1000000000); 
     $memory_gb  += 1; #Add another Gig for the alignment overhead.
-    my $queue = 'production-rh6'; #searches may go over 8 hours. 
+    my $queue = $self->{config}->{farm}->{lsf}->{queue};
     my $group = '/PfamViewGroup';
     my $memory_mb=$memory_gb*1000;
     my $resource = " -M $memory_mb -R rusage[mem=$memory_mb]";
