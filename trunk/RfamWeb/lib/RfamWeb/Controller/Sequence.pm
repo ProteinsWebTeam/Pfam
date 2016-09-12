@@ -61,7 +61,7 @@ sub sequence_search : Chained( '/' )
     return;
   }
 
-  my ( $entry ) = $c->req->param('entry') =~ m/^(\w+)(\.\d+)?$/;
+  my ( $entry ) = $c->req->param('entry') =~ m/^(\w+(\.\d+)?)$/;
   
   unless ( defined $entry ) { 
     $c->log->debug( 'Sequence::sequence_search: no valid sequence accession found' )
@@ -94,7 +94,7 @@ sub sequence_page : Chained( '/' )
   $c->log->debug( 'Sequence::sequence_page: building page of hits for a sequence' )
     if $c->debug;
     
-  my ( $entry ) = $tainted_entry =~ m/^(\w+)(\.\d+)?$/;
+  my ( $entry ) = $tainted_entry =~ m/^(\w+(\.\d+)?)$/;
 
   unless ( defined $entry ) {
     $c->log->debug( 'Sequence::sequence_page: no valid sequence accession found' )
@@ -198,18 +198,18 @@ sub get_data : Private {
     return;
   }
 
-  my @hits = $c->model('RfamDB::RfamRegFull')
-               ->search( { 'auto_rfamseq.rfamseq_acc' => $c->stash->{entry} },
-                         { 
-                           join      => [ 'auto_rfam',
-                                           { 'auto_rfamseq' => 'ncbi_id' } ],
-                           '+select' => [ qw( auto_rfam.rfam_id
-                                              auto_rfam.rfam_acc
-                                              auto_rfam.description
-                                              auto_rfamseq.rfamseq_acc
-                                              auto_rfamseq.description
-                                              ncbi_id.tax_string
-                                              ncbi_id.species ) ],
+  my @hits = $c->model('RfamDB::FullRegion')
+               ->search( { 'rfamseq_acc.rfamseq_acc' => $c->stash->{entry} },
+                         {
+                           join      => [ 'rfam_acc',
+                                          { 'rfamseq_acc' => 'ncbi' } ],
+                           '+select' => [ qw( rfam_acc.rfam_id
+                                              rfam_acc.rfam_acc
+                                              rfam_acc.description
+                                              rfamseq_acc.rfamseq_acc
+                                              rfamseq_acc.description
+                                              ncbi.tax_string
+                                              ncbi.species ) ],
                            '+as'     => [ qw( rfam_id
                                               rfam_acc
                                               rfam_desc
