@@ -187,7 +187,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     var exSeq = "AGTTACGGCCATACCTCAGAGAATATACCGTATCCCGTTCGATCTGCGAA\n\
 GTTAAGCTCTGAAGGGCGTCGTCAGTACTATAGTGGGTGACCATATGGGA\n\
 ATACGACGTGCTGTAGCTT";
-    var exEntry = "AJ390104";
+    var exEntry = "AJ390104.1";
     // ]]>
   </script>
 
