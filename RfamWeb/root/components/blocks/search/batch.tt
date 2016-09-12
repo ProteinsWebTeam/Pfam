@@ -28,10 +28,9 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
     <div style="border: 2px solid darkred; padding: 5px 10px;">
       <p>
-        Batch search will be
-        <span style="font-weight: bold; color: darkred;">unavailable from August 26th to 30th</span> due to maintenance.
-        The service will be suspended at 12:00 <abbr title="British Summer Time">BST</abbr> on August 26th.
-        The service is expected to resume by 14:00 on August 30th.
+        Batch search is currently
+        <span style="font-weight: bold; color: darkred;">unavailable</span> due to maintenance.
+        We are working to restore the service as soon as possible.
       </p>
     </div>
 
