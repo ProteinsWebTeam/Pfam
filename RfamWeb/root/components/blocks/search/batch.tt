@@ -26,14 +26,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
-    <div style="border: 2px solid darkred; padding: 5px 10px;">
-      <p>
-        Batch search is currently
-        <span style="font-weight: bold; color: darkred;">unavailable</span> due to maintenance.
-        We are working to restore the service as soon as possible.
-      </p>
-    </div>
-
     <p>
       Upload a FASTA-format file containing multiple nucleotide sequences to
       be searched for matching Rfam families. Results of the search will be
