@@ -1,14 +1,16 @@
 (function() {
   'use strict';
-  var displayMessage = function(message, yes) {
+  var displayMessage = function(message, yes, submit) {
     message.style.display = yes ? 'block' : '';
+    submit.disabled = yes;
   };
 
   var handleFile = function(input, message) {
     input.addEventListener('change', function(e) {
       var file = e.target.files[0];
+      var submit = e.target.form.submit;
       if (!file) {
-        return displayMessage(message, false);
+        return displayMessage(message, false, submit);
       }
       file = file.slice(0, 500);
       var reader = new FileReader();
@@ -20,9 +22,9 @@
             if (r.status >= 400 && r.status < 600) throw new Error();
             return r.text();
           }).then(function(t) {
-            displayMessage(message, t !== 'protein');
+            displayMessage(message, t !== 'protein', submit);
           }).catch(function() {
-            displayMessage(message, true);
+            displayMessage(message, true, submit);
           });
       });
       reader.readAsText(file);
