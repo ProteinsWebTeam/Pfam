@@ -36,6 +36,17 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           Pfam website</a>.
       </div>
     [%- END %]
+
+    <div id="hmmerBlock">
+        <p>
+            Have you tried running your searches through the
+            <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer website</a>?
+        </p>
+        <p>
+            The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is what we use behind the scenes to run your searches.
+        </p>
+    </div>
+
     <p>
       Upload a FASTA-format file containing multiple protein sequences to be
       searched for matching Pfam families. Results of the search will be
@@ -172,10 +183,13 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label for="batchSeq">Sequences file</label>
-          <input type="file"
-                 size="20"
-                 name="batchSeq"
-                 id="batchSeq" />
+          <input type="file" required name="batchSeq" id="batchSeq" />
+        </div>
+        <div id="batchCheckFile" class="row">
+          <div class="message problem error">
+            It seems like you are not submitting a sequence file containing proteins.
+            Only protein sequences are supported for batch searches.
+          </div>
         </div>
 
         <div class="row">
@@ -233,7 +247,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label for="pEmail">Email address</label>
-          <input type="text" size="20" maxlength="100" name="email" id="pEmail" />
+          <input type="text" required name="email" id="pEmail" />
         </div>
 
         <div class="row">
@@ -278,60 +292,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         If your are sure that you did and want more information please contact us with your job ID.
       </div>
     </div>
-    <script type="text/javascript">
-    (function() {
-      if (!window.fetch) return;
-    })();
-      var container = document.getElementById('batchCheck');
-      var input = container.querySelector('input');
-      var messages = [].slice.call(container.querySelectorAll('.message'));
-      var displayMessage = function(m) {
-        messages.forEach(function(message) {
-          if (m && message.classList.contains(m)) {
-            message.style.display = 'block';
-          } else {
-            message.style.display = '';
-          }
-        });
-      }
-      input.addEventListener('input', function(e) {
-        var jobID = e.target.value;
-        if (!jobID || !e.target.validity || !e.target.validity.valid) {
-          displayMessage();
-          return;
-        };
-        fetch(location.origin + '/search/sequence/resultset/' + jobID)
-          .then(function(r) {return r.text()})
-          .then(function(m) {
-            if (input.value !== jobID) return;
-            if (/^(RUN|PEND|HOLD|FAIL)$/i.test(m)) {
-              return displayMessage(m.toLowerCase());
-            }
-            if (m.indexOf('is on hold') !== -1) {
-              return displayMessage('hold');
-            }
-            if (m.indexOf('failed to complete') !== -1) {
-              return displayMessage('fail');
-            }
-            throw new Error();
-          })
-          .catch(function() {
-            if (input.value !== jobID) return;
-            displayMessage('problem');
-          });
-        displayMessage('loading');
-      });
-    </script>
-
-    <div id="hmmerBlock">
-      <p>
-        Have you tried running your searches through the
-        <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer website</a>?
-      </p>
-      <p>
-        The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is what we use behind the scenes to run your searches.
-      </p>
-    </div>
   </div>
 
   <script type="text/javascript">
@@ -344,6 +304,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     // ]]>
   </script>
 </div>
+
+[% requirements.js.push( "batch.js" ); %]
 
 <!-- end batch search block -->
 [%#

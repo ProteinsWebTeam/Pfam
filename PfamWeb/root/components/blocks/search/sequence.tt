@@ -20,8 +20,10 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 %]
 [% DEFAULT
-    minDnaSeqLength = 30
-    minProteinSeqLength   = 10 
+  minDnaSeqLength = 30
+  minProteinSeqLength   = 10
+  maxDnaSeqLength = 'Infinity'
+  maxProteinSeqLength   = 'Infinity'
 %]
 <!-- start sequence search block -->
 
@@ -39,6 +41,17 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <a class="ext" href="[% c.uri_for( '/search' ) %]">Pfam website</a>.
       </div>
     [%- END %]
+
+    <div id="hmmerBlock">
+        <p>
+            Have you tried running your searches through the
+            <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer website</a>?
+        </p>
+        <p>
+            The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is what we use behind the scenes to run your searches.
+        </p>
+    </div>
+
     <p>
       Find Pfam families within your sequence of interest. Paste your 
       <strong>protein</strong> or <strong>DNA</strong> sequence
