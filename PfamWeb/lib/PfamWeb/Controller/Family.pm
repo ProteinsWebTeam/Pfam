@@ -832,10 +832,12 @@ Retrieves the wikipedia content, if any, for this family.
 sub get_wikipedia : Private {
   my ( $this, $c ) = @_;
 
-  my @articles = $c->model('WebUser::ArticleMapping')
-                   ->search( { accession => $c->stash->{acc} },
-                             { join     => [ 'wikitext' ],
-                               prefetch => [ 'wikitext' ] } );
+  my @articles;
+  eval {
+    @articles = $c->model('WebUser::ArticleMapping')
+      ->search( { accession => $c->stash->{acc} },
+                { join      => [ 'wikitext' ], prefetch => [ 'wikitext' ] } );
+  };
 
   return unless scalar @articles;
 
