@@ -1152,6 +1152,7 @@ sub write_ascii_out {
         foreach my $active_site (@{$unit->{'act_site'}}) {
           print "[$active_site]";
         }
+        print " ";
 	    }
 	
 	    if($scanData->{_translate}){
