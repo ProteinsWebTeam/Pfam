@@ -528,11 +528,14 @@ Retrieves the wikipedia content, if any, for this family.
 sub get_wikipedia : Private {
   my ( $this, $c ) = @_;
 
-  my $rs = $c->model('WebUser::ArticleMapping')
-                  ->search( { accession => $c->stash->{acc} },
-                            { join     => [ 'wikitext' ],
-                              prefetch => [ 'wikitext' ] } );
-  my $article = $rs->next;
+  my $article;
+  eval {
+    my $rs = $c->model('WebUser::ArticleMapping')
+                    ->search( { accession => $c->stash->{acc} },
+                              { join     => [ 'wikitext' ],
+                                prefetch => [ 'wikitext' ] } );
+    $article = $rs->next;
+  };
   
   return unless ( $article and $article->wikitext );
 

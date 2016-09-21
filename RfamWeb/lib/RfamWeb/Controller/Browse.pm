@@ -67,7 +67,7 @@ sub browse : Global {
   my ( $this, $c ) = @_;
 
   # copy the kingdoms list into the stash so that we can use them to build the
-  $c->stash->{kingdoms} = [ sort keys %{ $this->{kingdoms} } ]; 
+  $c->stash->{kingdoms} = [ sort keys %{ $this->{kingdoms} } ];
 
   $c->forward( 'build_active_letters' );
 
@@ -100,10 +100,10 @@ sub browse_motifs : Chained( '/' )
 #----------------------------------------------------------------------------
 
 =head2 browse_motifs_list : Chained PathPart Args
-  
-Retrieves the full list of motifs from the DB and stashes them for the 
+
+Retrieves the full list of motifs from the DB and stashes them for the
 template.
-  
+
 =cut
 
 sub browse_motifs_list : Chained( 'browse_motifs' )
@@ -124,7 +124,7 @@ sub browse_motifs_list : Chained( 'browse_motifs' )
 
   # stash the results for the template
   $c->stash->{motifs} = \@res if scalar @res;
-}   
+}
 
 #-------------------------------------------------------------------------------
 #- clans -----------------------------------------------------------------------
@@ -143,7 +143,7 @@ sub browse_clans : Chained( '/' )
 
   $c->log->debug( 'Browse::browse_clans: building a list of clans' )
     if $c->debug;
-    
+
   $c->stash->{template} = 'pages/browse/clans.tt';
 }
 
@@ -151,7 +151,7 @@ sub browse_clans : Chained( '/' )
 
 =head2 browse_clans_list : Chained PathPart Args
 
-Retrieves the full list of clans from the DB and stashes them for the 
+Retrieves the full list of clans from the DB and stashes them for the
 template.
 
 =cut
@@ -200,7 +200,7 @@ sub browse_genomes : Chained( '/' )
 
   $c->log->debug( 'Browse::browse_genomes: building a list of genomes' )
     if $c->debug;
-    
+
   $c->stash->{template} = 'pages/browse/genomes.tt';
 }
 
@@ -208,7 +208,7 @@ sub browse_genomes : Chained( '/' )
 
 =head2 browse_genomes_list : Chained PathPart Args
 
-Retrieves the full list of genomes from the DB and stashes them for the 
+Retrieves the full list of genomes from the DB and stashes them for the
 template.
 
 =cut
@@ -236,7 +236,7 @@ sub browse_genomes_list : Chained( 'browse_genomes' )
 
 =head2 browse_genomes_by_kingdom : Chained PathPart Args
 
-Retrieves the list of genomes from a particular kingdom and stashes them for 
+Retrieves the list of genomes from a particular kingdom and stashes them for
 the template.
 
 =cut
@@ -249,22 +249,22 @@ sub browse_genomes_by_kingdom : Chained( 'browse_genomes' )
   my ( $kingdom ) = $tainted_kingdom =~ m/^([\w\-\.\"\']+)/;
   unless ( defined $kingdom ) {
     $c->log->debug( 'Genome::browse_by_kingdom: no kingdom name found' )
-      if $c->debug;  
+      if $c->debug;
 
     $c->stash->{errorMsg} = 'You must give a valid kingdom name';
-    
+
     return;
   }
 
   $c->log->debug( "Genome::browse_by_kingdom: looking for kingdom |$kingdom|" )
-    if $c->debug;  
+    if $c->debug;
 
   unless ( defined $this->{kingdoms}->{$kingdom} ) {
     $c->log->debug( 'Genome::browse_by_kingdom: unknown kingdom name found' )
-      if $c->debug;  
+      if $c->debug;
 
     $c->stash->{errorMsg} = 'Unknown kingdom';
-    
+
     return;
   }
 
@@ -298,7 +298,7 @@ sub browse_families : Chained( '/' )
                       PathPart( 'families' )
                       CaptureArgs( 0 ) {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Browse::browse_families: building a list of families' )
     if $c->debug;
 }
@@ -321,7 +321,7 @@ sub browse_all_families : Chained( 'browse_families' )
 
   # we need the "active_letters" data structure
   $c->forward( 'build_active_letters' );
-  
+
   my @rs = $c->model('RfamDB::Family')
              ->search( { 'alignments_and_tree.type' => 'seed' },
                        { prefetch => 'alignments_and_tree',
@@ -340,7 +340,7 @@ sub browse_all_families : Chained( 'browse_families' )
 
 =head2 browse_letter : Chained PathPart Args
 
-Build a page showing the list of families starting with a particular 
+Build a page showing the list of families starting with a particular
 letter/number. End of a dispatch chain.
 
 =cut
@@ -352,12 +352,12 @@ sub browse_families_by_letter : Chained( 'browse_families' )
 
   # we need the "active_letters" data structure
   $c->forward( 'build_active_letters' );
-  
+
   if ( defined $tainted_letter and
        $tainted_letter eq 'with_structure' ) {
     $c->log->debug( 'Browse::browse_families_by_letter: building a list of families with structures' )
       if $c->debug;
-  
+
     my @rs = $c->model( 'RfamDB::PdbFullRegion' )
                ->search( { 'alignments_and_tree.type' => 'seed' },
                          { prefetch => { 'rfam_acc' => 'alignments_and_tree' },
@@ -365,11 +365,11 @@ sub browse_families_by_letter : Chained( 'browse_families' )
                            '+as'    => [ 'num_structures' ],
                            group_by => [ 'rfam_acc.rfam_id' ],
                            order_by => 'rfam_acc.rfam_id' } );
-    
+
     $c->stash->{families} = \@rs;
     $c->stash->{template} = 'pages/browse/structures.tt';
   }
-  elsif ( defined $tainted_letter and 
+  elsif ( defined $tainted_letter and
           $tainted_letter eq 'top20' ) {
     $c->log->debug( 'Browse::browse_families_by_letter: showing top 20 largest families' )
       if $c->debug;
@@ -381,10 +381,10 @@ sub browse_families_by_letter : Chained( 'browse_families' )
                            page     => 1,
                            order_by => 'num_full DESC' }
                          )->all;
-  
+
     $c->log->debug( 'Browse::browse_families_by_letter: got |' . scalar @rs
                     . '| top20 families' ) if $c->debug;
-  
+
     $c->stash->{top20}    = 1;
     $c->stash->{families} = \@rs;
     $c->stash->{template} = 'pages/browse/families.tt';
@@ -400,34 +400,34 @@ sub browse_families_by_letter : Chained( 'browse_families' )
 
 =head2 browse_families_range : Chained PathPart Args
 
-Build a page showing the list of families starting with a particular 
+Build a page showing the list of families starting with a particular
 letter/number. End of a dispatch chain.
 
 =cut
 
-sub browse_families_range : Chained( 'browse_families' ) 
+sub browse_families_range : Chained( 'browse_families' )
                             PathPart( '' )
                             Args( 2 ) {
   my ( $this, $c, $tainted_a, $tainted_b ) = @_;
 
   my ( $a ) = $tainted_a =~ m/^(\w)$/;
   my ( $b ) = $tainted_b =~ m/^(\w)$/;
-  
+
   my ( $from, $to ) = sort ( $a, $b );
-  
+
   $c->log->debug( "Browse::browse_families_range: from / to: |$from|$to|" ) if $c->debug;
 
   # according to the DBIC docs, it's bad to use an SQL function on the left-
   # hand side of a comparison like this (here we're doing a SUBSTRING), because
-  # it means that the DB engine has to scan the whole table. Because the Rfam 
-  # table is likely to contain only on the order of thousands of rows (unless 
-  # something drastic happens), we should be okay. 
+  # it means that the DB engine has to scan the whole table. Because the Rfam
+  # table is likely to contain only on the order of thousands of rows (unless
+  # something drastic happens), we should be okay.
 
   my @families = $c->model('RfamDB::Family')
                    ->search( { 'SUBSTRING(rfam_id,1,1)'  => { 'IN', [ $from .. $to ] },
                                'alignments_and_tree.type' => 'seed' },
                              { prefetch => [ 'alignments_and_tree' ],
-                               order_by => 'rfam_id' } );        
+                               order_by => 'rfam_id' } );
 
   $c->log->debug( 'Browse::browse_families_range: found |' . scalar @families
                   . '| families in total' ) if $c->debug;
@@ -456,7 +456,7 @@ sub browse_articles : Chained( '/' )
 
 =head2 browse_all_articles : Chained PathPart Args
 
-Build a page showing the list of all wikipedia articles. End of a dispatch 
+Build a page showing the list of all wikipedia articles. End of a dispatch
 chain.
 
 =cut
@@ -509,7 +509,7 @@ in the various browse pages.
 
 sub build_active_letters : Private {
   my ( $this, $c ) = @_;
-  
+
   my $cache_key = 'browse_active_letters_hash';
   my $active_letters = $c->cache->get( $cache_key );
   if ( defined $active_letters ) {
@@ -521,13 +521,13 @@ sub build_active_letters : Private {
       if $c->debug;
 
     #----------------------------------------
-    
+
     # get a list of all families and join to pdb_full_reg, so that we can find
     # those families for which there's a 3-D structure
     my @families = $c->model( 'RfamDB::Family' )
                      ->search( {},
                                { prefetch => [ 'pdb_full_regs' ] } );
-                              
+
     my $first_letter;
     foreach my $family ( @families ) {
       $first_letter = uc( substr( $family->rfam_id, 0, 1 ) );
@@ -581,7 +581,7 @@ sub build_active_letters : Private {
     $c->stash->{articles}       = $article_mapping_and_letters->{mapping};
 
     #----------------------------------------
-    
+
     $c->cache->set( $cache_key, $active_letters ) unless $ENV{NO_CACHE};
   }
 
@@ -592,7 +592,7 @@ sub build_active_letters : Private {
 
 =head2 build_articles_list : Private
 
-Builds a data structure containing the mapping between families and articles, 
+Builds a data structure containing the mapping between families and articles,
 as well as the list of active letters for the articles list.
 
 =cut
@@ -600,13 +600,16 @@ as well as the list of active letters for the articles list.
 sub build_articles_list : Private {
   my ( $this, $c ) = @_;
 
-  my @rs = $c->model('WebUser::ArticleMapping')
-             ->search( { accession                    => { like => 'RF%' },
-                         'wikitext.approved_revision' => { '>'  => 0 } },
-                       { join => [ 'wikitext' ] } );
+  my @rs;
+  eval {
+    @rs = $c->model('WebUser::ArticleMapping')
+            ->search( { accession                    => { like => 'RF%' },
+                        'wikitext.approved_revision' => { '>'  => 0 } },
+                      { join => [ 'wikitext' ] } );
 
-  $c->log->debug( 'Browse::build_articles_list: got |' . scalar @rs . '| rows' )
-    if $c->debug;
+    $c->log->debug( 'Browse::build_articles_list: got |' . scalar @rs . '| rows' )
+      if $c->debug;
+  };
 
   my $first_letter;
   my $mapping = {};
@@ -637,7 +640,7 @@ Jennifer Daub, C<jd7@sanger.ac.uk>
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk),
          Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
