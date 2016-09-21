@@ -40,12 +40,10 @@ IF refreshUri != "";
 --> 
 
 <!-- prototype / scriptaculous / jQuery -->
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">
-  google.load("prototype", "1.7");
-  google.load("scriptaculous", "1.8.3");
-</script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/prototype-1.7.js'></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/scriptaculous-1.8.3/src/scriptaculous.js'></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/jquery-1.8.3.min.js'></script>
+
 <script type="text/javascript">
   jQuery.noConflict();
 </script>
