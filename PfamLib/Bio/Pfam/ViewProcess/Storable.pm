@@ -93,7 +93,7 @@ sub updateSeqRange {
         next;
     }
     my $acc = $data[0];
-    my $id = $data[1];
+    my $id = $data[1]; 
     my $sequence = $data[2];
     my $species = $data[3];
     my $taxid = $data[4];
@@ -104,8 +104,7 @@ sub updateSeqRange {
     $pfamseq{$acc}{'species'}=$species;
     $pfamseq{$acc}{'taxid'}=$taxid;
     $pfamseq{$acc}{'description'}=$de;
-    $pfamseq{$acc}{'length'}=$len;
-
+    $pfamseq{$acc}{'length'}=$len; 
   }
 
 
@@ -174,13 +173,15 @@ sub updateStorables {
         @regions,
         Bio::Pfam::Sequence::Region->new(
           {
-            start       => $region->seq_start,
-            end         => $region->seq_end,
-            aliStart    => $region->ali_start,
-            aliEnd      => $region->ali_end,
-            modelStart  => $region->model_start,
-            modelEnd    => $region->model_end,
-            modelLength => $region->pfama_acc->model_length,
+            #Need to store values as intergers to ensure they are treated as numbers
+            #This is important when adjusting co-ordinates for the graphics of overlapping regions otherwise get a mix of json strings and json numbers
+            start       => int($region->seq_start),
+            end         => int($region->seq_end),
+            aliStart    => int($region->ali_start),
+            aliEnd      => int($region->ali_end),
+            modelStart  => int($region->model_start),
+            modelEnd    => int($region->model_end),
+            modelLength => int($region->pfama_acc->model_length),
             metadata    => Bio::Pfam::Sequence::MetaData->new(
               {
                 accession   => $region->pfama_acc->pfama_acc,
@@ -189,10 +190,10 @@ sub updateStorables {
                 description => $region->pfama_acc->description,
                 score       => $region->domain_evalue_score,
                 scoreName   => 'e-value',
-                start       => $region->seq_start,
-                end         => $region->seq_end,
-                aliStart    => $region->ali_start,
-                aliEnd      => $region->ali_end,
+                start       => int($region->seq_start),
+                end         => int($region->seq_end),
+                aliStart    => int($region->ali_start),
+                aliEnd      => int($region->ali_end),
                 database    => 'pfam'
               }
             ),
@@ -222,13 +223,13 @@ sub updateStorables {
             @regions,
             Bio::Pfam::Sequence::Region->new(
               {
-                start       => $pfamaRegionsRef->[$j]->seq_end + 1,
-                end         => $region->seq_end,
-                aliStart    => $pfamaRegionsRef->[$j]->seq_end + 1,
-                aliEnd      => $region->ali_end,
-                modelStart  => $region->model_start,
-                modelEnd    => $region->model_end,
-                modelLength => $region->pfama_acc->model_length,
+                start       => int($pfamaRegionsRef->[$j]->seq_end + 1),
+                end         => int($region->seq_end),
+                aliStart    => int($pfamaRegionsRef->[$j]->seq_end + 1),
+                aliEnd      => int($region->ali_end),
+                modelStart  => int($region->model_start),
+                modelEnd    => int($region->model_end),
+                modelLength => int($region->pfama_acc->model_length),
                 metadata    => Bio::Pfam::Sequence::MetaData->new(
                   {
                     accession   => $region->pfama_acc->pfama_acc,
@@ -237,10 +238,10 @@ sub updateStorables {
                     description => $region->pfama_acc->description,
                     score       => $region->domain_evalue_score,
                     scoreName   => 'e-value',
-                    start       => $region->seq_start,
-                    end         => $region->seq_end,
-                    aliStart    => $region->ali_start,
-                    aliEnd      => $region->ali_end,
+                    start       => int($region->seq_start),
+                    end         => int($region->seq_end),
+                    aliStart    => int($region->ali_start),
+                    aliEnd      => int($region->ali_end),
                     database    => 'pfam'
                   }
                 ),
@@ -252,14 +253,14 @@ sub updateStorables {
             @markups,
             Bio::Pfam::Sequence::Markup->new(
               {
-                start    => $pfamaRegionsRef->[$j]->seq_start - 1,
-                end      => $pfamaRegionsRef->[$j]->seq_end + 1,
+                start    => int($pfamaRegionsRef->[$j]->seq_start - 1),
+                end      => int($pfamaRegionsRef->[$j]->seq_end + 1),
                 type     => 'Nested',
                 metadata => Bio::Pfam::Sequence::MetaData->new(
                   {
                     database => 'pfam',
-                    start    => $pfamaRegionsRef->[$j]->seq_start - 1,
-                    end      => $pfamaRegionsRef->[$j]->seq_end + 1,
+                    start    => int($pfamaRegionsRef->[$j]->seq_start - 1),
+                    end      => int($pfamaRegionsRef->[$j]->seq_end + 1),
                     type     => 'Link between discontinous regions'
                   }
                 ),
@@ -281,14 +282,14 @@ sub updateStorables {
         @motifs,
         Bio::Pfam::Sequence::Motif->new(
           {
-            start    => $motif->seq_start,
-            end      => $motif->seq_end,
+            start    => int($motif->seq_start),
+            end      => int($motif->seq_end),
             type     => $motif->type_id,
             metadata => Bio::Pfam::Sequence::MetaData->new(
               {
                 database => $motif->source_id,
-                start    => $motif->seq_start,
-                end      => $motif->seq_end,
+                start    => int($motif->seq_start),
+                end      => int($motif->seq_end),
                 type     => $motif->type_id
               }
             ),
@@ -314,14 +315,14 @@ sub updateStorables {
           @markups,
           Bio::Pfam::Sequence::Markup->new(
             {
-              start    => $ds->bond_start,
-              end      => $ds->bond_end,
+              start    => int($ds->bond_start),
+              end      => int($ds->bond_end),
               type     => 'disulphide',
               metadata => Bio::Pfam::Sequence::MetaData->new(
                 {
                   database => 'UniProt',
-                  start    => $ds->bond_start,
-                  end      => $ds->bond_end,
+                  start    => int($ds->bond_start),
+                  end      => int($ds->bond_end),
                   type     => 'disulphide'
                 }
               ),
@@ -334,12 +335,12 @@ sub updateStorables {
           @markups,
           Bio::Pfam::Sequence::Markup->new(
             {
-              start    => $ds->bond_start,
+              start    => int($ds->bond_start),
               type     => 'disulphide',
               metadata => Bio::Pfam::Sequence::MetaData->new(
                 {
                   database    => 'UniProt',
-                  start       => $ds->bond_start,
+                  start       => int($ds->bond_start),
                   description => 'Intramolecular',
                   type        => 'disulphide'
                 }
@@ -360,12 +361,12 @@ sub updateStorables {
         @markups,
         Bio::Pfam::Sequence::Markup->new(
           {
-            start    => $markup->residue,
+            start    => int($markup->residue),
             residue  => substr( $sequence, $markup->residue - 1, 1 ),
             type     => $markup->label,
             metadata => Bio::Pfam::Sequence::MetaData->new(
               {
-                start       => $markup->residue,
+                start       => int($markup->residue),
                 description => substr( $sequence, $markup->residue - 1, 1 )
                   . " "
                   . $ann,
@@ -397,7 +398,7 @@ sub updateStorables {
     my $seqObj = Bio::Pfam::Sequence->new(
       {
         metadata => $meta,
-        length   => $length,
+        length   => int($length),
         regions  => \@regions,
         motifs   => \@motifs,
         markups  => \@markups,
