@@ -265,7 +265,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <input
           type="text"
           placeholder="ADABEC68-703F-48C4-BEC7-07F1AB965FBB"
-          pattern="[0-9a-fA-F]{8}\-([0-9a-fA-F]{4}\-){3}[0-9a-fA-F]{12}"
+          pattern="[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}"
           size=37
         >
       </p>
