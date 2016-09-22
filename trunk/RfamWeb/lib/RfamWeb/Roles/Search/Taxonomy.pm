@@ -822,7 +822,10 @@ sub getFamiliesForTerm : Private {
                ->search( { 'tax.lft' => { '>=' => $range->[0] },
                            'tax.rgt' => { '<=' => $range->[1] } },
                          { join     => [ 'tax' ],
-                           prefetch => [ 'tax' ] }
+                           prefetch => [ 'tax' ],
+                           select => ['rfam_acc'],
+                           distinct => 1,
+                         }
                        );
   
     # map the Pfam-A accession to a hash with other information for the family
