@@ -1,25 +1,21 @@
 #! /usr/bin/perl -w
 
 # Script to collate file of information about Pfam clans
-# Can use option -release to use release 27 data. Otherwise uses pfamlive
 
 use strict;
-use Getopt::Long;
+use Bio::Pfam::PfamLiveDBManager;
+use Bio::Pfam::Config;
+
+
+my $config = Bio::Pfam::Config->new;
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+my $dbh = $pfamDB->getSchema->storage->dbh;
 
 # mysql query to get list of clans.
+my $mysql_command="mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{user}." -p". $pfamDB->{password}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." -e 'select clan_acc, clan_id from clan'";
 my %clans;
-
-my ($release);
-&GetOptions('release!'  => \$release);
-
-# Connect to databases with mysql
-if ($release){
-    print STDERR "Using release 27 data\n";
-    open (FH, "mysql -hmysql-xfam-dev -P4423 -upfam -pmafp1 pfam_27_0 -e 'select clan_acc, clan_id from clan;' |");
-} else {
-    print STDERR "Using pfam_live data\n";
-    open (FH, "mysql -h mysql-pfam-live -P4430 -uadmin -pc5yj9WHC pfam_live -e 'select clan_acc, clan_id from clan;' |");
-}
+print STDERR "Using ".$pfamDB->{database}." data\n";
+open (FH, "$mysql_command |");
 while(<FH>){
     if (/^(CL\d{4})\s+(\S+)/){
         $clans{$1}=$2;
@@ -37,30 +33,23 @@ my $num_families_in_clans=0;
 my %counts;
 
 # Code for running queries against Pfam database
+my $sth=$dbh->prepare("select pfamA.pfamA_acc,pfamA_id,type,model_length from clan join clan_membership join pfamA where clan.clan_acc = clan_membership.clan_acc and clan_membership.pfamA_acc = pfamA.pfamA_acc and clan.clan_acc=?");
 foreach my $clan (sort keys %clans){
     print CSV "$clan,$clans{$clan}\n";
     print "$clan $clans{$clan}\n";
     print "   Pfam ac\tType\tHMM len\tPfam id\n";
 
-    if ($release){
-	open(FH, "mysql -hmysql-xfam-dev -P4423 -upfam -pmafp1 pfam_27_0 -e 'select pfamA.pfamA_acc,pfamA_id,type,model_length from clan join clan_membership join pfamA where clan.clan_acc = clan_membership.clan_acc and clan_membership.pfamA_acc = pfamA.pfamA_acc and clan.clan_acc=\"$clan\";' |");
-    } else {
-	open(FH, "mysql -h mysql-pfam-live -P4430 -uadmin -pc5yj9WHC pfam_live -e 'select pfamA.pfamA_acc,pfamA_id,type,model_length from clan join clan_membership join pfamA where clan.clan_acc = clan_membership.clan_acc and clan_membership.pfamA_acc = pfamA.pfamA_acc and clan.clan_acc=\"$clan\";' |");
-    }
+    $sth->execute($clan) or die "Couldn't execute statement ".$sth->errstr."\n";
+    my ($pfamA_acc, $pfamA_id, $type, $model_length);
+    $sth->bind_columns(\$pfamA_acc, \$pfamA_id, \$type, \$model_length);
 
     my $n=0;
-    while(<FH>){
-        if (/^(PF\d{5})\s+(\S+)\s+(\S+)\s+(\S+)/){
-            my $pfamA_acc=$1;
-            my $pfamA_id=$2;
-            my $type=$3;
-            my $model_length=$4;
-	    print "   $pfamA_acc\t$type\t$model_length\t$pfamA_id\n";
-	    $num_families_in_clans++;
-	    $n++;
-	}
+    while ($sth->fetch()) {
+      print "   $pfamA_acc\t$type\t$model_length\t$pfamA_id\n";
+      $num_families_in_clans++;
+      $n++;
     }
-    close FH;
+
     print "\n";
 
     $counts{$n}++;
