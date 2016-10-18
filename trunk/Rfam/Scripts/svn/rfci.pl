@@ -36,8 +36,8 @@ chomp($family);
 
 help() if ($help);
 
-#ly %ignore = map {$_ => 1} @ignore;
-#lprint Dumper %ignore;
+#my %ignore = map {$_ => 1} @ignore;
+#print Dumper %ignore;
 
 #-------------------------------------------------------------------------------
 my $pwd = getcwd;
@@ -212,6 +212,8 @@ OPTIONS:
                       adding a family to a clan. If you are uncertain of what you are doing, do 
                       not use this option.
   -i <option>       - Ignore some of the QC steps to speed up check-in/get family through.
+                      Valid options are (probably): 'overlap', 'spell', 'coding', 'seed', and 'missing'
+                      To skip more than one, use -i <s> multiple times
   -m                - Specify the message that describes the changes you have made to this family 
                       on the command line, avoid being prompted for it at a later satge.                   
                       
