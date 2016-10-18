@@ -103,12 +103,17 @@ print STDERR "Successfully loaded $family through middleware\n";
 
 
 #-------------------------------------------------------------------------------
-#Check ALIGN files has size, (qc checks allow existing families with no reference
-#proteome matches to have an empty ALIGN file, but new families should have an
-#non-empty ALIGN file)
+#Check ALIGN files has size
+#If not, ask user to confirm they still want to check it in
 unless(-s "$family/ALIGN") {
-  die "$family/ALIGN file has no size. You should rebuild this family\n";
-}
+  print "$0: Your family has an empty ALIGN file?\n";
+  print "Do you still want to check it in? [y/n]  ";
+  my $reply = <STDIN>;
+  chomp $reply;
+  if ( $reply ne "y" ) { 
+    exit(1);
+  }   
+}  
 
 #------------------------------------------------------------------------------------
 #Check user has filled in all the fields in DESC file
