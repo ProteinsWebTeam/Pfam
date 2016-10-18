@@ -23,12 +23,13 @@ if($#ARGV == -1) {
 }
 my $pwd = getcwd;
 
-my ($full, @ignore, $family, $help, $nospell);
+my ($full, @ignore, $family, $help, $nospell, $nocoding);
 &GetOptions(
       '-fam=s'=> \$family,
       '-i=s@' => \@ignore,
       '-h|help' => \$help,
       'nospell' => \$nospell,
+      'nocoding' => \$nocoding,
       ) or die "Unknown option passed, try running $0 -h\n";
       
 #This is coded like this for legacy reasons. The family can be passed in
@@ -90,7 +91,7 @@ eval{
   $error = Bio::Rfam::QC::checkFamilyFormat( $familyObj ) if(!$error);
   #Spell check
   if(!$nospell){
-    $error = Bio::Rfam::QC::checkSpell("$pwd/$family", $config) if(!$error);
+    $error = Bio::Rfam::QC::checkSpell("$pwd/$family", $config->dictionary) if(!$error);
   }
 };
 print $L $@ if($@);
@@ -197,21 +198,26 @@ if ($error){
   print STDERR "\t--SEQUENCE check completed with no major errors";
 }
 #------------------------------------------------------------------------------
-print STDERR "\n(7) NON-CODING CHECK\n";
-print $L "\n** NON-CODING check **\n";
+if($nocoding){ 
+  print STDERR "\n(7) SKIPPING NON-CODING CHECK (due to -nocoding option)\n";
+}
+else { # -nocoding not enabled
+  print STDERR "\n(7) NON-CODING CHECK\n";
+  print $L "\n** NON-CODING check **\n";
 
-$error = 0;
-my ($coding);
-eval{
-  ($error, $coding) = Bio::Rfam::QC::codingSeqs($familyObj, $config);
-};
-print $L $@ if($@);
-if ($error){ 
-  print $L $coding if($coding);
-  $masterError++;
-  print STDERR "\t--errors" 
-} else { 
-  print STDERR "\t--SEQUENCE check completed with no major errors";
+  $error = 0;
+  my ($coding);
+  eval{
+    ($error, $coding) = Bio::Rfam::QC::codingSeqs($familyObj, $config);
+  };
+  print $L $@ if($@);
+  if ($error){ 
+    print $L $coding if($coding);
+    $masterError++;
+    print STDERR "\t--errors" 
+  } else { 
+    print STDERR "\t--NON-CODING check completed with no major errors";
+  }
 }
 #------------------------------------------------------------------------------
 
@@ -237,10 +243,11 @@ Performs all QC steps against the family.
 OPTIONS:
 
  fam             : family to be QC, instead of passing as a parameter via ARGV.
- ignore <family> : List of accessions to ignore during the overlap check.
+ i <family>      : List of accessions to ignore during the overlap check.
  h|help          : prints thiss help message.
  nospell         : Does not run the spelling QC check, thereby permitting running as
                  : as non-interactive process, e.g. for f in `ls`; do rqc-all.pl \$f; done;
+ nocoding        : Does not run the coding QC check
 
 EOF
 
