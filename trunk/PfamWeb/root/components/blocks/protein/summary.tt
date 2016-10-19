@@ -152,6 +152,13 @@ END;
 
     <div id="pgholder" class="pgholder"></div>
 
+    <p>
+      <span id="showJson" class="link">Show</span> or
+      <span id="hideJson" class="link">hide</span> graphic in json format.
+    </p>
+
+    <div id="jsonholder" class="json" style="display: none"></div>
+
     <table class="resultTable details"
            id="imageKey"
            summary="Key for the Pfam domain image">
@@ -279,6 +286,21 @@ END;
           $$(".sh").invoke( "hide" )
         } );
       } );
+
+      var jsonDiv = document.getElementById("jsonholder");
+      var jsonP = document.createElement("pre");
+      jsonP.innerHTML = JSON.stringify(sequence, null, 4);
+      jsonDiv.appendChild(jsonP);
+
+      document.observe( "dom:loaded", function() {
+        $("showJson").observe( "click", function() {
+          $$(".json").invoke( "show" );
+        } );
+        $("hideJson").observe( "click", function() {
+          $$(".json").invoke( "hide" )
+        } );
+      } );
+
 
       // ]]>
     </script>
