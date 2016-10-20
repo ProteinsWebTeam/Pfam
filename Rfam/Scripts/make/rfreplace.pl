@@ -271,9 +271,17 @@ for(my $i = 0; $i < $nseed; $i++) {
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n Processing seed sequence %d of %d: %s\n SKIPPING: Rfamseq source and name validated, it will remain in the seed.\n", ($i+1), $nseed, $seed_name), 1);
   }
   else { 
-    interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $prefix_added, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, $logFH);
+    my $ncand = interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $prefix_added, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, $logFH);
+    if($ncand == 0) { 
+      # special case, initial check for a sequence > $id1_thr identity passed, but all sequences
+      # that were > $id1_thr were chosen as replacements for earlier sequences, inform the user
+      $ridxA[$i] = -2;
+      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n Processing seed sequence %d of %d: %s\n DELETING: no replacement candidates > $id1_thr identical remain.\n At least one of the earlier chosen replacements was > $id1_thr identical\n but you're not seeing that here because choosing the same\n replacement more than once is not allowed.\n", ($i+1), $nseed, $seed_name), 1);
+    }
   }
 }
+
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\n\n Finished processing seed sequences.\n Computing new SEED alignment...\n\n", 1);
     
 # create new SEED, after copying current SEED sideways
 if (-e $outseed) { copy("$outseed", "$outseed.$$"); }
@@ -585,7 +593,10 @@ sub preliminary_replacement_check {
 #          $do_local:     TRUE to align locally with respect to the CM if cmalign is used
 #          $logFH:        file handle for output log file
 #
-# Returns: void
+# Returns: Number of candidate replacement sequences that were listed as an option 
+#          for replacement to the user. If this number is 0, caller will know that
+#          there were zero sequences > $id1_thr fractionally identical to $i that
+#          *WERE NOT ALREADY CHOSEN AS REPLACEMENTS FOR EARLIER SEED SEQS $ip < $i*
 
 sub interactive_replacement_selection { 
   my ($config, $i, $fafile, $infoHHR, $msa, $nseed, $prefix_added, $id1_thr, $id2_thr, $maxcands, $Z, $ridxAR, $do_local, $logFH) = @_;
@@ -607,64 +618,81 @@ sub interactive_replacement_selection {
   my @taxstrA   = (); # taxonomic string 
   my @eidA      = (); # identity to closest existing (already confirmed/replaced) seed seq
   my @etaxstrA  = (); # tax string of closest existing (already confirmed/replaced) seed seq
+  my $id2_failure = 0; # set to '1' if a sequence is > $id2_thr identical to another replacement candidate
+  my $using_as_replacement = 0; # set to '1' if a sequence $ip with MSA index $ip < $i is already using 
+                                # this sequence to replace it.
   for(my $j = $first_hit; $j < $nseq; $j++) { 
-    my $id1 = $msa->pairwise_identity($i, $j);
-    # printf("j: $j id1: $id1 ($id1_thr)\n");
-    if($id1 >= $id1_thr) { 
-      # we could have a replacement candidate, first make sure it's not > $id2_thr identical to 
-      # any replacement candidates we've found thus far (there are $ncand thus far)
-      my $id2_failure = 0;
-      for(my $k = 0; $k < $ncand; $k++) { 
-        if($msa->pairwise_identity($j, $idxA[$k]) > $id2_thr) { 
-          #printf("id2 failure %.2f > %.2f (%s %s)\n", $msa->pairwise_identity($j, $idxA[$k]), $id2_thr, $msa->get_sqname($j), $msa->get_sqname($idxA[$k]));
-          $id2_failure = 1; 
-          last;
-        }
+    # first, make sure we haven't already selected sequence $j as a replacement
+    # for an earlier seed sequence
+    $using_as_replacement = 0;
+    for(my $ip = 0; $ip < $i; $ip++) { 
+      if ($ridxAR->[$ip] == $j) { 
+        #printf("i is $i, j is $j, we determined that we are already using sequence j to replace seed sequence $ip\n");
+        $using_as_replacement = 1;
       }
-      if(! $id2_failure) { # okay, we've got a sufficiently unique replacement candidate
-        $ncand++;
-        my $sqname = $msa->get_sqname($j);
-        if($prefix_added) { 
-          $sqname = $msa->remove_prefix_from_sqname($sqname);
+    }
+    if(! $using_as_replacement) { 
+      my $id1 = $msa->pairwise_identity($i, $j);
+      #printf("j: $j id1: $id1 ($id1_thr)\n");
+      if($id1 >= $id1_thr) { 
+        # we could have a replacement candidate, first make sure it's not > $id2_thr identical to 
+        # any replacement candidates we've found thus far (there are $ncand thus far)
+        $id2_failure = 0;
+        for(my $k = 0; $k < $ncand; $k++) { 
+          if($msa->pairwise_identity($j, $idxA[$k]) > $id2_thr) { 
+            #printf("id2 failure %.2f > %.2f (%s %s)\n", $msa->pairwise_identity($j, $idxA[$k]), $id2_thr, $msa->get_sqname($j), $msa->get_sqname($idxA[$k]));
+            $id2_failure = 1; 
+            last;
+          }
         }
-        # make sure we have $sqname in infoHHR, we better (since we already dealt with prefix removal if nec)
-        if(! exists $infoHHR->{$sqname}) { die "ERROR sequence $sqname aligned but not in outlist..."; }
-        # determine the max percent identity between this replacement candidate
-        # and all replacement seqs we've chosen thus far
-        my $max_eid = "-";
-        my $eid_taxstr = "N/A";
-        for(my $i2 = 0; $i2 < $nseed; $i2++) { 
-          if($ridxAR->[$i2] >= 0) { # if -1 we haven't replaced it yet, if -2 we will delete it
-            my $eid = $msa->pairwise_identity($j, $ridxAR->[$i2]);
-            if($max_eid eq "-" || $eid > $max_eid) { 
-              $max_eid = $eid;
-              my $i2_sqname = $msa->get_sqname($ridxAR->[$i2]);
-              if($prefix_added) { 
-                $i2_sqname = $msa->remove_prefix_from_sqname($i2_sqname);
-              }
-              if(defined $infoHHR->{$i2_sqname}) { 
-                $eid_taxstr = $infoHHR->{$i2_sqname}{"taxstr"};
-              }
-              else { 
-                $eid_taxstr = "unavailable";
+        if(! $id2_failure) { # okay, we've got a sufficiently unique replacement candidate
+          $ncand++;
+          my $sqname = $msa->get_sqname($j);
+          if($prefix_added) { 
+            $sqname = $msa->remove_prefix_from_sqname($sqname);
+          }
+          # make sure we have $sqname in infoHHR, we better (since we already dealt with prefix removal if nec)
+          if(! exists $infoHHR->{$sqname}) { die "ERROR sequence $sqname aligned but not in outlist..."; }
+          # determine the max percent identity between this replacement candidate
+          # and all replacement seqs we've chosen thus far
+          my $max_eid = "-";
+          my $eid_taxstr = "N/A";
+          for(my $i2 = 0; $i2 < $nseed; $i2++) { 
+            if($ridxAR->[$i2] >= 0) { # if -1 we haven't replaced it yet, if -2 we will delete it
+              my $eid = $msa->pairwise_identity($j, $ridxAR->[$i2]);
+              if($max_eid eq "-" || $eid > $max_eid) { 
+                $max_eid = $eid;
+                my $i2_sqname = $msa->get_sqname($ridxAR->[$i2]);
+                if($prefix_added) { 
+                  $i2_sqname = $msa->remove_prefix_from_sqname($i2_sqname);
+                }
+                if(defined $infoHHR->{$i2_sqname}) { 
+                  $eid_taxstr = $infoHHR->{$i2_sqname}{"taxstr"};
+                }
+                else { 
+                  $eid_taxstr = "unavailable";
+                }
               }
             }
           }
-        }
-        
-        push(@idxA,      $j);
-        push(@nameA,     $sqname);
-        push(@id1A,      $id1);
-        push(@sspeciesA, $infoHHR->{$sqname}{"sspecies"});
-        push(@taxstrA,   $infoHHR->{$sqname}{"taxstr"});
-        push(@eidA,      $max_eid);
-        push(@etaxstrA,  $eid_taxstr);
-            
-        if($ncand == $maxcands) { last; }
-      } # end of 'if (! $id2_failure)'
-    } # end of 'if $id1 >= $id1_thr'
+
+          push(@idxA,      $j);
+          push(@nameA,     $sqname);
+          push(@id1A,      $id1);
+          push(@sspeciesA, $infoHHR->{$sqname}{"sspecies"});
+          push(@taxstrA,   $infoHHR->{$sqname}{"taxstr"});
+          push(@eidA,      $max_eid);
+          push(@etaxstrA,  $eid_taxstr);
+          
+          if($ncand == $maxcands) { last; }
+        } # end of 'if (! $id2_failure)'
+      } # end of 'if $id1 >= $id1_thr'
+    } # end of 'if (! $using_as_replacment)'
   } # end of 'for ($j = $nseed; $j < $nseq; $j++)' loop
-  if($ncand == 0) { die "ERROR didn't find any hits with >= $id1_thr fractional identity to $seed_name (after initial check passed...)"; }
+  if($ncand == 0) { 
+    # we're done, there's no acceptable candidates, inform caller of this by returning 0
+    return 0; 
+  }
 
   # now reorder all the arrays, so that the candidates occur in decreasing order
   # of percent identity to the seed seq they may replace. We do an embarassingly
@@ -833,7 +861,7 @@ sub interactive_replacement_selection {
     } # end of while($keep_printing_enter_choice
   } # end of while($keep_printing_candidates)
 
-  return;
+  return $ncand;
 }
 #########################################################
 # process_choice_taxinfo_single

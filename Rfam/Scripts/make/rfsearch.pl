@@ -152,7 +152,6 @@ if((! defined $dbfile) && # -dbfile not set
 }
 
 # deal with -nodesc option and check for DESC file
-# deal with -nodesc option and check for DESC file
 my $created_desc = 0;  # set to '1' if we create a DESC belowif($allow_no_desc) { # user wants us to allow no DESC file
 if($allow_no_desc || $do_noss) { # user wants us to allow no DESC file, or -noss set
   # make sure there isn't one
@@ -416,7 +415,7 @@ $outfileH{"revspecies"}   = "same as revoutlist, but with additional taxonomic i
 $outfileH{"outlist.pdf"}  = "bit score histograms of all hits";
 $outfileH{"species.pdf"}  = "bit score histogram of all hits, colored by taxonomy";
 
-# remove any of these files that currently exist, they're no invalid, since we're now rerunning the search
+# remove any of these files that currently exist, they're now invalid, since we're now rerunning the search
 my $outfile;
 foreach $outfile (@outfile_orderA) {
   if (-e $outfile) { 
