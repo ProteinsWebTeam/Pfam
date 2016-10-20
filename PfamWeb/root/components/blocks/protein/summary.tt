@@ -152,12 +152,18 @@ END;
 
     <div id="pgholder" class="pgholder"></div>
 
-    <p>
-      <span id="showJson" class="link">Show</span> or
-      <span id="hideJson" class="link">hide</span> graphic in json format.
+    <p class="modernBrowserJson">
+      <a id="jsonDownloadLink" class="link">Download</a> the data used to generate the domain graphic in JSON format.
     </p>
 
-    <div id="jsonholder" class="json" style="display: none"></div>
+    <div class="oldBrowserJson">
+      <p class="oldBrowserJson">
+        <span id="showJson" class="link">Show</span> or
+        <span id="hideJson" class="link">hide</span> the data used to generate the graphic in JSON format.
+      </p>
+    </div>
+
+      <div id="jsonData" class="json" style="display: none"></div>
 
     <table class="resultTable details"
            id="imageKey"
@@ -287,21 +293,37 @@ END;
         } );
       } );
 
-      var jsonDiv = document.getElementById("jsonholder");
-      var jsonP = document.createElement("pre");
-      jsonP.innerHTML = JSON.stringify(sequence, null, 4);
-      jsonDiv.appendChild(jsonP);
+      var jsonLink = document.getElementById("jsonDownloadLink");
+      if (jsonLink != null) {
+        var hideBrowserType = "oldBrowserJson"
+        if (typeof jsonLink.download != "undefined") {
+          var jsonBlob = new Blob([JSON.stringify(sequence, null, 4)]);
+          var jsonURL = URL.createObjectURL(jsonBlob);
+          jsonLink.href = jsonURL;
+          jsonLink.download = "[% seq_acc %].json";
+        } else {
+          console.log("jsonURL");
+          hideBrowserType = "modernBrowserJson"
+          var jsonDiv = document.getElementById("jsonData");
+          var jsonP = document.createElement("pre");
+          jsonP.innerHTML = JSON.stringify(sequence, null, 4);
+          jsonDiv.appendChild(jsonP);
 
-      document.observe( "dom:loaded", function() {
-        $("showJson").observe( "click", function() {
-          $$(".json").invoke( "show" );
-        } );
-        $("hideJson").observe( "click", function() {
-          $$(".json").invoke( "hide" )
-        } );
-      } );
+          document.observe( "dom:loaded", function() {
+            $("showJson").observe( "click", function() {
+              $$(".json").invoke( "show" );
+            } );
+            $("hideJson").observe( "click", function() {
+              $$(".json").invoke( "hide" )
+            } );
+          } );
 
-
+        }
+        var elements = document.getElementsByClassName(hideBrowserType);
+        for (var i = 0; i < elements.length; i++) {
+          elements[i].style.display = "none";
+        }
+      }
       // ]]>
     </script>
 
