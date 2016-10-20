@@ -78,6 +78,10 @@ if ($wholeseq){
     print STDERR "Remaking SEED using wholeseq\n";
     system ("wholeseq.pl -align SEED -m > SEED.whole");
     system ("cp SEED.whole SEED");
+
+    print STDERR "Overwriting old HMM with new one based on new SEED\n";
+    system ("hmmbuild HMM SEED");
+
 }
 
 system ("hmmalign --mapali SEED -o SEED.sto HMM $$.fasta");
