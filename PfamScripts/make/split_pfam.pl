@@ -1,6 +1,7 @@
 #! /usr/bin/perl -w 
 
 use strict;
+use Getopt::Long;
 
 # This script can help to split a Pfam family based on structural domain information from
 # ECOD. Could probably make into a productivity script where user can check alignments.
@@ -11,7 +12,11 @@ use strict;
 # 3) Attempt an automatic splitting of the alignments
 # 4) Allow user to select a domain which keeps the original accession.
 
-# Usage $0: <pfam acc> <pdb acc:chain>
+# Usage $0: <pfam acc> <pdb acc:chain> -wholeseq
+
+my $wholeseq;
+&GetOptions('wholeseq!' => \$wholeseq, # This option will do a wholeseq on SEED alignment
+    );
 
 my $pfam_acc = shift @ARGV;
 my $pdb_acc_chain= shift @ARGV;
@@ -67,6 +72,14 @@ print STDERR "Found $n domains\n";
 
 # Align them to SEED alignment of Pfam family
 chdir "$pfam_acc";
+
+# Wholeseq SEED of -wholeseq option was used
+if ($wholeseq){
+    print STDERR "Remaking SEED using wholeseq\n";
+    system ("wholeseq.pl -align SEED -m > SEED.whole");
+    system ("cp SEED.whole SEED");
+}
+
 system ("hmmalign --mapali SEED -o SEED.sto HMM $$.fasta");
 system("grep -v '#=G' SEED.sto > SEED.new");
 
