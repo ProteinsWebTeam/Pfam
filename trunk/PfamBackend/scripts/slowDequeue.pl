@@ -151,9 +151,7 @@ while (1) {
       $cmd =
           "cmscan -o $tempfile --cut_ga --cpu "
         . $qsout->rfcpus
-        . " --FZ 5 --nohmmonly --notextw --glist "
-        . $qsout->rfamDataFileDir
-        . "/Rfam.glist --tblout $outfile "
+        . " --FZ 5 --nohmmonly --notextw --tblout $outfile "
         . $qsout->rfamDataFileDir
         . "/Rfam.cm.1_1 - ; postJob.pl -id "
         . $job->{id}
