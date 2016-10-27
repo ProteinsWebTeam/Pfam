@@ -140,9 +140,7 @@ JOB: while (1) {
       my $cmd =
           "cmscan --cut_ga --notextw --cpu "
         . $qsout->rfcpus
-        . " --FZ 5 --nohmmonly --glist "
-        . $qsout->rfamDataFileDir
-        . "/Rfam.glist  "
+        . " --FZ 5 --nohmmonly "
         . $qsout->rfamDataFileDir
         . "/Rfam.cm.1_1 -";
       $DEBUG && print "Going to run:$cmd\n";
