@@ -441,6 +441,7 @@ else {
     ncbi_taxid int(10) unsigned default '0',\
     auto_architecture bigint(11) unsigned DEFAULT NULL, \
     treefam_acc varchar(8) DEFAULT NULL, \
+    swissprot tinyint(1) DEFAULT '0', \
     PRIMARY KEY  (pfamseq_acc),\
     KEY pfamseq_acc_version (pfamseq_acc,seq_version) ) ENGINE=InnoDB");
 
