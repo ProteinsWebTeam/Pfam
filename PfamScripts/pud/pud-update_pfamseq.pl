@@ -344,13 +344,13 @@ else {
           #ECO:0000305 - Curator inference evidence
           #ECO:0000303 - Non-traceable author statement evidence
           if($record{'AS'}{$residue} =~ /ECO:0000269/ or $record{'AS'}{$residue} =~ /ECO:0000305/ or $record{'AS'}{$residue} =~ /ECO:0000303/) { 
-            print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\n"; #auto_markup 1 = expermentally determined active site
+            print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\t\\N\n"; #auto_markup 1 = expermentally determined active site
           }
           elsif( lc($record{'AS'}{$residue}) =~ /(potential|probable|similarity)/ or $record{'AS'}{$residue} =~ /ECO:/) {  #Predicted feature
-            print ACT_METAL "$record{'AC'}\t3\t$residue\t$record{'AS'}{$residue}\n"; #auto_markup 3 = uniprot predicted active site
+            print ACT_METAL "$record{'AC'}\t3\t$residue\t$record{'AS'}{$residue}\t\\N\n"; #auto_markup 3 = uniprot predicted active site
           }
           else {  #If it doesn't have an ECO code and doesn't have potential/probable/similarity, assume it's an expermentally determined feature  
-            print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\n";
+            print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\t\\N\n";
           } 
           
         }
@@ -364,13 +364,13 @@ else {
           #ECO:0000305 - Curator inference evidence
           #ECO:0000303 - Non-traceable author statement evidence
           if($record{'ME'}{$residue} =~ /ECO:0000269/ or $record{'ME'}{$residue} =~ /ECO:0000305/ or $record{'ME'}{$residue} =~ /ECO:0000303/) { #Evidence code for experimentally determined feature
-            print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\n"; #auto_markup 4 = experimentally determined metal ion binding 
+            print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\t\\N\n"; #auto_markup 4 = experimentally determined metal ion binding 
           }
           elsif( lc($record{'ME'}{$residue}) =~ /(potential|probable|similarity)/ or $record{'ME'}{$residue} =~ /ECO:/) { #auto_markup 5 = uniprot predicted metal ion binding
-            print ACT_METAL "$record{'AC'}\t5\t$residue\t$record{'ME'}{$residue}\n";
+            print ACT_METAL "$record{'AC'}\t5\t$residue\t$record{'ME'}{$residue}\t\\N\n";
           }
           else { #If it doesn't have an ECO code and doesn't have potential/probable/similarity, assume it's an expermentally determined feature
-            print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\n";
+            print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\t\\N\n";
           } 
         }
       }
