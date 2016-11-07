@@ -1,7 +1,7 @@
 [%
 # getStarted.tt
 # rdf 20060927 WTSI
-# 
+#
 # build the getStarted block for the help pages
 #
 # $Id: getStarted.tt,v 1.15 2009-10-28 14:02:00 jt6 Exp $
@@ -24,12 +24,12 @@
         <li><a class="link" rel="seqSearch">Searching a sequence</a></li>
         <li><a class="link" rel="archSearch">Finding architectures</a></li>
         <li><a class="link" rel="wiki">Wikipedia annotation</a></li>
-      </ol> 
+      </ol>
     </div>
-  
+
     <h2><a name="organisation">Site organisation</a></h2>
 
-    <img alt="Site organisation" 
+    <img alt="Site organisation"
          id="wiringDiagram"
          src="[% c.uri_for('/static/images/wiring/family.png') %]" />
 
@@ -49,7 +49,7 @@
           determined by <a class="ext"
           href="http://toolkit.tuebingen.mpg.de/hhpred">HHsearch</a> alignment
           between the family HMMs. Note than not all Pfam-A families belong to
-          a clan. 
+          a clan.
         </p>
       </div>
       <div id="proteomeSummary" class="wiringBlockSummary" style="display: none">
@@ -72,7 +72,7 @@
           the family page cover the following topics: functional annotation;
           domain organisation or architectures; alignments; HMM logo; trees;
           curation and models; species distribution; interactions; and
-          structures. 
+          structures.
         </p>
       </div>
       <div id="structureSummary" class="wiringBlockSummary" style="display: none">
@@ -90,7 +90,7 @@
           dynamically pull in articles from <a class="ext"
           href="http://www.ncbi.nlm.nih.gov/pmc/">PubMedCentral</a> and/or the
           <a class="ext" href="http://www.topsan.org/">TOPSAN</a> wiki, which
-          provide further information on the structure. 
+          provide further information on the structure.
         </p>
       </div>
       <div id="sequenceSummary" class="wiringBlockSummary" style="display: none">
@@ -99,7 +99,7 @@
           organsim, sequence description and Pfam domains found on the
           sequence. There are links to structures and <a class="ext"
           href="http://www.treefam.org/">TreeFam</a> if the protein has been
-          classified by that third party database. 
+          classified by that third party database.
         </p>
       </div>
     </div>
@@ -107,39 +107,39 @@
     <p><a class="link" rel="getStartedTop">back to top</a></p>
 
     <hr />
-    
-    <img class="jumpTo" 
-         src="[% c.uri_for( "/static/images/jumpTo.gif" ) %]" 
+
+    <img class="jumpTo"
+         src="[% c.uri_for( "/static/images/jumpTo.gif" ) %]"
          alt="jump to..." />
 
     <h2><a name="jumpTo">Using the &quot;Jump to&quot; search</a></h2>
 
     <p>
-      Many pages in the site include a small search box, entitled &quot;Jump 
+      Many pages in the site include a small search box, entitled &quot;Jump
       to...&quot;. The &quot;Jump to...&quot; box allows you to go immediately
-      to the page for any entry in the Pfam site entry, including Pfam families, 
+      to the page for any entry in the Pfam site entry, including Pfam families,
       clans and UniProt sequence entries.
     </p>
     <p>
       The &quot;Jump to...&quot; search understands accessions and IDs for
-      most types of entry. For example, you can enter either a Pfam family 
-      accession, e.g. <code>PF02171</code>, or, if you find it easier to 
-      remember, a family ID, such as <code>piwi</code>. Note that the search 
+      most types of entry. For example, you can enter either a Pfam family
+      accession, e.g. <code>PF02171</code>, or, if you find it easier to
+      remember, a family ID, such as <code>piwi</code>. Note that the search
       is case insensitive.
     </p>
     <p>
-      Because some identifiers can be ambiguous, the &quot;Jump to...&quot; 
-      search may need to test several types of identifier to find 
-      the entry that you're looking for. For example, Pfam A family IDs (e.g. 
-      Kazal_1) and Pfam clan IDs (e.g. Kazal) aren't easily distinguished, so 
-      if you enter <code>kazal</code>, the search will first look for a 
-      family called <em>kazal</em> and, if it doesn't find one, will then 
-      look for a clan called <em>kazal</em>. If all of the guesses fail, you'll 
+      Because some identifiers can be ambiguous, the &quot;Jump to...&quot;
+      search may need to test several types of identifier to find
+      the entry that you're looking for. For example, Pfam A family IDs (e.g.
+      Kazal_1) and Pfam clan IDs (e.g. Kazal) aren't easily distinguished, so
+      if you enter <code>kazal</code>, the search will first look for a
+      family called <em>kazal</em> and, if it doesn't find one, will then
+      look for a clan called <em>kazal</em>. If all of the guesses fail, you'll
       see an error message saying &quot;Entry not found&quot;.
     </p>
     <p>
       The order in which the search tries the various types of ID and accession
-      is given below:  
+      is given below:
     </p>
     <ul>
       <li>Pfam A accession, e.g. PF02171</li>
@@ -159,13 +159,13 @@
     <p><a class="link" rel="getStartedTop">back to top</a></p>
 
     <hr />
-    
-    <img class="jumpTo" 
-         src="[% c.uri_for( "/static/images/kwSearch.gif" ) %]" 
+
+    <img class="jumpTo"
+         src="[% c.uri_for( "/static/images/kwSearch.gif" ) %]"
          alt="keyword search" />
 
     <h2><a name="kwSearch">Keyword search</a></h2>
-    
+
     <p>
       Every page in the Pfam site includes a search box in the page header.
       You can use this to find Pfam-A families which match a particular keyword.
@@ -181,14 +181,14 @@
     <p>
       Each Pfam-A entry is listed only once in the results table, although it
       might have been found in more than one area of the database.
-    </p>      
+    </p>
 
     <p><a class="link" rel="getStartedTop">back to top</a></p>
 
     <hr />
-    
+
   	<h2><a name="seqSearch">Searching a protein sequence against Pfam</a></h2>
-  
+
   	<p>
       Searching a protein sequence against the Pfam library of HMMs will
       enable you to find out the domain architecture of the protein. If your
@@ -203,17 +203,17 @@
       single-sequence or a batch search by clicking on the 'Search' link at the
       top of the Pfam page.
   	</p>
-  
+
   	<h3>Single protein search</h3>
-  
+
   	<p>
       If your protein is not recognised by Pfam, you will need to paste the
       protein sequence into the search page. We will search your sequence
       against our HMMs and instantly display the matches for you.
   	</p>
-  
+
   	<h3>Batch search</h3>
-  
+
   	<p>
       If you have a large number of sequences to search (up to several
       thousand), you can use our batch upload facility. This allows you to
@@ -221,9 +221,9 @@
       against our HMMs and email the results back to you, usually within 48
       hours. We request that you put a maximum of 5000 sequences in each file.
   	</p>
-  
+
   	<h3>Local protein searches</h3>
-  
+
   	<p>
       If you have a very large number of protein searches to perform, or you do
       not wish to post your sequence across the web, it may be more convenient
@@ -237,12 +237,12 @@
        <a class="ext" href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/Tools/README">
        FTP site</a>.
   	</p>
-  
+
   	<h3>Proteome analysis</h3>
-  
+
   	<p>
-      Pfam pre-calculates the domain compositions and architectures for all 
-      the proteomes present in our snapshot of 
+      Pfam pre-calculates the domain compositions and architectures for all
+      the proteomes present in our snapshot of
       <a class="ext" href="http://www.uniprot.org/proteomes/">UniProt proteomes</a>.  To
       see the list of proteomes, click on the 'browse' link at the top of the
       Pfam website, and click on a letter of the alphabet in the 'proteomes'
@@ -254,38 +254,38 @@
       The taxonomy query allows quick identification of families/domains which
       are present in one species but are absent from another. It can also be
       used to find families/domains that are unique to a particular species
-      (note this can be very slow). 
+      (note this can be very slow).
   	</p>
-  
+
     <p><a class="link" rel="getStartedTop">back to top</a></p>
 
     <hr />
-    
-  	<h2><a name="archSearch">Finding proteins with a specific set of domain 
+
+  	<h2><a name="archSearch">Finding proteins with a specific set of domain
       combinations ('architectures')</a></h2>
-  
+
   	<p>
       Pfam allows you to retrieve all of the proteins with a particular domain
       combination (e.g. proteins containing both a CBS domain and an IMPDH
       domain) using the <a href="[% c.uri_for( '/search', tab =
       'searchDomainBlock' ) %]">domain query tool</a>. For a more detailed
-      study of domain architectures you can use 
+      study of domain architectures you can use
       <a href="[% c.uri_for( '/search', tab = 'searchDomainBlock' ) %]">
         PfamAlyzer</a>. PfamAlyzer allows you to find proteins which contain a
       specific combination of domains and to specify particular species and
-      the evolutionary distances allowed between domains. 
+      the evolutionary distances allowed between domains.
     </p>
-  
+
     <p><a class="link" rel="getStartedTop">back to top</a></p>
 
     <hr />
-    
+
   	<h2><a name="wiki">Wikipedia annotation</a></h2>
-  
+
   	<p>
       The Pfam consortium is now coordinating the annotation of Pfam families
       via <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">
-        Wikipedia</a>. On the summary tab of some family pages, you'll find the 
+        Wikipedia</a>. On the summary tab of some family pages, you'll find the
       text from a Wikipedia article that we feel provides a good description
       of the Pfam family. If a family has a Wikipedia article assigned to it,
       we now show the text of that article on the summary tab, in preference
@@ -298,7 +298,19 @@
 		  <span class="link" onclick="tabPage.switchTab('helpWikiBlock')">
         Pfam and Wikipedia</span> tab.
     </p>
-  
+
+    <p><a class="link" rel="getStartedTop">back to top</a></p>
+
+    <hr />
+
+    <h2><a name="training">Pfam tour</a></h2>
+    <p>
+      This <a class="ext"
+      href="http://www.ebi.ac.uk/training/online/course/pfam-quick-tour">
+      quick tour</a> provides a brief introduction to the Pfam website
+      and database.
+    </p>
+
     <p><a class="link" rel="getStartedTop">back to top</a></p>
 
     <script type="text/javascript">
