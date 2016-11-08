@@ -29,6 +29,8 @@ my ( $message, @ignore, $addToClan, $help );
 
 my $family = shift;
 
+help() if ($help);
+
 unless ($family) {
   warn "\n***** No family passed  *****\n\n";
   help();
@@ -40,7 +42,6 @@ if (@ARGV) {
   help();
 }
 
-help() if ($help);
 
 #-------------------------------------------------------------------------------
 my $pwd = getcwd;
