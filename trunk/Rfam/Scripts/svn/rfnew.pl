@@ -199,7 +199,9 @@ print<<EOF;
   
   Aim: To perform quality control checks on a new family and add it to the SVN repository.
   
-  -i                - Ignore some of the QC steps to speed up check-in.
+  -i <option>       - Ignore some of the QC steps to speed up check-in/get family through.
+                      Valid options are (probably): 'overlap', 'spell', 'coding', 'seed', and 'missing'
+                      To skip more than one, use -i <s> multiple times
   -m                - Specify the message that describes the changes you have made to this family 
                       on the command line, avoid being prompted for it at a later satge.
   -add_to_clan      - Add this family to a clan.                                       
