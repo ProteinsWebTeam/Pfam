@@ -2,13 +2,13 @@
 [%
 # summary.tt
 # jt6 20060925 WTSI
-# 
+#
 # build the summary block for the help pages
 #
 # $Id: summary.tt,v 1.21 2009-12-11 16:37:42 jt6 Exp $
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -48,23 +48,23 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       [% IF relData.number_families %], [% relData.number_families %] families[% END %])
     </h2>
     <p>
-      Proteins are generally comprised of one or more functional regions, 
-      commonly termed domains. The presence of different domains in varying 
-      combinations in different proteins gives rise to the diverse repertoire 
+      Proteins are generally comprised of one or more functional regions,
+      commonly termed domains. The presence of different domains in varying
+      combinations in different proteins gives rise to the diverse repertoire
       of proteins found in nature. Identifying the domains present in a protein
       can provide insights into the function of that protein.
     </p>
     <p>
       The Pfam database is a large collection of protein domain families.
-      Each family is represented by multiple sequence alignments and a hidden 
+      Each family is represented by multiple sequence alignments and a hidden
       Markov model (HMMs).
     </p>
     <p>
-      Each Pfam family, often referred to as a Pfam-A entry, consists of a curated 
-      seed alignment containing a small set of representative members of the 
-      family, profile hidden Markov models (profile HMMs) built from the seed 
-      alignment, and an automatically generated full alignment, which contains 
-      all detectable protein sequences belonging to the family, as defined by 
+      Each Pfam family, often referred to as a Pfam-A entry, consists of a curated
+      seed alignment containing a small set of representative members of the
+      family, profile hidden Markov models (profile HMMs) built from the seed
+      alignment, and an automatically generated full alignment, which contains
+      all detectable protein sequences belonging to the family, as defined by
       profile HMM searches of primary sequence databases.
     </p>
     <p>
@@ -76,7 +76,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       <dt>Domain:</dt>
       <dd>A structural unit</dd>
       <dt>Repeat:</dt>
-      <dd>A short unit which is unstable in isolation but forms a stable 
+      <dd>A short unit which is unstable in isolation but forms a stable
         structure when multiple copies are present</dd>
       <dt>Motifs:</dt>
       <dd>A short unit found outside globular domains</dd>
@@ -88,12 +88,12 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         contain bias sequence composition and/or are intrinsically disordered (non-globular).</dd>
     </dl>
     <p>
-      Related Pfam entries are grouped together into <em>clans</em>; the 
-      relationship may be defined by similarity of sequence, structure or 
+      Related Pfam entries are grouped together into <em>clans</em>; the
+      relationship may be defined by similarity of sequence, structure or
       profile-HMM.
     </p>
 
-    [%# the links to the individual questions used to be real links, using 
+    [%# the links to the individual questions used to be real links, using
       # anchors in the page to move around. However, that seems to interfere
       # with the new tab manager, so we have to work around it. This snippet
       # of JS adds a listener to each internal link and uses the "rel"
@@ -102,21 +102,21 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       // <![CDATA[
 
       document.observe( "dom:loaded", function() {
-    
+
         $$("a[rel]").each( function(el) {
-    
+
           el.observe( "click", function(e) {
             var el = e.findElement();
             var target = el.getAttribute("rel");
             $$("a[name='"+target+"']").first().scrollTo();
           } );
-          
+
         } );
-    
+
       } );
-      
+
       // ]]>
-    </script> 
+    </script>
 
   </div>
 </div>
