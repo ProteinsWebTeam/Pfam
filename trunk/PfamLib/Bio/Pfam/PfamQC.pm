@@ -937,7 +937,7 @@ sub family_overlaps_with_signal_peptide {
       foreach my $seq (@{$famObj->$aln->all_nse}) {
         next if($seq->[1] > 120);
         if(exists($regions{$seq->[0]})) {
-          if($seq->start < $regions{$seq->[0]}{start}) { #Only store first region on the sequence
+          if($seq->[1] < $regions{$seq->[0]}{start}) { #Only store first region on the sequence
             $regions{$seq->[0]}{start}=$seq->[1];
             $regions{$seq->[0]}{end}=$seq->[2];
           }
