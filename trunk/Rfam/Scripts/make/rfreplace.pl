@@ -53,9 +53,6 @@ use Bio::Easel::Random;
 #
 #  If there's no warnings at all, we can just exit: no replacement necessary.
 #
-#  -ALSO need a way of preventing duplicate seqs in the final SEED,
-#   possibly by a final pass to remove duplicates prior to exit.
-#
 # I also have notes on new features I need in rfreplace in
 # ~/notebook/14_0223_lm/00LOG, on Feb 23.  Fortuantely, the idea above
 # of using the rfmake.log file as required input gets around the nasty
@@ -156,10 +153,10 @@ my $famObj = Bio::Rfam::Family->new(
                                     'CM'     => $io->parseCM("CM"),
                                    );
 my $seedmsa = $famObj->SEED;
-my $desc     = $famObj->DESC;
-my $cm       = $famObj->CM;
-my $id       = $desc->ID;
-my $acc      = $desc->AC;
+my $desc    = $famObj->DESC;
+my $cm      = $famObj->CM;
+my $id      = $desc->ID;
+my $acc     = $desc->AC;
 
 # setup dbfile 
 my $dbconfig  = $config->seqdbConfig($dbchoice);
@@ -239,16 +236,21 @@ my @ridxA = (); # this will be a list of all seqs (their index in msa) that the 
 Bio::Rfam::Utils::setArray(\@ridxA, -1, $nseed); # set to -1 for all values
 
 # Determine if cmalign changed the names of the sequences in the MSA
-# because there were duplicate names. This will happen if the SEED
-# contains >= 1 subsequence from RFAMSEQ and rfsearch found the same
-# subsequence as a hit giving two identically named seqs to cmalign.
+# because there were duplicate names. This should NOT happen because 
+# in cmalign_seed_and_hits we added the prefix 'seed-' to SEED seqs 
+# and 'hit-' to hits from outlist. Since there should be no 
+# duplicates in outlist and there should be no duplicates in SEED
+# then we should be good. We checked that there were nto duplicate
+# names in the SEED in cmsearch_seed()
 my $prefix_added = $msa->check_if_prefix_added_to_sqnames;
+if($prefix_added) { 
+  die "ERROR cmalign added numerical prefixes to sequences. This indicates there are duplicate sequence names in the SEED. That is not allowed. Fix and rerun."; }
 
 # Preliminary step before we ask user to make modifications to the SEED,
 # go through and make sure that each sequence has at least one hit 
 # >= $id1 fractionally identical. Also check to see if any sequences are
 # already from RFAMSEQ, we'll skip these and leave them as they are in SEED.
-preliminary_replacement_check($msa, $nseed, $id1_thr, $prefix_added, \@ridxA, $logFH);
+preliminary_replacement_check($msa, $nseed, $id1_thr, \@ridxA, $logFH);
 
 # Parse the outlist and species to get tax info on each hit, 
 # which we'll present to the user to aide their decision on
@@ -260,10 +262,7 @@ $io->parseOutlistAndSpecies($outlist, $species, 0, 0, $min_bitsc, 0, \%infoHH, u
 # For each seed sequence, collect replacement candidates and
 # interact the user to select a replacement.
 for(my $i = 0; $i < $nseed; $i++) { 
-  my $seed_name = $msa->get_sqname($i);
-  if($prefix_added) { 
-    $seed_name = $msa->remove_prefix_from_sqname($seed_name);
-  }
+  my $seed_name = remove_rfreplace_prefix_from_sqname($msa->get_sqname($i), "seed");
   if($ridxA[$i] == -2) { # if == -2, there's not replacement candidates, we'll delete this seq, warn user against it first though
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n Processing seed sequence %d of %d: %s\n DELETING: no replacement candidates > $id1_thr identical found.\n", ($i+1), $nseed, $seed_name), 1);
   }
@@ -271,7 +270,7 @@ for(my $i = 0; $i < $nseed; $i++) {
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n Processing seed sequence %d of %d: %s\n SKIPPING: Rfamseq source and name validated, it will remain in the seed.\n", ($i+1), $nseed, $seed_name), 1);
   }
   else { 
-    my $ncand = interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $prefix_added, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, $logFH);
+    my $ncand = interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, $logFH);
     if($ncand == 0) { 
       # special case, initial check for a sequence > $id1_thr identity passed, but all sequences
       # that were > $id1_thr were chosen as replacements for earlier sequences, inform the user
@@ -284,7 +283,7 @@ for(my $i = 0; $i < $nseed; $i++) {
 Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\n\n Finished processing seed sequences.\n Computing new SEED alignment...\n\n", 1);
     
 # create new SEED, after copying current SEED sideways
-if (-e $outseed) { copy("$outseed", "$outseed.$$"); }
+my $tmpseed = "$$.tmp.seed";
 my @newseedA = ();
 my $nnew = 0;
 for(my $i = 0; $i < $nseed; $i++) { 
@@ -292,14 +291,23 @@ for(my $i = 0; $i < $nseed; $i++) {
   elsif($ridxA[$i] == -2) { ; } # skip this sequence, we're deleting it (not replacing it) }
   else { 
     my $seed_name = $msa->get_sqname($ridxA[$i]);
-    if($prefix_added) { 
-      $seed_name = $msa->remove_prefix_from_sqname($seed_name);
-    }
+    # don't remove prefix of 'seed-' or 'hit-' here
     push(@newseedA, $seed_name);
     $nnew++;
   }
 }
-redo_cmalign_alignment_of_subset($config, $fafile, "CM", $outseed, "seedalignout", \@newseedA, $do_local);
+redo_cmalign_alignment_of_subset($config, $fafile, "CM", $tmpseed, "seedalignout", \@newseedA, $do_local);
+
+# now rename all seqs by removing seed- or -hit- prefix, and output new alignment
+if (-e $outseed) { copy("$outseed", "$outseed.$$"); }
+my $tmpmsa = Bio::Easel::MSA->new({
+  fileLocation => "$tmpseed",
+  forceText => "1"
+});
+for(my $i = 0; $i < $tmpmsa->nseq; $i++) { 
+  $tmpmsa->set_sqname($i, remove_rfreplace_prefix_from_sqname($tmpmsa->get_sqname($i), "either"));
+}
+$tmpmsa->write_msa($outseed, "stockholm");
 
 # done all work in replacement mode, print output file summary
 Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, 1);
@@ -362,7 +370,7 @@ sub parse_outlist {
         if(! $validated) { die "ERROR something wrong with outlist line, can't break it down to name/start-end format ($line)"; }
         
         push(@{$fetchAAR}, [$nse, $start, $end, $name]); 
-        #print ("added $name/$start-$end\n");
+        #print ("added seq $name/$start-$end\n");
       }
       else { # bit score is below our minimum: stop
         last;
@@ -396,7 +404,6 @@ sub cmsearch_seed {
   my ($seedmsa, $searchopts, $logFH) = @_;
 
   # first output seed as fasta file
-
   my $seed_fafile = "s.$$.fa";
   my $nseed = $seedmsa->nseq;
   $seedmsa->write_msa($seed_fafile, "fasta");
@@ -480,6 +487,11 @@ sub cmalign_seed_and_hits {
   my $nodesc_seed_seqstring = Bio::Rfam::Utils::remove_descriptions_from_fasta_seq_string($seed_seqstring);
   my $nodesc_hit_seqstring  = Bio::Rfam::Utils::remove_descriptions_from_fasta_seq_string($hit_seqstring);
 
+  # add 'seed-' prefix to beginning of all seed sequence names
+  # add 'hit-' prefix to beginning of all hit sequence names
+  $nodesc_seed_seqstring =~ s/\>/\>seed-/g;
+  $nodesc_hit_seqstring =~ s/\>/\>hit-/g;
+
   open(OUT, ">" . $fafile) || die "ERROR unable to open $fafile for writing seqs to";
   print OUT $nodesc_seed_seqstring;
   print OUT $nodesc_hit_seqstring;
@@ -504,7 +516,6 @@ sub cmalign_seed_and_hits {
 # Args:    $msa:               alignment of SEED sequences and hits
 #          $nseed:             number of seqs in the seed, these will be the first $nseed seqs in $msa
 #          $id1_thr:           minimum threshold for a replacement candidate
-#          $prefix_added:      '1' if Easel added a numerical prefix to MSA to avoid duplicate names
 #          $ridxAR:            ref to array [0..i..nseed-1], the indices of replacement for seq i
 #          $logFH:             log output file handle
 #          1:         TRUE to echo log messages to stdout
@@ -513,7 +524,7 @@ sub cmalign_seed_and_hits {
 # Dies:    if any seed sequence doesn't have any replacement candidates (>= $id1 fractionally identical)
 #          if all seed sequences derive from RFAMSEQ and are properly named
 sub preliminary_replacement_check { 
-  my ($msa, $nseed, $id1_thr, $prefix_added, $ridxAR, $logFH) = @_;
+  my ($msa, $nseed, $id1_thr, $ridxAR, $logFH) = @_;
 
   my $nseq = $msa->nseq;
   my $nfailed_id1 = 0;
@@ -521,10 +532,7 @@ sub preliminary_replacement_check {
   my $first_hit = $nseed;
   my $min_max_id1 = 1.0;
   for(my $i = 0; $i < $nseed; $i++) { 
-    my $seed_name = $msa->get_sqname($i);
-    if($prefix_added) { 
-      $seed_name = $msa->remove_prefix_from_sqname($seed_name);
-    }
+    my $seed_name = remove_rfreplace_prefix_from_sqname($msa->get_sqname($i), "seed");
     my $passed_id1 = 0;
     my $max_id1 = 0.;
     for(my $j = $first_hit; $j < $nseq; $j++) { 
@@ -534,10 +542,7 @@ sub preliminary_replacement_check {
         $passed_id1 = 1;
       }
       if($id1 >= 0.999999) { # identical
-        my $hit_name  = $msa->get_sqname($j);
-        if($prefix_added) { 
-          $hit_name  = $msa->remove_prefix_from_sqname($hit_name);
-        }
+        my $hit_name  = remove_rfreplace_prefix_from_sqname($msa->get_sqname($j), "hit");
         if($seed_name eq $hit_name) { 
           Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("! Warning: $seed_name SEED seq \#%d appears to already derive from RFAMSEQ and is properly named.\n", ($i+1)), 1);
           $ridxAR->[$i] = $i; 
@@ -584,7 +589,6 @@ sub preliminary_replacement_check {
 #          $infoHHR:      ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
 #          $msa:          the MSA with seed seqs plus hit seqs
 #          $nseed:        number of seed seqs, the first $nseed seqs in the MSA
-#          $prefix_added  TRUE if prefix added by Easel to all names in MSA
 #          $id1_thr:      from -1 opt, min identity between seed and replacement candidates
 #          $id2_thr:      from -2 opt, max identity between any two replacement candidates
 #          $maxcands:     max # of candidate replacements to present to user
@@ -599,15 +603,12 @@ sub preliminary_replacement_check {
 #          *WERE NOT ALREADY CHOSEN AS REPLACEMENTS FOR EARLIER SEED SEQS $ip < $i*
 
 sub interactive_replacement_selection { 
-  my ($config, $i, $fafile, $infoHHR, $msa, $nseed, $prefix_added, $id1_thr, $id2_thr, $maxcands, $Z, $ridxAR, $do_local, $logFH) = @_;
+  my ($config, $i, $fafile, $infoHHR, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, $ridxAR, $do_local, $logFH) = @_;
 
   my $first_hit = $nseed;
   my $ncand = 0;
   my $nseq = $msa->nseq;
-  my $seed_name = $msa->get_sqname($i);
-  if($prefix_added) { 
-    $seed_name = $msa->remove_prefix_from_sqname($seed_name);
-  }
+  my $seed_name = remove_rfreplace_prefix_from_sqname($msa->get_sqname($i), "seed");
 
   # gather replacement candidates
   # arrays [0..x..ncand-1] with info on replacement candidate <x>
@@ -647,10 +648,7 @@ sub interactive_replacement_selection {
         }
         if(! $id2_failure) { # okay, we've got a sufficiently unique replacement candidate
           $ncand++;
-          my $sqname = $msa->get_sqname($j);
-          if($prefix_added) { 
-            $sqname = $msa->remove_prefix_from_sqname($sqname);
-          }
+          my $sqname = remove_rfreplace_prefix_from_sqname($msa->get_sqname($j), "hit");
           # make sure we have $sqname in infoHHR, we better (since we already dealt with prefix removal if nec)
           if(! exists $infoHHR->{$sqname}) { die "ERROR sequence $sqname aligned but not in outlist..."; }
           # determine the max percent identity between this replacement candidate
@@ -662,10 +660,7 @@ sub interactive_replacement_selection {
               my $eid = $msa->pairwise_identity($j, $ridxAR->[$i2]);
               if($max_eid eq "-" || $eid > $max_eid) { 
                 $max_eid = $eid;
-                my $i2_sqname = $msa->get_sqname($ridxAR->[$i2]);
-                if($prefix_added) { 
-                  $i2_sqname = $msa->remove_prefix_from_sqname($i2_sqname);
-                }
+                my $i2_sqname = remove_rfreplace_prefix_from_sqname($msa->get_sqname($ridxAR->[$i2]), "either");
                 if(defined $infoHHR->{$i2_sqname}) { 
                   $eid_taxstr = $infoHHR->{$i2_sqname}{"taxstr"};
                 }
@@ -1134,6 +1129,42 @@ sub redo_cmalign_alignment_of_subset {
 
   return;
 }  
+#########################################################
+# remove_rfreplace_prefix_from_sqname
+#
+# Purpose: Remove either 'seed-' or 'hit-' from beginning 
+# of a sequence name and return it.
+#
+# Args: 
+# $sqname:      sequence name to remove prefix from
+# $type:        'seed' or 'hit' or 'either'
+#
+# Returns: $sqname with 'seed-' or 'hit-' removed.
+sub remove_rfreplace_prefix_from_sqname { 
+  my ($sqname, $type) = @_;
+
+  if($type ne "seed" && $type ne "hit" && $type ne "either") { 
+    die "ERROR in remove_rfreplace_prefix_from_space(), type is $type, but should be 'seed' or 'hit' or 'either'";
+  }
+  if($type eq "seed") { 
+    if($sqname !~ m/^seed\-/) { die "ERROR trying to remove seed- prefix from $sqname, but it doesn't have one"; }
+    $sqname =~ s/^seed-//;
+  }
+  elsif($type eq "hit") { 
+    if($sqname !~ m/^hit\-/) { die "ERROR trying to remove hit- prefix from $sqname, but it doesn't have one"; }
+    $sqname =~ s/^hit-//;
+  }
+  elsif($type eq "either") { 
+    if(($sqname !~ m/^hit\-/) && ($sqname !~ m/^seed\-/)) { 
+      die "ERROR trying to remove seed- or -hit- prefix from $sqname, but it doesn't have one"; 
+    }
+    if($sqname =~ m/^hit\-/)  { $sqname =~ s/^hit-//; }
+    if($sqname =~ m/^seed\-/) { $sqname =~ s/^seed-//; }
+  }
+
+  return $sqname;
+}
+
 ################################################
 sub id2percent {
   return int (($_[0] * 100) + .5);
@@ -1186,7 +1217,7 @@ sub quit_early {
 
   # now unlink files 
   foreach my $file ("$$.fa", "$$.stk") { 
-    unlink $file;
+    #unlink $file;
   }
 
   Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("#\n"), 1);
