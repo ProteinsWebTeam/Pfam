@@ -235,6 +235,9 @@ my @ridxA = (); # this will be a list of all seqs (their index in msa) that the 
                 # no replacement candidates can be found
 Bio::Rfam::Utils::setArray(\@ridxA, -1, $nseed); # set to -1 for all values
 
+my $all1_selected = 0; # set to 1 if user ever enters all1, which will mean that 
+                       # all remaining sequences will be replaced with first candidate
+
 # Determine if cmalign changed the names of the sequences in the MSA
 # because there were duplicate names. This should NOT happen because 
 # in cmalign_seed_and_hits we added the prefix 'seed-' to SEED seqs 
@@ -270,7 +273,7 @@ for(my $i = 0; $i < $nseed; $i++) {
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n Processing seed sequence %d of %d: %s\n SKIPPING: Rfamseq source and name validated, it will remain in the seed.\n", ($i+1), $nseed, $seed_name), 1);
   }
   else { 
-    my $ncand = interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, $logFH);
+    my $ncand = interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, \$all1_selected, $logFH);
     if($ncand == 0) { 
       # special case, initial check for a sequence > $id1_thr identity passed, but all sequences
       # that were > $id1_thr were chosen as replacements for earlier sequences, inform the user
@@ -583,27 +586,33 @@ sub preliminary_replacement_check {
 # interactive_replacement_selection
 #  Find replacement candidate for SEED seq idx $i in $msa and 
 #  interact with user to determine a replacement.
-# Args:    $config:       the config, with path to infernal executables
-#          $i:            index in MSA of seed seq we're currently looking at
-#          $fafile:       fasta file with all the seqs in $msa
-#          $infoHHR:      ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
-#          $msa:          the MSA with seed seqs plus hit seqs
-#          $nseed:        number of seed seqs, the first $nseed seqs in the MSA
-#          $id1_thr:      from -1 opt, min identity between seed and replacement candidates
-#          $id2_thr:      from -2 opt, max identity between any two replacement candidates
-#          $maxcands:     max # of candidate replacements to present to user
-#          $Z:            total DB size for cmsearch
-#          $ridxAR:       ref to array of replacement indices for each seed seq [0..i..nseed-1]
-#          $do_local:     TRUE to align locally with respect to the CM if cmalign is used
-#          $logFH:        file handle for output log file
 #
-# Returns: Number of candidate replacement sequences that were listed as an option 
+# Args:    $config:          the config, with path to infernal executables
+#          $i:               index in MSA of seed seq we're currently looking at
+#          $fafile:          fasta file with all the seqs in $msa
+#          $infoHHR:         ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
+#          $msa:             the MSA with seed seqs plus hit seqs
+#          $nseed:           number of seed seqs, the first $nseed seqs in the MSA
+#          $id1_thr:         from -1 opt, min identity between seed and replacement candidates
+#          $id2_thr:         from -2 opt, max identity between any two replacement candidates
+#          $maxcands:        max # of candidate replacements to present to user
+#          $Z:               total DB size for cmsearch
+#          $ridxAR:          ref to array of replacement indices for each seed seq [0..i..nseed-1]
+#          $do_local:        TRUE to align locally with respect to the CM if cmalign is used
+#          $all1_selected_R: REFERENCE; TRUE (1) if user selected 'all1' previously in this case 
+#                            we automatically replace this sequence with 1st candidate 
+#                            for replacement, instead of waiting for user's choice
+#                            can be updated in this function if user selects 'all1'
+#          $logFH:           file handle for output log file
+#
+# Returns: 
+#          Number of candidate replacement sequences that were listed as an option 
 #          for replacement to the user. If this number is 0, caller will know that
 #          there were zero sequences > $id1_thr fractionally identical to $i that
 #          *WERE NOT ALREADY CHOSEN AS REPLACEMENTS FOR EARLIER SEED SEQS $ip < $i*
 
 sub interactive_replacement_selection { 
-  my ($config, $i, $fafile, $infoHHR, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, $ridxAR, $do_local, $logFH) = @_;
+  my ($config, $i, $fafile, $infoHHR, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, $ridxAR, $do_local, $all1_selected_R, $logFH) = @_;
 
   my $first_hit = $nseed;
   my $ncand = 0;
@@ -779,7 +788,9 @@ sub interactive_replacement_selection {
     }
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\td        delete this seed sequence\n", 1);
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\tq        quit early (SEED will stay the same)\n", 1);
-    $line_ctr += 7;
+    Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\tall1     choose candidate 1 as replacement for this and all subsequent\n", 1);
+    Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\t         SEED sequences\n", 1);
+    $line_ctr += 8;
      
     my $keep_printing_enter_choice = 1;
     my $choice = undef;
@@ -790,11 +801,30 @@ sub interactive_replacement_selection {
     while($keep_printing_enter_choice) { 
       Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\n\tEnter choice:\n\t", 1);
       $line_ctr+=2;
-      $choice = <>;
-      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "$choice", 0); # note we don't echo it back to screen the '0' 
+      if(! ($$all1_selected_R)) { 
+        $choice = <>;
+        Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "$choice", 0); # note we don't echo it back to screen (the '0')
+        chomp $choice;
+      }
+      else { 
+        $choice = "all1";
+        Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "$choice (previously selected)", 1); # note we DO echo it back to screen (the '1')
+      }
       $line_ctr++;
-      chomp $choice;
-      if($choice =~ m/^\s*([QqDdTAS])\s*$/) { # valid choice, no idx
+      if($choice eq "all1") { 
+        $cidx = 1;
+        ######################################################################
+        # note: keep this block in sync with the block for selecting 'r' or 'R' below:
+        Bio::Rfam::Utils::printToFileAndOrStdout($logFH, 
+                                                 sprintf("\n\tUser chose to automatically replace seed sequence $seed_name\n\twith " . $nameA[($cidx-1)] . " %s (%3d%% identical).\n", ($$all1_selected_R ? "by previously selecting 'all1'" : "by selecting 'all1'"), id2percent($id1A[($cidx-1)])), 
+                                                 1);
+        $$all1_selected_R = 1; # update this so next call has this value as 1
+        $ridxAR->[$i] = $idxA[($cidx-1)];
+        $keep_printing_candidates   = 0; # one of two ways keep_printing_candidates gets set to 0
+        $keep_printing_enter_choice = 0; 
+        ######################################################################
+      }
+      elsif($choice =~ m/^\s*([QqDdTAS])\s*$/) { # valid choice, no idx
         $letter = $1;
         if($letter =~ m/[Qq]/) { # quit, with cleanup and without rewriting SEED
           Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n\tUser chose to quit and leave SEED alone and clean up temporary files.\n"), 1);
@@ -834,6 +864,8 @@ sub interactive_replacement_selection {
             $line_ctr += process_choice_cmsearch($config, $msa, $fafile, $cidx, $nameA[($cidx-1)], $Z, $logFH); 
           }
           elsif($letter =~ m/[Rr]/) { # replacement choice
+            ######################################################################
+            # note: keep this block in sync with the block for selecting 'all1' above:
             $ridxAR->[$i] = $idxA[($cidx-1)];
             Bio::Rfam::Utils::printToFileAndOrStdout($logFH, 
                                                      sprintf("\n\tUser chose to replace seed sequence $seed_name with " . $nameA[($cidx-1)] . " (%3d%% identical).\n", 
@@ -841,6 +873,7 @@ sub interactive_replacement_selection {
                                                      1);
             $keep_printing_candidates   = 0; # one of two ways keep_printing_candidates gets set to 0
             $keep_printing_enter_choice = 0; 
+            ######################################################################
           }
         }
       }
