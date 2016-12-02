@@ -92,6 +92,7 @@ my $outseed = "SEED";               # name for output seed alignment, redefined 
 my $do_local  = 0;                  # TRUE to align locally w.r.t. the CM
 my $do_prob   = 0;                  # TRUE to include PPs in output alignment
 my $do_help   = 0;                  # TRUE to print help and exit, if -h used
+my $do_auto   = 0;                  # TRUE to automatically replace all seed sequences with 1st candidate
 my $date = scalar localtime();
 my $logFH;
 
@@ -106,6 +107,7 @@ my $options_okay = &GetOptions( "1=s"       => \$id1_thr,
                                 "alocal"     => \$do_local,
                                 "inseed=s"   => \$inseed,
                                 "outseed=s"  => \$outseed,
+                                "auto"       => \$do_auto,
                                 "h|help"     => \$do_help);
 if(! $options_okay) { 
   &help($exec_description); 
@@ -182,14 +184,15 @@ if($inseed ne "SEED" && $inseed eq $outseed) {
 # first, determine maximum column width for pretty formatting
 my @opt_lhsA = ();
 my @opt_rhsA = ();
-if($id1_thr    ne $df_id1_thr)    { push(@opt_lhsA, "# min fractional identity for a replacement candidate: "); push(@opt_rhsA, "$id1_thr [-1]"); }
-if($id2_thr    ne $df_id2_thr)    { push(@opt_lhsA, "# max fractional id b/t two replacement candidates: ");    push(@opt_rhsA, "$id2_thr [-2]"); }
-if($maxcands   ne $df_maxcands)   { push(@opt_lhsA, "# max num of replacement candidates per SEED seq: ");      push(@opt_rhsA, "$maxcands [-x]"); }
-if($bitdiff    ne $df_bitdiff)    { push(@opt_lhsA, "# bit score difference from lowest scoring SEED: ");       push(@opt_rhsA, "$bitdiff [-b]"); }
-if($do_prob)                      { push(@opt_lhsA, "# add posterior probs to output seed: ");                  push(@opt_rhsA, "yes [-p]"); }
-if($do_local)                     { push(@opt_lhsA, "# align new sequences locally w.r.t. CM: ");               push(@opt_rhsA, "yes [-alocal]"); }
-if($inseed ne "SEED")             { push(@opt_lhsA, "# input seed alignment in file: ");                        push(@opt_rhsA, "$inseed [-inseed]"); }
-if($outseed ne "SEED")            { push(@opt_lhsA, "# output seed alignment to file: ");                       push(@opt_rhsA, "$outseed [-outseed]"); }
+if($id1_thr    ne $df_id1_thr)    { push(@opt_lhsA, "# min fractional identity for a replacement candidate: ");   push(@opt_rhsA, "$id1_thr [-1]"); }
+if($id2_thr    ne $df_id2_thr)    { push(@opt_lhsA, "# max fractional id b/t two replacement candidates: ");      push(@opt_rhsA, "$id2_thr [-2]"); }
+if($maxcands   ne $df_maxcands)   { push(@opt_lhsA, "# max num of replacement candidates per SEED seq: ");        push(@opt_rhsA, "$maxcands [-x]"); }
+if($bitdiff    ne $df_bitdiff)    { push(@opt_lhsA, "# bit score difference from lowest scoring SEED: ");         push(@opt_rhsA, "$bitdiff [-b]"); }
+if($do_prob)                      { push(@opt_lhsA, "# add posterior probs to output seed: ");                    push(@opt_rhsA, "yes [-p]"); }
+if($do_local)                     { push(@opt_lhsA, "# align new sequences locally w.r.t. CM: ");                 push(@opt_rhsA, "yes [-alocal]"); }
+if($inseed ne "SEED")             { push(@opt_lhsA, "# input seed alignment in file: ");                          push(@opt_rhsA, "$inseed [-inseed]"); }
+if($outseed ne "SEED")            { push(@opt_lhsA, "# output seed alignment to file: ");                         push(@opt_rhsA, "$outseed [-outseed]"); }
+if($do_auto)                      { push(@opt_lhsA, "# automatically selecting all most similar replacements: "); push(@opt_rhsA, "yes [-auto]"); }
 my $nopt = scalar(@opt_lhsA);
 my $cwidth = ($nopt > 0) ? Bio::Rfam::Utils::maxLenStringInArray(\@opt_lhsA, $nopt) : 0;
 if($cwidth < 14) { $cwidth = 14; } ; # max length of lhs string in log_output_preamble
@@ -235,8 +238,8 @@ my @ridxA = (); # this will be a list of all seqs (their index in msa) that the 
                 # no replacement candidates can be found
 Bio::Rfam::Utils::setArray(\@ridxA, -1, $nseed); # set to -1 for all values
 
-my $all1_selected = 0; # set to 1 if user ever enters all1, which will mean that 
-                       # all remaining sequences will be replaced with first candidate
+my $auto_selected = ($do_auto) ? 2 : 0; # set to '2' if -auto, or later to '1' if user selects 'auto', this means
+                                        # that all remaining sequences will be replaced with first candidate
 
 # Determine if cmalign changed the names of the sequences in the MSA
 # because there were duplicate names. This should NOT happen because 
@@ -273,7 +276,7 @@ for(my $i = 0; $i < $nseed; $i++) {
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n Processing seed sequence %d of %d: %s\n SKIPPING: Rfamseq source and name validated, it will remain in the seed.\n", ($i+1), $nseed, $seed_name), 1);
   }
   else { 
-    my $ncand = interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, \$all1_selected, $logFH);
+    my $ncand = interactive_replacement_selection($config, $i, $fafile, \%infoHH, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, \@ridxA, $do_local, \$auto_selected, $logFH);
     if($ncand == 0) { 
       # special case, initial check for a sequence > $id1_thr identity passed, but all sequences
       # that were > $id1_thr were chosen as replacements for earlier sequences, inform the user
@@ -301,8 +304,13 @@ for(my $i = 0; $i < $nseed; $i++) {
 }
 redo_cmalign_alignment_of_subset($config, $fafile, "CM", $tmpseed, "seedalignout", \@newseedA, $do_local);
 
-# now rename all seqs by removing seed- or -hit- prefix, and output new alignment
-if (-e $outseed) { copy("$outseed", "$outseed.$$"); }
+# At this point we have the $tmpseed, we need to make two modifications to this
+# before we can output the $outseed 
+# 1) rename all seqs by removing seed- or -hit- prefix, and output new alignment
+# 2) copy SS_cons from original SEED, this should be identical to what we have except for
+#    pknots
+
+# 1) rename all seqs by removing seed- or -hit- prefix, and output new alignment
 my $tmpmsa = Bio::Easel::MSA->new({
   fileLocation => "$tmpseed",
   forceText => "1"
@@ -310,6 +318,29 @@ my $tmpmsa = Bio::Easel::MSA->new({
 for(my $i = 0; $i < $tmpmsa->nseq; $i++) { 
   $tmpmsa->set_sqname($i, remove_rfreplace_prefix_from_sqname($tmpmsa->get_sqname($i), "either"));
 }
+
+# 2) copy SS_cons from original SEED, this should be identical to what we have except for
+#    pknots
+my @input_ss_A  = split("", $seedmsa->get_ss_cons);
+my @output_ss_A = split("", $tmpmsa->get_ss_cons);
+my $input_rf = $seedmsa->get_rf;
+$input_rf =~ s/[\.\-\~]//g; # remove gaps
+my $input_rflen = length($input_rf);
+
+for(my $rfpos = 1; $rfpos <= $input_rflen; $rfpos++) { 
+  my $input_apos  = $seedmsa->rfpos_to_aligned_pos($rfpos);
+  my $output_apos = $tmpmsa->rfpos_to_aligned_pos($rfpos);
+  if(($input_ss_A[($input_apos-1)] !~ m/\w/) && 
+     ($input_ss_A[($input_apos-1)] ne $output_ss_A[($output_apos-1)])) { 
+    # input_ss_A[($input_apos-1)] is not alphabetic (pknot) should be identical to output SEED
+    die "ERROR new SEEDs SS_cons differs from input SEED. Did you build CM from the input SEED?";
+  }
+  $output_ss_A[($output_apos-1)] = $input_ss_A[($input_apos-1)];
+}
+my $output_ss = join("", @output_ss_A);
+$tmpmsa->set_ss_cons($output_ss);
+
+if (-e $outseed) { copy("$outseed", "$outseed.$$"); }
 $tmpmsa->write_msa($outseed, "stockholm");
 
 # done all work in replacement mode, print output file summary
@@ -563,8 +594,8 @@ sub preliminary_replacement_check {
   }
   if($nfailed_id1 > 0) { 
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\n\n! Warning: $nfailed_id1 seed seqs didn't have a match >= $id1_thr to any hit.\n! If you proceed these seed seqs will be deleted.\n! Alternatively, you can abort and rerun with -1 <f>\n! <f>=%.2f should cause all seed seqs to have matches.\n\n", $min_max_id1 - 0.01), 1);
-    # ask the user if they want to proceed, and process their response
-    my $keep_going = 1;
+    # ask the user if they want to proceed, and process their response, unless -auto used
+    my $keep_going = ($do_auto) ? 0 : 1;
     while($keep_going) { 
       Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "! Do you want to continue? ['y' or 'n']\n", 1);
       my $choice = <>;
@@ -599,10 +630,13 @@ sub preliminary_replacement_check {
 #          $Z:               total DB size for cmsearch
 #          $ridxAR:          ref to array of replacement indices for each seed seq [0..i..nseed-1]
 #          $do_local:        TRUE to align locally with respect to the CM if cmalign is used
-#          $all1_selected_R: REFERENCE; TRUE (1) if user selected 'all1' previously in this case 
+#          $auto_selected_R: REFERENCE; '2' if user enabled -auto on command line,
+#                            '1' if user selected 'auto' previously. In either case 
 #                            we automatically replace this sequence with 1st candidate 
-#                            for replacement, instead of waiting for user's choice
-#                            can be updated in this function if user selects 'all1'
+#                            for replacement, instead of waiting for user's choice.
+#                            '0' if user has neither enabled -auto on command line nor 
+#                            chosen 'auto' previously, in this case it can be updated 
+#                            '1' in this function if user selects 'auto'
 #          $logFH:           file handle for output log file
 #
 # Returns: 
@@ -612,7 +646,7 @@ sub preliminary_replacement_check {
 #          *WERE NOT ALREADY CHOSEN AS REPLACEMENTS FOR EARLIER SEED SEQS $ip < $i*
 
 sub interactive_replacement_selection { 
-  my ($config, $i, $fafile, $infoHHR, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, $ridxAR, $do_local, $all1_selected_R, $logFH) = @_;
+  my ($config, $i, $fafile, $infoHHR, $msa, $nseed, $id1_thr, $id2_thr, $maxcands, $Z, $ridxAR, $do_local, $auto_selected_R, $logFH) = @_;
 
   my $first_hit = $nseed;
   my $ncand = 0;
@@ -788,7 +822,7 @@ sub interactive_replacement_selection {
     }
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\td        delete this seed sequence\n", 1);
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\tq        quit early (SEED will stay the same)\n", 1);
-    Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\tall1     choose candidate 1 as replacement for this and all subsequent\n", 1);
+    Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\tauto     choose candidate 1 as replacement for this and all remaining\n", 1);
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\t         SEED sequences\n", 1);
     $line_ctr += 8;
      
@@ -801,24 +835,34 @@ sub interactive_replacement_selection {
     while($keep_printing_enter_choice) { 
       Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\n\tEnter choice:\n\t", 1);
       $line_ctr+=2;
-      if(! ($$all1_selected_R)) { 
+      if($$auto_selected_R == 0) { 
         $choice = <>;
         Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "$choice", 0); # note we don't echo it back to screen (the '0')
         chomp $choice;
       }
       else { 
-        $choice = "all1";
-        Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "$choice (previously selected)", 1); # note we DO echo it back to screen (the '1')
+        $choice = "auto";
+        Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("$choice (%s)", $$auto_selected_R == 2 ? "-auto enabled on command line" : "previously selected"), 1); # note we DO echo it back to screen (the '1')
       }
       $line_ctr++;
-      if($choice eq "all1") { 
+      if($choice eq "auto") { 
         $cidx = 1;
         ######################################################################
         # note: keep this block in sync with the block for selecting 'r' or 'R' below:
-        Bio::Rfam::Utils::printToFileAndOrStdout($logFH, 
-                                                 sprintf("\n\tUser chose to automatically replace seed sequence $seed_name\n\twith " . $nameA[($cidx-1)] . " %s (%3d%% identical).\n", ($$all1_selected_R ? "by previously selecting 'all1'" : "by selecting 'all1'"), id2percent($id1A[($cidx-1)])), 
+        my $tmp_str;
+        if($$auto_selected_R == 0) {
+          $tmp_str = "by selecting 'auto'";
+        }
+        elsif($$auto_selected_R == 1) { 
+          $tmp_str = "by previously selecting 'auto'";
+        }
+        elsif($$auto_selected_R == 2) { 
+          $tmp_str = "by using -auto on command line";
+        }
+        Bio::Rfam::Utils::printToFileAndOrStdout($logFH,         
+                                                 sprintf("\n\tUser chose to automatically replace seed sequence $seed_name\n\twith " . $nameA[($cidx-1)] . " %s (%3d%% identical).\n", $tmp_str, id2percent($id1A[($cidx-1)])), 
                                                  1);
-        $$all1_selected_R = 1; # update this so next call has this value as 1
+        if($$auto_selected_R == 0) { $$auto_selected_R  = 1; } # update this so next call has this value as 1
         $ridxAR->[$i] = $idxA[($cidx-1)];
         $keep_printing_candidates   = 0; # one of two ways keep_printing_candidates gets set to 0
         $keep_printing_enter_choice = 0; 
@@ -865,7 +909,7 @@ sub interactive_replacement_selection {
           }
           elsif($letter =~ m/[Rr]/) { # replacement choice
             ######################################################################
-            # note: keep this block in sync with the block for selecting 'all1' above:
+            # note: keep this block in sync with the block for selecting 'auto' above:
             $ridxAR->[$i] = $idxA[($cidx-1)];
             Bio::Rfam::Utils::printToFileAndOrStdout($logFH, 
                                                      sprintf("\n\tUser chose to replace seed sequence $seed_name with " . $nameA[($cidx-1)] . " (%3d%% identical).\n", 
@@ -1281,6 +1325,7 @@ Options:    -1 <f>       : set minimum fractional id for definition of a match t
             -alocal      : align locally w.r.t. the CM [default: globally]
             -inseed <f>  : seed alignment is in <f>, not 'SEED'
             -outseed <f> : save new seed alignment as <f>, not 'SEED'
+            -auto        : automatically select all most similar sequences as replacements
             -h|-help     : print this help, then exit
 
 EOF
