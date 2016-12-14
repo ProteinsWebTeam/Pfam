@@ -18,68 +18,57 @@ use Bio::Pfam::PfamLiveDBManager;
 my ($version, $skip);
 
 GetOptions (
-  'version=i' =>  \$version,
   'skip'      =>  \$skip
 ); 
-
 
 #Start up the logger
 Log::Log4perl->easy_init();
 my $logger = get_logger();
 
-unless($version){
-  $logger->logdie("You need to provide the version number as a parameter");  
-}
 
 # get the config file for the pfam.
 my $config = Bio::Pfam::Config->new;
 
 my $NCBI_PATH = 'ftp://ftp.ncbi.nih.gov/ncbi-asn1';
 my $store_dir = $config->localDbsLoc."/ncbi" || $logger->logdie( "cant get the localDbsLoc from the config file;");
-my $production_location = $config->{ productionLocation } || $logger->logdie( "cant get productionLocation from config file");
-my $nfs_location = $config->{ ncbi }->{ location } || $logger->logdie( "cant get the location( nfs) from the config file");
-my $pfamseqDir = $production_location."/pfamseq".$version;
-my $pfamseqNcbiFile = $pfamseqDir.'/ncbi';
-my $pfamseqNcbiFileIdx = $pfamseqNcbiFile.'.ssi';
+my $nfs_ncbi_dir = $config->{ ncbi }->{ location } || $logger->logdie( "cant get the location( nfs) from the config file");
+$logger->debug( "Ncbi file will be copied to $nfs_ncbi_dir");
 
-$logger->debug( "Production-Location :$production_location |nfs-location: $nfs_location ");
-unless(-d $pfamseqDir) {
-  mkdir($pfamseqDir, 0755) or $logger->logdie("Couldn't mkdir $pfamseqDir, $!");
-}
-
-$logger->info( "Downloading file release number.....[ $store_dir]");
-getstore( $NCBI_PATH."/GB_Release_Number","$store_dir/GB_Release_Number" ) 
-  || $logger->logdie( "cant store the file GB_Release_Number in $store_dir/GB_Release_Number");    
 
 #Download the fasta file from NCBI
 my $file = "$store_dir/nr.gz";
 unless($skip){
+  $logger->info( "Downloading file release number.....[ $store_dir]");
+  getstore( $NCBI_PATH."/GB_Release_Number","$store_dir/GB_Release_Number" ) 
+    || $logger->logdie( "cant store the file GB_Release_Number in $store_dir/GB_Release_Number");   
+
   $logger->info( "Downloading file nr.gz.....");
   $NCBI_PATH = 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/';
   getstore($NCBI_PATH."/nr.gz", $file) 
     || $logger->logdie("Can not store nr.gz in $file");
   $logger->info("downloaded nr.");
+
+  system("gunzip $file") and $logger->logdie("Failed to gunzip $file, $!");
 }
 
-# now get all the files from the directory and parse it to append the fasta sequences to make a single file.
-#This separates out the NR header lines into one per sequence.....
-if(!-e $pfamseqNcbiFile){
-  parseAndWriteFasta( $file, $logger, $pfamseqDir );
-}
+#Index file
+my $cwd = getcwd;
+$logger->info("Indexing nr");
+chdir($store_dir) or $logger->logdie("Couldn't chdir into $store_dir, $!");
+system( "esl-sfetch --index nr") and $logger->logdie( "Can't index $store_dir/nr using esl-sfetch, $!");
+chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
 
-if(! -e $pfamseqNcbiFileIdx){
-  # now index the file using esl-sfetch;
-  my $cwd = getcwd;
-  chdir($pfamseqDir) or 
-    $logger->logdie("Could not chdir to $pfamseqDir:[$!]");
-  
-  system( "esl-sfetch --index ncbi ") 
-    and $logger->logdie( "cant index the file using esl-sfetch");
-}
+#Copy ncbi file to $nfs_ncbi
+$logger->info("Copying to $nfs_ncbi_dir");
+my $ncbi_fasta = $store_dir."/nr";
+copy( $ncbi_fasta, "$nfs_ncbi_dir/ncbi") ||  
+  $logger->logdie( "Failed to copy $ncbi_fasta to $nfs_ncbi_dir/ncbi");
+  copy( $ncbi_fasta.".ssi","$nfs_ncbi_dir/ncbi.ssi") ||  
+    $logger->logdie( "Failed to copy $ncbi_fasta.ssi to $nfs_ncbi_dir/ncbi.ssi");
 
-my $numberSeqs = 0;
-open(STATS, "esl-seqstat $pfamseqNcbiFile |") or 
-  $logger->logdie("Could not run esl-seqstat on $pfamseqNcbiFile:[$!]");
+my $numberSeqs=0;
+open(STATS, "esl-seqstat $nfs_ncbi_dir/ncbi |") or 
+  $logger->logdie("Could not run esl-seqstat on $nfs_ncbi_dir/ncbi:[$!]");
 while(<STATS>){
   chomp;
   if(/Number of sequences\:\s+(\d+)/){
@@ -89,11 +78,6 @@ while(<STATS>){
 }
 close(STATS);
 
-# copy the sequence file, index file and dat file to /nfs/pfam_nfs/pfam/ncbi/
-copy( $pfamseqNcbiFile,"$nfs_location/ncbi") || 
-  $logger->logdie( "cant copy the file $pfamseqNcbiFile");
-copy( $pfamseqNcbiFileIdx,"$nfs_location/ncbi.ssi") || 
-  $logger->logdie( "cant copy the file $pfamseqNcbiFile");
 
 # now change the config file;
 $logger->info("Changing pfam config file\n");
@@ -124,7 +108,7 @@ exit;
 #---------------------------------------------------------------------------------------------------------------------------------
 # subroutine uncompress the fasta file and parses the contents to create two kinds of output,
 # as tab delimited file and other as fasta file with all sequences in single file.
-
+#This is now obsolete
 sub parseAndWriteFasta {
   my ( $file, $logger, $dir ) = @_;
   
