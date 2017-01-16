@@ -1,0 +1,85 @@
+use strict;
+
+# Purge old job/stream from Xfam web_user tables
+# Usage: job_clean -days KEEP [ -delete ] -path PATH
+# For jobs older than DAYS days, copies data to job_history/_stream files to PATH,
+# deleting from the database if requested
+
+use Bio::Pfam::Config;
+use Bio::Pfam::WebUserDBManager;
+use Getopt::Long;
+use File::Path;
+
+my ($days, $delete, $path);
+my ($mday, $mon, $year, $hour, $min, $sec);
+
+GetOptions("days=i"   => \$days,
+           "delete"   => \$delete,
+           "path=s"   => \$path);
+
+my $config = Bio::Pfam::Config->new;
+my $pfamDB = Bio::Pfam::WebUserDBManager->new(%{$config->webuser});
+my $dbh = $pfamDB->getSchema->storage->dbh;
+
+$days ||= 14;
+die qq(No path given) unless $path;
+
+# Get "use by" date - for use in query
+($mday, $mon, $year) = (localtime(time - $days * 24 * 3600))[3, 4, 5]; # From 00:00:00 x days ago
+$year += 1900;
+$mon++;
+my $del_date = sprintf("%4d-%02d-%02d", $year, $mon, $mday);
+die qq(Badly formed date) unless $del_date =~ m{20\d\d-\d\d-\d\d}; # Shouldn't happen but a sanity check
+
+# Get current date - to label files with date delete occurred
+($mday, $mon, $year, $hour, $min, $sec) = (localtime)[3, 4, 5, 2, 1, 0];
+$year += 1900;
+$mon++;
+my %seen_job;
+my $date = sprintf("%4d%02d%02d-%02d%02d%02d", $year, $mon, $mday, $hour, $min, $sec);
+die qq(Badly formed date) unless $date =~ m{20\d{6}-\d{6}};
+
+$path = sprintf("%s/%02d/%02d", $path, $year, $mon);
+mkpath $path unless -d $path;
+
+my %fh;
+for my $table (qw(job_history job_stream)) {
+    my $file = "$path/xfam_$table\_$date-$days";
+    open $fh{$table}, "> $file" or die qq(Unable to open file $file);
+}
+
+# We want to clear out matching rows in job_stream but dump these to separate files; first get all columns
+# and then split the rows. Ideally should explicitly name columns in the select!
+
+my $sth = $dbh->prepare(qq(
+    SELECT job_history.*, job_stream.*
+    FROM job_history left join job_stream on job_history.id = job_stream.id
+    WHERE job_history.closed < '$del_date' AND job_history.status in ('DONE', 'FAIL', 'DEL')
+));
+$sth->execute();
+while (my $row = $sth->fetchrow_arrayref) {
+    my @job = @{$row}[0..10];
+    my @stream = @{$row}[11..14];
+    unless ($seen_job{$job[0]}) {
+        # the left join means we'll get duplicate job rows in the result set
+        print {$fh{job_history}} join("\t", @job), "\n";
+        $seen_job{$job[0]}++;
+    }
+    if ($stream[0]) {
+        print {$fh{job_stream}} join("\t", @stream), "\n";
+    }
+}
+
+# Do the delete
+
+close $fh{$_} foreach keys %fh;
+system("gzip", $_) && warn qq(Unable to compress $_) foreach <$path/xfam_*\_$date-$days>;
+exit(0) unless $delete;
+
+my $rows_deleted = $dbh->do(qq(
+    DELETE job_history, job_stream
+    FROM job_history left join job_stream on job_history.id = job_stream.id
+    WHERE job_history.closed < '$del_date' AND job_history.status in ('DONE', 'FAIL', 'DEL')
+));
+
+print scalar(localtime), "\t$rows_deleted rows deleted\n";
