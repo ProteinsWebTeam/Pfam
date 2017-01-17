@@ -76,8 +76,9 @@ foreach my $clan (@clans) {
     #Create competed alignment
     my $num_full=0;
     my $competed_aln;
-    my @alignment=split(/\n/, $alignment);
-    foreach my $line (@alignment) {
+
+    while($alignment =~ /(.+)\n/g) {
+      my $line = $1; 
       if($line =~ /^(\S+)\/(\d+)-(\d+)/) {
         my ($acc, $st, $en) = ($1, $2, $3);
         if($acc =~ /(\S+)\.\d+/) {
