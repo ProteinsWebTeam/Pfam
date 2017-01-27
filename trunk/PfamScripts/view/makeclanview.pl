@@ -415,8 +415,8 @@ sub makeAlign {
 
       #align the two seed alignments.
       $view->logger->debug("Aligning $acc1 && $acc2");
-      system($view->config->binLocation."/sreformat a2m seed.$acc1 > tmp.$$.in1");
-      system($view->config->binLocation."/sreformat a2m seed.$acc2 > tmp.$$.in2");
+      system($view->config->binLocation."/esl-reformat --gapsym=- afa seed.$acc1 > tmp.$$.in1");
+      system($view->config->binLocation."/esl-reformat --gapsym=- afa seed.$acc2 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 tmp.$$.in1 -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
       ) && die;
@@ -426,7 +426,7 @@ sub makeAlign {
     }
     elsif ( $families_in_align{$acc1} && !$families_in_align{$acc2} ) {
       $view->logger->debug("Aligning $acc2 and $families_in_align{$acc1}");
-      system($view->config->binLocation."/sreformat a2m seed.$acc2 > tmp.$$.in2");
+      system($view->config->binLocation."/esl-reformat --gapsym=- afa seed.$acc2 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 $families_in_align{$acc1} -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
       ) && die;
@@ -441,7 +441,7 @@ sub makeAlign {
     }
     elsif ( !$families_in_align{$acc1} && $families_in_align{$acc2} ) {
       $view->logger->debug("Aligning $acc1 and $families_in_align{$acc2}");
-      system($view->config->binLocation."/sreformat a2m seed.$acc1 > tmp.$$.in2");
+      system($view->config->binLocation."/esl-reformat --gapsym=- afa seed.$acc1 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 $families_in_align{$acc2} -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
       ) && die;
@@ -489,13 +489,13 @@ sub makeAlign {
     $view->logger->debug("Adding orphan align $acc");
     if ( !$master_align ) {
       system(
-        $view->config->binLocation."/sreformat a2m seed.$acc > tmp.$$.$align_no.align");
+        $view->config->binLocation."/esl-reformat --gapsym=- afa seed.$acc > tmp.$$.$align_no.align");
         $master_align = "tmp.$$.$align_no.align";
         $align_no++;
       }
     else {
       system(
-        $view->config->binLocation."/sreformat a2m seed.$acc > tmp.$$.$align_no.align");
+        $view->config->binLocation."/esl-reformat --gapsym=- afa seed.$acc > tmp.$$.$align_no.align");
         my $in1 = "tmp.$$.$align_no.align";
         $align_no++;
         print "$in1, $master_align\n";
