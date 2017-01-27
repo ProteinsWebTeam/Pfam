@@ -480,7 +480,6 @@ sub processALIGN {
     return;
   }
 
-
   my $a = $self->readAlignment($filename);
 
 #Get all of the region information from the database. This will allows to performs some
@@ -495,6 +494,10 @@ sub processALIGN {
     #Add GF annotation to uniprot alignment, and make RP alignments    
     $self->addUniprotGF($GFAnn);
     $self->makeRPAligns();
+
+    #Populate pfamA_ncbi_uniprot table
+    $self->pfamA_ncbi_uniprot();
+    
     return;
   }
 
