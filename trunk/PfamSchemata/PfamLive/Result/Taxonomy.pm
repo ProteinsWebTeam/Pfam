@@ -34,7 +34,7 @@ __PACKAGE__->table("taxonomy");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 100
+  size: 150
 
 =head2 taxonomy
 
@@ -86,7 +86,7 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "species",
-  { data_type => "varchar", is_nullable => 1, size => 100 },
+  { data_type => "varchar", is_nullable => 1, size => 150 },
   "taxonomy",
   { data_type => "mediumtext", is_nullable => 1 },
   "lft",
@@ -104,8 +104,8 @@ __PACKAGE__->add_columns(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2hL2hrhMnlVof1XRRNeb3Q
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:49:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QsDgysQQB6P8oVDBkbOB3A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
