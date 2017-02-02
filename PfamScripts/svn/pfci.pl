@@ -70,8 +70,8 @@ if ( !-w "$pwd/$family" ) {
 }
 
 if ( !( -d "$pwd/$family/.svn" ) ) {
-  die
-"$0: [$pwd/$family] does not look like that it is from the Pfam subversion repository";
+#  die
+#"$0: [$pwd/$family] does not look like that it is from the Pfam subversion repository";
 }
 
 #-------------------------------------------------------------------------------
