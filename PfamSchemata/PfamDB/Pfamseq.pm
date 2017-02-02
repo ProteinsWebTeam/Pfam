@@ -123,6 +123,12 @@ __PACKAGE__->table("pfamseq");
   is_nullable: 1
   size: 8
 
+=head2 swissprot
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -175,6 +181,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 1 },
   "treefam_acc",
   { data_type => "varchar", is_nullable => 1, size => 8 },
+  "swissprot",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -351,8 +359,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TgBRhAMleYdNgv5TQUj5wA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:37:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:h6P4OFvG1wEMfaNhx+Izwg
 
 
 #__PACKAGE__->has_many(
