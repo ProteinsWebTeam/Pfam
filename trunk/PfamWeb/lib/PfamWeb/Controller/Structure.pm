@@ -244,7 +244,6 @@ Adds the structure-to-UniProt mapping to the stash.
 
 sub add_mapping : Private {
   my ( $this, $c ) = @_;
-
   $c->log->debug( 'Structure::add_mapping: adding mappings for PDB entry '
           . $c->stash->{pdb}->pdb_id ) if $c->debug;
 
@@ -259,18 +258,39 @@ sub add_mapping : Private {
     if $c->debug;
   $c->stash->{mapping} = \@unpMap;
 
-  # build a little data structure to map PDB chains to uniprot IDs and
-  # then cache that for the post-loaded graphics component
   my ( $chains, $chain );
-  foreach my $row ( @unpMap ) {
-    $chain = ( defined $row->chain ) ? $row->chain : ' ';
-    # TODO Need to think more about the consequences of setting null
-    # chain ID to " "...
+  if (@unpMap) {
 
-    $chains->{$row->pfamseq_acc->pfamseq_id}->{$chain} = '';
+    foreach my $row ( @unpMap ) {
+      $chain = ( defined $row->chain ) ? $row->chain : ' ';
+      # TODO Need to think more about the consequences of setting null
+      # chain ID to " "...
+
+      $chains->{$row->pfamseq_acc->pfamseq_id}->{$chain} = '';
+    }
+  } else {
+    @unpMap = $c->model('PfamDB::PdbPfamaReg')
+                ->search( { pdb_id          => $c->stash->{pdb}->pdb_id,
+                            'pdb_res_start' => \'!= pdb_res_end' },
+                            { prefetch => [qw(uniprot_acc)] ,
+                              order_by => 'chain, seq_start ASC'} );
+    $c->log->debug( 'Structure::add_mapping uniprot_acc: found ' . scalar @unpMap . ' mappings' )
+      if $c->debug;
+
+    foreach my $row ( @unpMap ) {
+      $chain = ( defined $row->chain ) ? $row->chain : ' ';
+      # TODO Need to think more about the consequences of setting null
+      # chain ID to " "...
+      $chains->{$row->uniprot_acc->uniprot_id}->{$chain} = '';
+    }
   }
+
+#$DB::single = 1; #MAQ
+
   $c->stash->{chainsMapping} = $chains;
 
+  # build a little data structure to map PDB chains to uniprot IDs and
+  # then cache that for the post-loaded graphics component
 }
 
 #-------------------------------------------------------------------------------
