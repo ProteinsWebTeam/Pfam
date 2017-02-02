@@ -71,6 +71,21 @@ __PACKAGE__->set_primary_key("ncbi_taxid");
 
 =head1 RELATIONS
 
+=head2 pfama_ncbi_uniprots
+
+Type: has_many
+
+Related object: L<PfamDB::PfamaNcbiUniprot>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfama_ncbi_uniprots",
+  "PfamDB::PfamaNcbiUniprot",
+  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+  undef,
+);
+
 =head2 pfama_ncbis
 
 Type: has_many
@@ -117,8 +132,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zteBcbuSbHHluDDgu4nXCQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:37:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E5Qc+lJp1+PxJ4YcZfTtDw
 
 
 =head1 COPYRIGHT
