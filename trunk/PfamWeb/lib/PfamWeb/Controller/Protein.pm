@@ -29,7 +29,7 @@ use warnings;
 
 use Storable qw( thaw );
 use JSON qw( -convert_blessed_universally );
-use Data::Dump qw( dump );
+use Data::Printer;
 use Bio::Pfam::Sequence;
 use Bio::Pfam::Sequence::MetaData;
 use Bio::Pfam::Sequence::Region;
@@ -576,17 +576,13 @@ sub get_mapping_uniprot : Private {
   #
   #     ... where pdb_res_start != pdb_res_end and ...
   #
-  # my @mapping = $c->model('PfamDB::PdbPfamaReg')
-  #                 ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc,
-  #                             'pdb_res_start'             => \'!= pdb_res_end' },
-  #                           { prefetch => [ qw( pfama_acc
-  #                                               pfamseq_acc
-  #                                               pdb_id ) ] } );
-  #
-  # $c->stash->{pfamMaps} = \@mapping;
-  #
-  # $c->log->debug('Protein::get_mapping_uniprot: added the structure mapping to the stash')
-  #   if $c->debug;
+  my @mapping = $c->model('PfamDB::PdbPfamaReg')
+                 ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->uniprot_acc,
+                             'pdb_res_start'             => \'!= pdb_res_end' });
+  $c->stash->{pfamMaps} = \@mapping;
+
+  $c->log->debug('Protein::get_mapping_uniprot: added '.scalar @mapping.' structure(s) mapping to the stash')
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -622,7 +618,7 @@ sub get_summary_data_uniprot : Private {
   my @pfama_regions = $c->model('PfamDB::UniprotRegFull')
                        ->search( { 'me.uniprot_acc' => $c->stash->{pfamseq}->uniprot_acc,
                                    in_full => 1 },
-                                 { prefetch => [ qw( uniprot_acc uniprot_acc ) ] } );
+                                 { prefetch => [ qw( uniprot_acc ) ] } );
   my $regions;
   foreach my $region ( @pfama_regions ) {
    push @{ $regions->{ $region->seq_start } }, $region;
