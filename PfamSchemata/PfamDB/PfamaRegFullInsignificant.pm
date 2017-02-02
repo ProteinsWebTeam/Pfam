@@ -62,6 +62,18 @@ __PACKAGE__->table("pfamA_reg_full_insignificant");
   default_value: 0
   is_nullable: 0
 
+=head2 ali_start
+
+  data_type: 'mediumint'
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 ali_end
+
+  data_type: 'mediumint'
+  extra: {unsigned => 1}
+  is_nullable: 0
+
 =head2 model_start
 
   data_type: 'mediumint'
@@ -120,6 +132,10 @@ __PACKAGE__->add_columns(
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
   "seq_end",
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
+  "ali_start",
+  { data_type => "mediumint", extra => { unsigned => 1 }, is_nullable => 0 },
+  "ali_end",
+  { data_type => "mediumint", extra => { unsigned => 1 }, is_nullable => 0 },
   "model_start",
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
   "model_end",
@@ -183,8 +199,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Mr/N3IId05TZzr+Mzsgr/A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:37:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iikYXxBxV3lDua4XaBcQUQ
 
 
 =head1 COPYRIGHT
