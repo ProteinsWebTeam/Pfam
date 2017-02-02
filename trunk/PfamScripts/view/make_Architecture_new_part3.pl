@@ -92,10 +92,10 @@ unless ($file){
     my $stt = $dbh->prepare("UPDATE architecture set type_example = ? where auto_architecture = ?") or $logger->logdie("Cannot prepare statement");
     _loadTable( $dbh, $uploadfile, $stt, 2 );
 
-#populate no_seqs in architecture and number_archs in pfamA
+    #populate no_seqs in architecture and number_archs in pfamA
     $logger->debug("Calcuating no_seqs for each architecture");
     my $sts = $dbh->prepare("UPDATE architecture a SET no_seqs = (select count(*) from pfamseq s where s.auto_architecture=a.auto_architecture)") or $logger->logdie("Cannot prepare statement");
-    $sts->execute();
+    $sts->execute() or $logger->logdie("Couldn't execute statement ".$sts->errstr."\n");;
 
     $logger->debug("Finding auto_architectures for each pfamA");
     my $host = $pfamDB->{host};
@@ -103,18 +103,66 @@ unless ($file){
     my $pass = $pfamDB->{password};
     my $port = $pfamDB->{port};
     my $db = $pfamDB->{database};
-    my $archfile = "PFAMA_ARCH_DUMP";
-    my $cmd = "mysql -h $host -u $user -p$pass -P $port --skip-column-names $db --quick -e \"SELECT DISTINCT r.pfamA_acc, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1 \" > $archfile";
-    system($cmd) and die "Could not obtain auto_architectures from database";
+    my $archfile = "PFAMA_REG";
+
+    #Dump pfamA_reg_full_signficant
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port --skip-column-names $db --quick -e \"SELECT pfamA_acc, pfamseq_acc from pfamA_reg_full_significant where in_full=1 \" > $archfile";
+    system($cmd) and $logger->logdie("Could not run '$cmd', $!");
+
+    #Get the auto_architecture for all seq in pfamseq
+    $logger->info("Getting auto_architectures from pfamseq");
+    my $st_arch = $dbh->prepare("select pfamseq_acc, auto_architecture from pfamseq");
+    $st_arch->execute() or $logger->logdie("Couldn't execute statement ".$st_arch->errstr."\n");
+    my ($acc,$auto_arch);
+    $st_arch->bind_columns(\$acc, \$auto_arch);
+    my %arch;
+    while ($st_arch->fetch()) {
+      $arch{$acc}=$auto_arch;
+    }
+
+    #Go through regions and find the auto_architecture for each one
+    $logger->info("Parsing regions file and looking up auto_architectures");
+    my $arch_file_upload="PFAMA_ARCH_UPLOAD";
+    open(ARCH, $archfile) or $logger->logdie("Couldn't open fh to $archfile, $!");
+    open(OUT, ">$arch_file_upload") or $logger->logdie("Couldn't open fh to $arch_file_upload, $!");
+    my %seen;
+    my %seen2;
+    while(<ARCH>) {
+      if(/^(\S+)\s+(\S+)/) {
+        my ($pfamA_acc, $pfamseq_acc) = ($1, $2);
+        if(exists($seen{"$pfamA_acc:$pfamseq_acc"})) {
+          next;
+        }   
+        else {
+          $seen{"$pfamA_acc:$pfamseq_acc"}=1;
+        }   
+        my $auto_architecture=$arch{$pfamseq_acc};
+
+        if(exists($seen2{"$pfamA_acc:$auto_architecture"})) {
+          next;
+        }   
+        else {
+          print OUT "$pfamA_acc\t$auto_architecture\n";
+          $seen2{"$pfamA_acc:$auto_architecture"}=1;
+        }   
+      }
+      else {
+        $logger->warn("Unrecognised line in $archfile: $_");
+      }   
+    }
+    close ARCH;
+    close OUT;
+
+
     $logger->debug("Uploading to pfamA_architecture");
 
-    my $sta = $dbh->prepare("INSERT into PfamA_architecture (pfamA_acc, auto_architecture) VALUES (?, ?)") or $logger->logdie("Cannot prepare statement");
-    _loadTable( $dbh, $archfile, $sta, 2 );
+    my $sta = $dbh->prepare("INSERT into pfamA_architecture (pfamA_acc, auto_architecture) VALUES (?, ?)") or $logger->logdie("Cannot prepare statement");
+    _loadTable( $dbh, $arch_file_upload, $sta, 2 );
 
 
     $logger->debug("Calcuating number_archs for each Pfam");
     my $stn = $dbh->prepare("UPDATE pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.pfamA_acc=a.pfamA_acc)") or $logger->logdie("Cannot prepare statement");
-    $stn->execute();
+    $stn->execute() or $logger->logdie("Couldn't execute statement ".$stn->errstr."\n");
 
 } #end of uploads section
 
