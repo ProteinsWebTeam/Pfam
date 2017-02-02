@@ -435,17 +435,17 @@ __PACKAGE__->add_unique_constraint("pfamA_id", ["pfama_id"]);
 
 =head1 RELATIONS
 
-=head2 _active_site_alignments
+=head2 _active_site_hmm_positions
 
 Type: has_many
 
-Related object: L<PfamDB::ActiveSiteAlignments>
+Related object: L<PfamDB::ActiveSiteHmmPositions>
 
 =cut
 
 __PACKAGE__->has_many(
-  "_active_site_alignments",
-  "PfamDB::ActiveSiteAlignments",
+  "_active_site_hmm_positions",
+  "PfamDB::ActiveSiteHmmPositions",
   { "foreign.pfama_acc" => "self.pfama_acc" },
   undef,
 );
@@ -780,6 +780,21 @@ __PACKAGE__->has_many(
   undef,
 );
 
+=head2 pfama_ncbi_uniprots
+
+Type: has_many
+
+Related object: L<PfamDB::PfamaNcbiUniprot>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfama_ncbi_uniprots",
+  "PfamDB::PfamaNcbiUniprot",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  undef,
+);
+
 =head2 pfama_ncbis
 
 Type: has_many
@@ -931,8 +946,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qqBFb9XGri1/aAT3VC8DEA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:37:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nyysSjjENTflocPbBSU8Bg
 
 
 
