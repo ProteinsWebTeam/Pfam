@@ -19,24 +19,24 @@ BLOCK graphicRow;
   chainLabel = String.new( unpId ); -%]
 
   <!-- start of graphics row [% loop.index %] -->
-  
+
   <div id="seqRow[% unpId %]"
        class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
     <span class="graphicLabel">
-      Chain[% IF chainLabel.search("\,") %]s[% END %] [% chainIds %] 
+      Chain[% IF chainLabel.search("\,") %]s[% END %] [% chainIds %]
       (UniProt entry <a href="[% c.uri_for( "/protein", unpId ) %]">[% unpId %]</a>):
     </span>
 
     <div class="pgholder"></div>
 
-  </div> 
-  
+  </div>
+
   <!-- end of graphics row [% loop.index %] -->
 
 [% END; # of "BLOCK graphicRow"
 
-FOREACH chainIds IN chainsToUnp.keys.sort;  
+FOREACH chainIds IN chainsToUnp.keys.sort;
   PROCESS graphicRow unpId = chainsToUnp.${chainIds}, chainIds = chainIds;
 END -%]
 
@@ -44,14 +44,14 @@ END -%]
   // <![CDATA[
 
   [% layout %].each( function( sequence ) {
-    
+
     var pg = new PfamGraphic();
-    
+
     pg.setSequence( sequence );
     pg.setParent( $("seqRow" + sequence.metadata.identifier).down(".pgholder") );
     pg.setBaseUrl( "[% baseUrl %]" );
     pg.render();
-    
+
   } );
 
   // ]]>

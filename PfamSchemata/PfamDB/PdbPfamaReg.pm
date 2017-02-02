@@ -218,6 +218,12 @@ __PACKAGE__->might_have(
   { "foreign.pfama_acc" => "self.pfama_acc" },
 );
 
+__PACKAGE__->might_have(
+  "uniprot_reg",
+  "PfamDB::UniprotRegFull",
+  { "foreign.auto_uniprot_reg_full" => "self.auto_uniprot_reg_full" },
+);
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.

@@ -1,12 +1,12 @@
 [%
 # sequence.tt
 # jt6 20060706 WTSI
-# 
+#
 # build the sequence block for structures
 #
 # $Id: sequence.tt,v 1.9 2009-10-07 14:05:49 jt6 Exp $
 
-# there will be no domain graphics if the mapping between structure and 
+# there will be no domain graphics if the mapping between structure and
 # pfam exists
 RETURN UNLESS mapping.size;
 
@@ -21,11 +21,11 @@ RETURN UNLESS mapping.size;
   <div class="blockContent">
 
     <p>
-      Many structures in the PDB are linked to one or more UniProt protein 
-      sequence entries. This section shows the Pfam domains which are found 
+      Many structures in the PDB are linked to one or more UniProt protein
+      sequence entries. This section shows the Pfam domains which are found
       on the UniProt sequence(s) referred to by this structure.
     </p>
-    
+
   	<div id="structureGraphicsHolder">
       <p id="sgph" class="loading">
         Loading domain graphics...
@@ -46,8 +46,13 @@ RETURN UNLESS mapping.size;
     # collect the unique uniprot IDs
     unpIds = {};
     FOREACH m IN mapping;
-      unp = m.pfamseq_acc.pfamseq_id;
-      unpIds.$unp = m ;
+      IF m.pfamseq_acc.pfamseq_id != "";
+        unp = m.pfamseq_acc.pfamseq_id;
+        unpIds.$unp = m ;
+      ELSE;
+        unp = m.uniprot_acc.uniprot_id;
+        unpIds.$unp = m ;
+      END;
     END;
     unpIdList = unpIds.keys.join(",");
   -%]
