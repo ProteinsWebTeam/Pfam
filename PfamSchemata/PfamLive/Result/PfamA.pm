@@ -435,21 +435,6 @@ __PACKAGE__->add_unique_constraint("pfamA_id", ["pfama_id"]);
 
 =head1 RELATIONS
 
-=head2 active_site_alignments
-
-Type: has_many
-
-Related object: L<PfamLive::Result::ActiveSiteAlignment>
-
-=cut
-
-__PACKAGE__->has_many(
-  "active_site_alignments",
-  "PfamLive::Result::ActiveSiteAlignment",
-  { "foreign.pfama_acc" => "self.pfama_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 active_site_hmm_positions
 
 Type: has_many
@@ -961,8 +946,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-07-06 13:42:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zpMYqLuEZiFYvgVyZeiTcA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:49:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:a4fgVZJiIovJcsyvjaGdSQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
