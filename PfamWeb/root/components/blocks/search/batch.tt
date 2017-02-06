@@ -65,7 +65,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
       <p>
         We accept only <strong>protein sequences</strong> and your uploaded file
-        must conform to a fairly strict interpretation of the
+        must in plain text and conform to a fairly strict interpretation of the
         <a class="ext" href="http://www.ncbi.nlm.nih.gov/blast/fasta.shtml">
           FASTA file format</a>.
         We apply the following checks to the format of uploaded sequence files.
