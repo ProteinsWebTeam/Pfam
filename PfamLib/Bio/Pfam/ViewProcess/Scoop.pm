@@ -15,9 +15,29 @@ has '+statusFile' => (
   default => 'runScoop',
 );
 
+sub submitToFarm {
+  my ($self) = @_;
+
+  $self->logger->debug("Submitting Scoop job to farm");
+  my $statusdir = $self->options->{statusdir};
+
+  #Now submit the jobs
+  my $queue = $self->{config}->{farm}->{lsf}->{queue};
+  my $resource = "rusage[mem=32000]";
+  my $memory = 32000;  
+  $self->logger->debug("Running scoop on the farm");
+  my $fh = IO::File->new();
+  $fh->open( "| bsub -q $queue -M $memory -R \"$resource\" -o ".$self->options->{statusdir}."/scoop.log -JSCOOP ");
+  $fh->print( "runScoop.pl -statusdir $statusdir  \n");
+  $fh->close;
+
+}
+
+
+
 sub runScoop {
   my ( $self ) = @_;
-
+  
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
   my $statusdir = $self->options->{statusdir};
   my $user =  $self->config->{Model}->{Pfamlive}->{user};
@@ -40,9 +60,11 @@ sub runScoop {
 
   #Now sort the regions
   if(!$self->statusCheck("allReg.txt")){
+    $self->logger->info("Cat all regions");
     system("cat ".$statusdir."/sigReg.txt ".$statusdir."/insigReg.txt >".$statusdir."/allReg.txt") and $self->logger->logdie("Failed to cat regions:[$!]");
   }
   if(!$self->statusCheck("allRegSort.txt")){
+    $self->logger->info("Sorting regions");
     system("sort ".$statusdir."/allReg.txt > ".$statusdir."/allRegSort.txt") 
       and $self->logger->logdie("Failed to sort the regions:[$!]");
   }
