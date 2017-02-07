@@ -161,10 +161,10 @@ sub _commitEntry {
   my @updated = $self->updated(); 
   $self->{logger}->debug( 'found ' . scalar @updated . ' updated files' );
 
-  my @pages = keys(%{$familyObj->DESC->WIKI});
+  my @pages = values(%{$familyObj->DESC->WIKI});
   $self->{logger}->debug( 'found ' . scalar @pages . ' wikipedia entries' );
 
-  my $row = $rfamdb->resultset('Wikitext')->find_or_create({'title' => $pages[0]});
+  my $row = $rfamdb->resultset('Wikitext')->find_or_create({'title' => $pages[0][0]});
 
   if ( $isNew ) {
     $self->{logger}->debug( 'family is new; creating from object' );
