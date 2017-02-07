@@ -203,8 +203,15 @@ sub submitToFarm {
     }
   
     #Now submit the jobs, determinig roughly how much memory we are going to use.
-    my $memory_gb = ceil(($max * 40000 * 48 * $self->cpus)/1000000000); 
-    $memory_gb  += 1; #Add another Gig for the alignment overhead.
+    #Estimating the memory this way did a poor job for Pfam 31.0. 
+    #About 20% failed due to insufficient memory
+    #Some needed an extra couple of gb, some needed and extra 20gb
+    #Going to hard code the memory to high number to prevent having to resubmit them 
+    #manually
+    #my $memory_gb = ceil(($max * 40000 * 48 * $self->cpus)/1000000000); 
+    #$memory_gb  += 1; #Add another Gig for the alignment overhead.
+    
+    my $memory_gb=32;
     my $queue = $self->{config}->{farm}->{lsf}->{queue};
     my $group = '/PfamViewGroup';
     my $memory_mb=$memory_gb*1000;
