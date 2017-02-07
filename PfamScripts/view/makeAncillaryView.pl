@@ -48,9 +48,10 @@ my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
 if(! $archView->statusCheck('doneVersion')){
     $logger->debug("Updating version table");
     my $noPfama = $view->pfamdb->getSchema->resultset('PfamA')->search({})->count;
-    my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
-    $version->update({ number_families => $noPfama }) 
-    if(!$version->number_families || ($version->number_families != $noPfama));
+
+    my $dbh = $archView->pfamdb->getSchema->storage->dbh;
+    my $sth = $dbh->prepare("update version set number_families=$noPfama") or $logger->logdie("Cannot prepare statement, $!");
+    $sth->execute() or $logger->logdie("Cannot update number_families in version table".$sth->errstr);
     $archView->touchStatus('doneVersion');
 
 }
@@ -129,7 +130,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $storableView->submitToFarm;
     $storableView->touchStatus('doneStorables');
   }
-  
+
   #Now make the structure images
   if(! $pdbImageView->statusCheck('donePdbImages')){
     $logger->debug("Making structure images"); 
@@ -138,7 +139,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $pdbImageView->submitToFarm(150);
     $pdbImageView->touchStatus('donePdbImages');
   }
-
   #Now make run the models against the 'other' sequence databases
   if(! $searchView->statusCheck('doneOtherSearches')){
     $logger->debug("Running other searches"); 
@@ -149,14 +149,13 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
   }
 } #end of if exists $archView
  
- 
 #All of these steps are affected whether one family is changed or all as they
 #involve all by all comparisons. 
 #run scoop
   if(! $scoopView->statusCheck('doneScoop')){
     #Grab the regions from the database and perform the SCOOP analysis
     $logger->debug("Performing SCOOP analysis"); 
-    $scoopView->runScoop;
+    $scoopView->submitToFarm;
     $scoopView->touchStatus('doneScoop')
   }else{
     $scoopView->logger->info('Done Scoop');
