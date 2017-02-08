@@ -201,7 +201,9 @@ has '_mw_bot' => (
   is      => 'ro',
   isa     => 'MediaWiki::Bot',
   lazy    => 1,
-  default => sub { return MediaWiki::Bot->new; }
+  default => sub { return MediaWiki::Bot->new({
+    agent => 'RfamPfamBot/1.1 (http://rfam.xfam.org; http://pfam.xfam.org)'
+  }); }
 );
 
 #-------------------------------------------------------------------------------
