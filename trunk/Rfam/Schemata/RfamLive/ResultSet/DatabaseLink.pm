@@ -14,14 +14,23 @@ sub find_or_createFromFamilyObj {
   }
   if(defined($familyObj->DESC->DBREFS)){
     foreach my $db (@{$familyObj->DESC->DBREFS}){
-      my $link = $self->find_or_create( { rfam_acc     => $familyObj->DESC->AC,
+	my $comment = defined($db->{comment}) ? $db->{comment} : '';
+	my $other_params = defined($db->{other_params}) ? $db->{other_params} : '';
+	
+	my $link = $self->find_or_create( { rfam_acc   => $familyObj->{DESC}->{AC},
                                           db_id        => $db->{db_id},
-                                          comment      => defined($db->{comment}) ? $db->{comment} : '',
-                                          db_link      => $db->{db_link},
-                                          other_params => defined($db->{other_params}) ? $db->{other_params} : ''
-      } );
-    }
-  }
+                                          db_link      => $db->{db_link}},
+					  {key => 'composite_key'} );
+      	
+	if(!defined($link)){	
+		croak("Error updating database_link entry for $familyObj->{DESC}->{AC}");
+    	}
+	else{
+  		$link->update({comment => $comment,
+                               other_params => $other_params},
+                              {key => 'composite_key'});
+	}
+	}
 }
-
+}
 1;
