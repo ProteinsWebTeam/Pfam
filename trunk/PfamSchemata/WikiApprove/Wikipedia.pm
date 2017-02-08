@@ -105,7 +105,7 @@ has '_mw_api' => (
   isa     => 'MediaWiki::API',
   lazy    => 1,
   default => sub {
-    return MediaWiki::API->new( { api_url => 'http://en.wikipedia.org/w/api.php' } );
+    return MediaWiki::API->new( { api_url => 'https://en.wikipedia.org/w/api.php' } );
   }
 );
 
