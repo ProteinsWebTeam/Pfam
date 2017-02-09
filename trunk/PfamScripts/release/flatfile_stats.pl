@@ -148,7 +148,9 @@ print "\tSequences = $pfama_only_seqs\n";
 print "\tPercent pfamseq residues =",$pfama_res_cov,"\n";
 print "\tPercent Pfamseq sequences =",$pfama_seq_cov,"\n\n";
 
-my $version = $pfamDB->getSchema->resultset('Version')->search()->first;
-$version->update({ pfama_coverage => sprintf("%.1f", $pfama_seq_cov),
-                   pfama_residue_coverage => sprintf("%.1f", $pfama_res_cov),
-                   number_families => $pfamAfamilies });
+
+my $seq_cov=sprintf("%.1f", $pfama_seq_cov);
+my $res_cov=sprintf("%.1f", $pfama_res_cov);
+my $dbh = $pfamDB->getSchema->storage->dbh;
+my $sth_version=$dbh->prepare("update version set pfamA_coverage='$seq_cov', pfamA_residue_coverage='$res_cov', number_families=$pfamAfamilies");
+$sth_version->execute() or die "Couldn't execute statement ".$sth_version->errstr."\n";
