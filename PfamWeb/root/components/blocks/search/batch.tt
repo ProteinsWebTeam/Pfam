@@ -273,7 +273,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         Information loading...
       </div>
       <div class="message problem error">
-        Sorry, there was an error while fetching information. It might be because your job does not exist or because of a network problem.
+        Sorry, there was an error while fetching information. It might be because your job has finished (check your emails) or because of a network problem.
       </div>
       <div class="message hold warning">
         This job has been put on hold. If you want more information please contact us with your job ID.
