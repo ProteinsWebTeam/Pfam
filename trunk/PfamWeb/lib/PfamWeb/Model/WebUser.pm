@@ -26,13 +26,6 @@ use strict;
 use warnings;
 
 use base qw/Catalyst::Model::DBIC::Schema/;
-__PACKAGE__->config(
-    connect_info    => [
-        {
-            mysql_enable_utf8 => 1,
-        }
-    ]
-);
 
 #-------------------------------------------------------------------------------
 

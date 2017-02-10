@@ -29,7 +29,6 @@ use strict;
 use warnings;
 
 use Storable qw(thaw);
-use DDP;
 use JSON qw( -convert_blessed_universally );
 
 use base "PfamWeb::Controller::Structure";

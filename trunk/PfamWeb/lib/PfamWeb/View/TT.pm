@@ -24,10 +24,6 @@ use warnings;
 
 use base 'Catalyst::View::TT';
 
-__PACKAGE__->config(
-    ENCODING     => 'utf-8'
-);
-
 use Template;
 
 __PACKAGE__->config( {ENCODING  => 'utf-8'} );
