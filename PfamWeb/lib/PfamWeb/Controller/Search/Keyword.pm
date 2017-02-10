@@ -47,11 +47,22 @@ sub lookup_term : Private {
 
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $c->stash->{rawQueryTerms} },
-                         { pfama_id  => $c->stash->{rawQueryTerms} } ] );
+                         { pfama_id  => $c->stash->{rawQueryTerms} },
+                         { previous_id => { -like => "%" . $c->stash->{rawQueryTerms} . "%" } } ] );
 
   # we're going to assume that there's only one hit here... we're in
   # trouble if there's more than one, certainly
   my $hit = $rs->next;
+  if ($hit->previous_id) {
+    foreach my $id (split ';', $hit->previous_id) {
+       $id =~ s{^\s+}{};
+       $id =~ s{\s+$}{};
+       if ($id && $id eq $c->stash->{rawQueryTerms}) {
+         $c->stash->{prevID} = $id;
+         last;
+       }
+    }
+  }
   $c->stash->{lookupHit} = $hit if $hit;
 }
 
