@@ -107,53 +107,55 @@ my $numUpdated = 0;
 $wu_schema->resultset("ArticleMapping")->delete_all();
 
 foreach my $row (@rows) {
-	my $title = $row->title();
-	my $rev = $row->approved_revision();
+	eval {
+            my $title = $row->title();
+	    my $rev = $row->approved_revision();
 
-	$log->debug("Checking article $title:$rev");
+	    $log->debug("Checking article $title:$rev");
 
-	unless ( $rev =~ m/^\d+$/ ) {
-    	$log->error("WARNING: Invalid revision number for '$title' ($rev)");
-    	next;
-  	}
-  	if ( $rev == 0 ) {
-  		$log->error("unapproved article: '$title'; content will not be scraped until the article has been approved");
-   		next;
- 	}
+	    unless ( $rev =~ m/^\d+$/ ) {
+    	        $log->error("WARNING: Invalid revision number for '$title' ($rev)");
+    	        next;
+  	    }
+  	    if ( $rev == 0 ) {
+  	       $log->error("unapproved article: '$title'; content will not be scraped until the article has been approved");
+   	       next;
+ 	    }
 
-	# get the DBIC Row for that article. If there is no row for the article, it
-	# means it's new to the approval process, and will presumably get an approved
-	# revision number in the next round of approvals. We add a new row with the
-	# default revision number of 0 in that case.
-	my $wikitext_row = $wu_schema->resultset('Wikitext')
-	              ->find_or_create( { title => $title } );
+	    # get the DBIC Row for that article. If there is no row for the article, it
+	    # means it's new to the approval process, and will presumably get an approved
+	    # revision number in the next round of approvals. We add a new row with the
+	    # default revision number of 0 in that case.
+	    my $wikitext_row = $wu_schema->resultset('Wikitext')
+	                  ->find_or_create( { title => $title } );
 
-	# make sure the row object in memory matches the row in the database. We need
-	# to do this to make sure that a new row, which will be created by the DB
-	# with an approved_revision of 0, is correctly populated before we try the
-	# test below
-	$wikitext_row->discard_changes;
-	my $approved_revision = $wikitext_row->approved_revision;
-	$log->debug("Current revision=$approved_revision Approved revision=$rev");
+	    # make sure the row object in memory matches the row in the database. We need
+	    # to do this to make sure that a new row, which will be created by the DB
+	    # with an approved_revision of 0, is correctly populated before we try the
+	    # test below
+	    $wikitext_row->discard_changes;
+	    my $approved_revision = $wikitext_row->approved_revision;
+	    $log->debug("Current revision=$approved_revision Approved revision=$rev");
 
-	if ( defined $approved_revision and $approved_revision != $rev ) {
-		$log->debug("Fetching $rev for $title");
-       	my $content = $scraper->scrape( $title, $rev );
-       	$wikitext_row->update( { approved_revision => $rev,
+	    if ( defined $approved_revision and $approved_revision != $rev ) {
+		    $log->debug("Fetching $rev for $title");
+       	        my $content = $scraper->scrape( $title, $rev );
+       	        $wikitext_row->update( { approved_revision => $rev,
                    				 text              => $content } );
-        $numUpdated++;
-		sleep $scrape_loop_delay;
-	}
+                $numUpdated++;
+	       sleep $scrape_loop_delay;
+	    }
 
-  #add title to pfam accession mapping
-  my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
-	$log->debug("Updating ".@pfam_hits." matching $title");
-	foreach my $pfam_hit (@pfam_hits) {
+            #add title to pfam accession mapping
+            my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
+	    $log->debug("Updating ".@pfam_hits." matching $title");
+	    foreach my $pfam_hit (@pfam_hits) {
 		my $pfam_acc = $pfam_hit->accession;
 		$log->debug("Matched Pfam = $pfam_acc to $title");
 		$wu_schema->resultset("ArticleMapping")->find_or_create({accession => $pfam_acc, title => $title});
-	}
-
-  $numRows++;
+	    }
+           $numRows++;
+    };
+   $log->error("Warning: Failed to process article ".$row->title().":\n$@") if ($@);
 }
 print STDERR "scraped new content for $numUpdated out of $numRows articles\n";
