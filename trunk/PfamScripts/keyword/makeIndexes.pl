@@ -114,10 +114,11 @@ sub build_pfama_index {
     path    => $outdir . '/pfama',
     results => $results,
     pattern => '.',
-    fields  => [ 'id', 'description', 'comment', 'accession' ],
+    fields  => [ 'id', 'previous_id', 'description', 'comment', 'accession' ],
     mapping => sub {
       return {
         id          => $_[0]->pfama_id,
+        previous_id => $_[0]->previous_id,
         accession   => $_[0]->pfama_acc,
         comment     => $_[0]->comment,
         description => $_[0]->description,
