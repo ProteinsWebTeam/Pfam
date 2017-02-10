@@ -7,6 +7,7 @@ my $str_type = Lucy::Plan::StringType->new;
 __PACKAGE__->config(
   schema_params  => [    # Optional schema params
     { name => 'id', type => $str_type },
+    { name => 'previous_id', type => $str_type },
     { name => 'accession', type => $str_type },
     { name => 'description', type => $str_type },
     { name => 'comment', type => $str_type },
@@ -24,7 +25,7 @@ sub search {
   my $query_parser = Lucy::Search::QueryParser->new(
     schema => $searcher->get_schema,
     default_boolop => 'AND',
-    fields => ['accession', 'comment', 'description', 'id'],
+    fields => ['accession', 'comment', 'description', 'id', 'previous_id'],
   );
 
   $args{query} = $query_parser->parse($args{query});
