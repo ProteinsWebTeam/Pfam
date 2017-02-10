@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 use strict;
 
 # Purge old job/stream from Xfam web_user tables
