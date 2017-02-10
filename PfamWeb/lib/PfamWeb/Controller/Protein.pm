@@ -30,7 +30,6 @@ use warnings;
 use Storable qw( thaw );
 use JSON qw( -convert_blessed_universally );
 use Data::Printer;
-use DDP;
 use Bio::Pfam::Sequence;
 use Bio::Pfam::Sequence::MetaData;
 use Bio::Pfam::Sequence::Region;
@@ -274,7 +273,6 @@ sub graphic : Chained( 'protein' )
   $c->forward('get_annseq');
 
   $c->res->content_type( 'application/json' );
-  #p $c->stash->{layout};
   $c->res->body( $c->stash->{layout} );
 }
 
@@ -434,32 +432,23 @@ sub get_annseq : Private {
   $c->log->debug( 'Protein::get_annseq: adding annseq storable' ) if $c->debug;
 
   my $storable = thaw $c->stash->{pfamseq}->annseqs->annseq_storable;
-  #my $motifs = $storable->{motifs};
-  #my @se = map { [ $_->{start}, $_->{end} ] } @$motifs;
-  #foreach my $se (@se) { print "$se->[0] $se->[1]\n" }
-  #return unless defined $storable;
+  return unless defined $storable;
 
   $c->log->debug( 'Protein::get_annseq: got a storable; encoding as JSON' )
     if $c->debug;
 
   $c->stash->{seqs} = [ $storable ];
+
+  my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
+  $lm->layoutSequences( $c->stash->{seqs} );
+
+  # configure the JSON object to correctly stringify the layout manager output
   my $json = new JSON;
+  # $json->pretty(1);
   $json->allow_blessed;
   $json->convert_blessed;
 
-  my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
-  use Data::Dumper;
-  $lm->layoutSequences( $c->stash->{seqs} );
-  #p $json->encode($c->stash->{seqs});
-  #print Dumper $c->stash->{seqs};
-
-  # configure the JSON object to correctly stringify the layout manager output
-  #p $json->encode($c->stash->{seqs});
-  # $json->pretty(1);
-   #p $json->encode($c->stash->{seqs});
-
   # encode and stash the sequences as a JSON string
-  # p $json->encode($c->stash->{seqs});
   $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
 }
 

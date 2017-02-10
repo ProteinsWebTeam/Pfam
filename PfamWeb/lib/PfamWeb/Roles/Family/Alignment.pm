@@ -133,8 +133,6 @@ sub gzipped : Chained( 'alignment' )
     my $sequences = '';
     while ( my $seq_row = $rs->next ) {
       $Text::Wrap::columns = 60;
-      $sequences .= '>' . $seq_row->pfamseq_id . ' (' . $seq_row->pfamseq_acc . ")\n";
-      $sequences .= wrap( '', '', $seq_row->sequence ) . "\n";
       $sequences .= '>' . $seq_row->pfamseq->pfamseq_id
                         . ' (' . $seq_row->pfamseq->pfamseq_acc . ")\n";
       $sequences .= wrap( '', '', $seq_row->pfamseq->sequence ) . "\n";

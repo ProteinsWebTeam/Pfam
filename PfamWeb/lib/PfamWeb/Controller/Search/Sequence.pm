@@ -492,9 +492,7 @@ sub get_seq_type : Private {
 
   # turn sequence into a FASTA file...
   print $seq_file ">user_seq\n";
-  my $subseq = substr( $c->stash->{data}->{seq}, 0, 500 );
-  $subseq =~ s{>.*[^\n]+$}{};
-  print $seq_file $subseq;
+  print $seq_file substr( $c->stash->{data}->{seq}, 0, 500 );
 
   $seq_file->close;
 
