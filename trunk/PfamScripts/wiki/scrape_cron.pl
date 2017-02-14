@@ -26,7 +26,7 @@ use Data::Dump qw(dump);
 
 # set up logging
 my $logger_conf = q(
-  log4perl.logger                   = INFO, Screen
+  log4perl.logger                   = WARN, Screen
   log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
   log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
   log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
@@ -89,73 +89,82 @@ $log->debug( 'connected to web_user' ) if $wu_conf;
 #---------------------------------------
 # fetch titles and approved revisions for active entries in wikipedia tables
 
-my @rows = $wa_schema->resultset("Wikipedia")
-				->search(
-					{	-or => [{"pfam_status" => "active"}, {"rfam_status" => "active"}],
-					},
-					{ 	select => ["title", "approved_revision"] }
-				);
-$log->debug("Found ".(@rows)." hits");
+my @wiki_rows = $wa_schema->resultset("Wikipedia")->search(
+					{	-or => [{"pfam_status" => "active"}, {"rfam_status" => "active"}],},
+					{ select => ["title", "approved_revision"] }
+        );
+$log->debug("Found ".(@wiki_rows)." hits");
+
+my (%wiki_approved) =  map { $_->title() => 1} @wiki_rows;
+
+my @mapping_rows = $wu_schema->resultset("ArticleMapping")->all();
+
+my $numDeleted = 0;
+foreach my $mapping (@mapping_rows) {
+  my $title = $mapping->title();
+  if (! exists $wiki_approved{$title}) {
+    #clear the article mapping row in order to prevent familes that no longer
+    #have wikipedia links continuing to be present in the mapping table
+    $log->warn("Deleteting article: '$title';");
+    $mapping->delete();
+    $numDeleted++;
+  }
+}
+print STDERR "Deleted mapping for $numDeleted articles\n";
 
 # update the database with the new revision IDs and scrape the text for any
 # that have changed
 my $numRows    = 0;
 my $numUpdated = 0;
 
-#clear the article mapping table in order to prevent familes that no longer
-#have wikipedia links continuing to be present in the mapping table
-$wu_schema->resultset("ArticleMapping")->delete_all();
+foreach my $row (@wiki_rows) {
+  eval {
+      my $title = $row->title();
+      my $rev = $row->approved_revision();
+      $log->debug("$numRows: Checking article $title:$rev");
 
-foreach my $row (@rows) {
-	eval {
-            my $title = $row->title();
-	    my $rev = $row->approved_revision();
+      unless ( $rev =~ m/^\d+$/ ) {
+        $log->error("WARNING: Invalid revision number for '$title' ($rev)");
+      } elsif ( $rev == 0 ) {
+        $log->error("unapproved article: '$title'; "
+          ."content will not be scraped until the article has been approved");
+      } else {
+        # get the DBIC Row for that article. If there is no row for the article, it
+        # means it's new to the approval process, and will presumably get an approved
+        # revision number in the next round of approvals. We add a new row with the
+        # default revision number of 0 in that case.
+        my $wikitext_row = $wu_schema->resultset('Wikitext')
+                      ->find_or_create( { title => $title } );
 
-	    $log->debug("Checking article $title:$rev");
+        # make sure the row object in memory matches the row in the database. We need
+        # to do this to make sure that a new row, which will be created by the DB
+        # with an approved_revision of 0, is correctly populated before we try the
+        # test below
+        $wikitext_row->discard_changes;
+        my $approved_revision = $wikitext_row->approved_revision;
+        $log->debug("Current revision=$approved_revision Approved revision=$rev");
 
-	    unless ( $rev =~ m/^\d+$/ ) {
-    	        $log->error("WARNING: Invalid revision number for '$title' ($rev)");
-    	        next;
-  	    }
-  	    if ( $rev == 0 ) {
-  	       $log->error("unapproved article: '$title'; content will not be scraped until the article has been approved");
-   	       next;
- 	    }
+        if ( defined $approved_revision and $approved_revision != $rev ) {
+          $log->debug("Fetching $rev for $title");
+          my $content = $scraper->scrape( $title, $rev );
+        	$wikitext_row->update( { approved_revision => $rev,
+                                    text => $content } );
+          $numUpdated++;
+          sleep $scrape_loop_delay;
+        }
 
-	    # get the DBIC Row for that article. If there is no row for the article, it
-	    # means it's new to the approval process, and will presumably get an approved
-	    # revision number in the next round of approvals. We add a new row with the
-	    # default revision number of 0 in that case.
-	    my $wikitext_row = $wu_schema->resultset('Wikitext')
-	                  ->find_or_create( { title => $title } );
+        #add title to pfam accession mapping
+        my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
+        $log->debug("Updating ".@pfam_hits." matching $title");
 
-	    # make sure the row object in memory matches the row in the database. We need
-	    # to do this to make sure that a new row, which will be created by the DB
-	    # with an approved_revision of 0, is correctly populated before we try the
-	    # test below
-	    $wikitext_row->discard_changes;
-	    my $approved_revision = $wikitext_row->approved_revision;
-	    $log->debug("Current revision=$approved_revision Approved revision=$rev");
-
-	    if ( defined $approved_revision and $approved_revision != $rev ) {
-		    $log->debug("Fetching $rev for $title");
-       	        my $content = $scraper->scrape( $title, $rev );
-       	        $wikitext_row->update( { approved_revision => $rev,
-                   				 text              => $content } );
-                $numUpdated++;
-	       sleep $scrape_loop_delay;
-	    }
-
-            #add title to pfam accession mapping
-            my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
-	    $log->debug("Updating ".@pfam_hits." matching $title");
-	    foreach my $pfam_hit (@pfam_hits) {
-		my $pfam_acc = $pfam_hit->accession;
-		$log->debug("Matched Pfam = $pfam_acc to $title");
-		$wu_schema->resultset("ArticleMapping")->find_or_create({accession => $pfam_acc, title => $title});
-	    }
-           $numRows++;
-    };
-   $log->error("Warning: Failed to process article ".$row->title().":\n$@") if ($@);
+        foreach my $pfam_hit (@pfam_hits) {
+          my $pfam_acc = $pfam_hit->accession;
+          $log->debug("Matched Pfam = $pfam_acc to $title");
+          $wu_schema->resultset("ArticleMapping")->find_or_create({accession => $pfam_acc, title => $title});
+        }
+      }
+    $numRows++;
+  };
+  $log->error("Warning: Failed to process article ".$row->title().":\n$@") if ($@);
 }
 print STDERR "scraped new content for $numUpdated out of $numRows articles\n";
