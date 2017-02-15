@@ -12,6 +12,13 @@ sub find_or_createFromFamilyObj {
   if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
     croak('Either the Bio::Rfam::Family object was undefined or not an object of that type.');
   }
+
+  # delete family records if any
+  my $family_records = $self->search({rfam_acc => $familyObj->{DESC}->{AC}});
+  if(defined($family_records)){
+	$family_records->delete();
+  }
+
   if(defined($familyObj->DESC->DBREFS)){
     foreach my $db (@{$familyObj->DESC->DBREFS}){
 	my $comment = defined($db->{comment}) ? $db->{comment} : '';
