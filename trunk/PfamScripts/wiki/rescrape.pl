@@ -13,7 +13,7 @@ use Data::Dump qw(dump);
 use utf8;
 
 # the script needs to be able to find a table wrapper for the "wikitext"
-# table in the "web_user" database. Add the appropriate DBIC schema 
+# table in the "web_user" database. Add the appropriate DBIC schema
 # description to PERL5LIB
 
 my $DEBUG = 0;
@@ -36,7 +36,7 @@ die 'ERROR: must supply either an accession or a wikipedia title'
 die 'ERROR: must supply either only one of accession or wikipedia title'
   if ( $acc and $title );
 
-die "ERROR: couldn't read config from '$config_file': $!" 
+die "ERROR: couldn't read config from '$config_file': $!"
   unless -e $config_file;
 
 #-------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ my $db_conf = $config{WebUser};
 my $dsn = "dbi:mysql:$db_conf->{db_name}:$db_conf->{db_host}:$db_conf->{db_port}";
 
 # get a DBIC database connection object
-my $schema = WebUser->connect( $dsn, $db_conf->{username}, $db_conf->{password}, { mysql_enable_utf8 => 1 } );
+my $schema = WebUser->connect( $dsn, $db_conf->{username}, $db_conf->{password}, { mysql_enable_utf8mb4 => 1 } );
 # $schema->storage()->debug( 1 ) if $DEBUG;
 
 #-------------------------------------------------------------------------------
@@ -160,4 +160,3 @@ foreach my $title ( @titles ) {
 }
 
 print STDERR "done\n";
-

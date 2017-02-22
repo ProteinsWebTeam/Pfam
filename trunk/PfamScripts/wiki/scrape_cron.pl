@@ -4,6 +4,12 @@
 # wikipedia articles and scrapes the content for the approved revisions,
 # depositing the content into the "wikitext" table.
 #
+# If Unicode problems are encountered ensure that the wikitext column encoding in mysql
+# is 'utf8mb4' and not just 'utf8'. Existing tables can be altered as follows:
+# ALTER TABLE `web_user`.`wikitext`
+# CHANGE COLUMN `title` `title` TINYTEXT CHARACTER SET 'utf8mb4' NOT NULL COMMENT '' ,
+# CHANGE COLUMN `text` `text` LONGTEXT CHARACTER SET 'utf8mb4' NULL DEFAULT NULL COMMENT '' ;
+
 # $Id$
 
 use strict;
@@ -30,6 +36,7 @@ my $logger_conf = q(
   log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
   log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
   log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
+  log4perl.appender.Screen.utf8     = 1
 );
 
 Log::Log4perl->init( \$logger_conf );
@@ -81,7 +88,7 @@ my $wu_schema =
     "dbi:mysql:$wu_conf->{db_name}:$wu_conf->{db_host}:$wu_conf->{db_port}",
     $wu_conf->{username},
     $wu_conf->{password},
-    { mysql_enable_utf8 => 1 }
+    { mysql_enable_utf8mb4 => 1 }
   );
 
 $log->debug( 'connected to web_user' ) if $wu_conf;
@@ -93,6 +100,13 @@ my @wiki_rows = $wa_schema->resultset("Wikipedia")->search(
 					{	-or => [{"pfam_status" => "active"}, {"rfam_status" => "active"}],},
 					{ select => ["title", "approved_revision"] }
         );
+
+#<MAQ
+#@wiki_rows = $wa_schema->resultset("Wikipedia")->search(
+#					{	title => 'Proopiomelanocortin'},
+#					{ select => ["title", "approved_revision"] }
+#        );
+#MAQ>
 $log->debug("Found ".(@wiki_rows)." hits");
 
 my (%wiki_approved) =  map { $_->title() => 1} @wiki_rows;
@@ -147,7 +161,7 @@ foreach my $row (@wiki_rows) {
         if ( defined $approved_revision and $approved_revision != $rev ) {
           $log->debug("Fetching $rev for $title");
           my $content = $scraper->scrape( $title, $rev );
-        	$wikitext_row->update( { approved_revision => $rev,
+          $wikitext_row->update( { approved_revision => $rev,
                                     text => $content } );
           $numUpdated++;
           sleep $scrape_loop_delay;
