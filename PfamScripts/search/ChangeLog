@@ -13,5 +13,6 @@ Version   Date        Main changes
 1.4	  04/01/13    Updated HMMResultsIO.pm to parse RF lines in HMMER3
                       output (fixes bug in -align option for families with
 		      nested domains)
-1.5	  15/10/13    Updated for HMMER3.1b	      
+1.5	  15/10/13    Updated for HMMER3.1b
+1.6	  01/03/17    Speeded up algorithm for predicting active site residues
 
