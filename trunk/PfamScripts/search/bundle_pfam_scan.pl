@@ -28,11 +28,6 @@ unless(-d $directory) {
 chdir($directory) or die "Couldn't change directory into '$directory', $!";
 
 
-#Copy the script
-#my $file = "$pfam_scan_root/$script";
-#copy($file, $script) or die "Copying $file to $script failed, $!";
-#chmod(0775, $script) or die "Couldn't change permissions on $file, $!\n";  #Need to do this as 'copy' changes file permissions
-
 #Copy the script, README and ChangeLog
 my @files = ($script, 'README', 'ChangeLog');
 foreach my $file (@files) {
@@ -40,10 +35,6 @@ foreach my $file (@files) {
   copy($f, $file) or die "Coping $f to $file failed, $!";
 }
 chmod(0775, $script) or die "Couldn't change permissions on $script, $!\n";  #Need to do this as 'copy' changes file permissions
-
-#Copy active site modules
-my @active_site = qw(as_search.pm);
-copy_files($modules_root, "Bio/Pfam/Active_site", \@active_site);
 
 
 #Copy scan modules
