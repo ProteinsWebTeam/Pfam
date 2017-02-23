@@ -8,7 +8,7 @@ use warnings;
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
 
-my $VERSION = "1.5"; 
+my $VERSION = "1.6"; 
 
 #-------------------------------------------------------------------------------
 
@@ -305,6 +305,16 @@ Active site residues are predicted using the method described in the publication
 
 Mistry J., Bateman A., Finn R.D. "Predicting active site residue annotations in 
 the Pfam database." BMC Bioinformatics. 2007;8:298. PMID:17688688.
+
+In pfam_scan.pl version 1.6 onwards, the hmm positions of known active site residues
+are stored for each family. The residues at these hmm positions are compared 
+to the other sequences in the same family that do not have active site annotations 
+(rather than comparing the residues at the same column positions in the aligment 
+as stated in the above publication). This gives a significant speed increase.
+
+Also note that step 6 in Figure 1 of the publication above is no longer implemented; 
+where a sequence matches multiple active patterns, all patterns (but not subpatterns)
+are reported, eg: predicted_active_site[150,285,307][151, 280]
 
 =head1 AUTHORS
 
