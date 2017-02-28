@@ -42,7 +42,7 @@ if ($pdb_acc_chain=~ /(\S{4}):(\S)/){
 
 # Fetch sequences from ecod fasta file
 
-my $file='/homes/agb/ECOD/ecod.develop148.fasta.txt';
+my $file='/homes/agb/ECOD/ecod.develop166.fasta.txt';
 my $go;
 open (FH, $file) or die "Cannot open $file"; 
 my $test=$pdb_acc.$chain;
