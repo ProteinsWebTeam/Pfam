@@ -1,7 +1,7 @@
 [%
 # theTeam.tt
 # rdf 20060927 WTSI
-# 
+#
 # build the theTeam block for the help pages
 #
 # $Id: theTeam.tt,v 1.10 2009-10-28 10:15:45 jt6 Exp $
@@ -15,18 +15,20 @@
   </div>
   <div class="blockContent">
     <p>
-      Pfam is the product from an international consortium of researchers that has 
-      been borne out of its original development by Erik Sonnhammer, Sean Eddy 
-      and Richard Durbin. The current list of consortium members, their institutes 
+      Pfam is the product from an international consortium of researchers that has
+      been borne out of its original development by Erik Sonnhammer, Sean Eddy
+      and Richard Durbin. The current list of consortium members, their institutes
       and primary roles are listed below.
-    </p>  
-  
+    </p>
+
     <h3>European Bioinformatics Institute (EMBL-EBI), UK</h3>
-  
+
     <ul>
       <li>Rob Finn - Team leader</li>
       <li>Alex Mitchell - Curator, lead</li>
       <li>Amaia Sangrador-Vegas - Curator</li>
+      <li>Sara El-Gebali - Curator</li>
+      <li>Lorna Richardson- Curator</li>
       <li>Simon Potter - Developer, Lead</li>
       <li>Jaina Mistry - Developer</li>
       <li>Matloob Qureshi - Web developer, Lead</li>
@@ -37,19 +39,19 @@
     <ul>
       <li>Alex Bateman - EMBL-EBI Protein and Protein Families cluster head</li>
     </ul>
-    
+
     <h3>Harvard University, USA</h3>
-  
+
     <ul>
       <li>Sean Eddy - Founding developer and author of HMMER software</li>
     </ul>
-    
+
     <h3>Stockholm Bioinformatics Center, Sweden</h3>
-  
+
     <ul>
       <li>Erik Sonnhammer - Coordinator of Pfam-Sweden and founding developer</li>
     </ul>
-    
+
     <h3>External contributors</h3>
 
     <p>
@@ -70,7 +72,7 @@
     </ul>
 
     <h3>Previous contributors</h3>
-  
+
     <ul>
       <li>Gabriel Aldam</li>
       <li>Shimelis Assefa</li>
@@ -90,7 +92,7 @@
       <li>O. Luke Gavin</li>
       <li>Prasad Gunasekaran</li>
       <li>Sam Griffiths-Jones</li>
-      <li>Kevin Howe</li> 
+      <li>Kevin Howe</li>
       <li>Lukasz Jaroszewski</li>
       <li>Nicola Kerrison</li>
       <li>Marta Llagostera</li>
@@ -108,14 +110,14 @@
       <li>Corin Yeats</li>
       <li>Arthur Wuster</li>
     </ul>
-  
+
     <p>
       Pfam is a collaborative venture and we hope to be able to interact
-      with as many people as possible, in order to provide a quality database. 
-      Please get in touch with any one of us for more information about Pfam. 
+      with as many people as possible, in order to provide a quality database.
+      Please get in touch with any one of us for more information about Pfam.
       You can email Pfam using the address found at the bottom of the page.
     </p>
-    
+
   </div>
 </div>
 [%#
