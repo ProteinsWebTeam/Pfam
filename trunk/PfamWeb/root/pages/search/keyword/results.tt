@@ -1,7 +1,7 @@
 [%
 # searchResults.tt
 # jt6 20060807 WTSI
-# 
+#
 # keyword search results page
 #
 # $Id: results.tt,v 1.8 2009-10-07 12:32:22 jt6 Exp $
@@ -10,7 +10,7 @@ META title = "Keyword search results";
 META fullPage = 1;
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -48,7 +48,7 @@ sharedRequirements.js.push( "tablekit.js" );
         </tr>
         [% # keep track of the number of plugins that returned results
         IF pluginHits.$pluginName;
-          hitPlugins = hitPlugins + 1; 
+          hitPlugins = hitPlugins + 1;
         END;
       END; # of FOREACH %]
       </tbody>
@@ -56,24 +56,18 @@ sharedRequirements.js.push( "tablekit.js" );
   [% END %]
 
   <p>
-    We found <strong>[% results.size %]</strong> unique results for your query 
-    (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
+    We found <strong>[% results.size %]</strong> unique results for your query
+    &quot;<em>[% rawQueryTerms %]</em>&quot; in <strong>[% hitPlugins %]</strong>
     sections of the database.
     [% IF lookupHit %]
+      Your query also appears to match the Pfam entry
+      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
+      [% lookupHit.pfama_id %]</a></em>
+      (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
+      . This family is shown in the <span class="highlight">highlighted</span> row in the
+      results table below.
       [% IF prevID %]
-        Your query also appears to be a match for Pfam entry
-        <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
-          [% lookupHit.pfama_id %]</a></em>
-        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
-        and this row is <span class="highlight">highlighted</span> in the
-        results table. Previous ID was [% prevID %]
-      [% ELSE %]
-        Your query also appears to be a match for Pfam entry
-        <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
-          [% lookupHit.pfama_id %]</a></em>
-        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
-        and this row is <span class="highlight">highlighted</span> in the
-        results table.
+        Previous ID for this family was [% prevID %]
       [% END %]
     [% END %]
   </p>
@@ -86,13 +80,14 @@ sharedRequirements.js.push( "tablekit.js" );
     number of hits found in each one. The table of results may be
     sorted by clicking on the column titles, or restored to the
     original order <span class="link"
-    onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');">here</span>. 
+    onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');">here</span>.
     Note that the final list of hits shows only unique Pfam accessions.
   </p>
 
 </div> <!-- end of div "key" -->
 
 <div id="results">
+  <h3>Search results table</h3>
   <table class="resultTable" id="resultTable" summary="Search results">
     <thead class="sortIndicator">
       <tr>
@@ -141,11 +136,11 @@ sharedRequirements.js.push( "tablekit.js" );
                                  rowOddClass: "odd",
                                  stripe: true,
                                  observers: {
-                                   onSortStart: function( table, event ) { 
+                                   onSortStart: function( table, event ) {
                                      table.down("thead").removeClassName("sortIndicator");
                                    }
                                  }
-                               } );    
+                               } );
     // ]]>
   </script>
 
