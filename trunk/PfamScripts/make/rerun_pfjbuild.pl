@@ -84,7 +84,7 @@ re-run any that have failed, this time requesting more memory.
 
 Usage:
 
-$0 <dir>";
+$0 -dir <dir>";
 
 EOF
 
