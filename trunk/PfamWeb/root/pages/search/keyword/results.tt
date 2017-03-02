@@ -60,12 +60,21 @@ sharedRequirements.js.push( "tablekit.js" );
     (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
     sections of the database.
     [% IF lookupHit %]
-      Your query also appears to be a match for Pfam entry
-      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
-        [% lookupHit.pfama_id %]</a></em>
-      (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
-      and this row is <span class="highlight">highlighted</span> in the
-      results table.
+      [% IF prevID %]
+        Your query also appears to be a match for Pfam entry
+        <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
+          [% lookupHit.pfama_id %]</a></em>
+        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
+        and this row is <span class="highlight">highlighted</span> in the
+        results table. Previous ID was [% prevID %]
+      [% ELSE %]
+        Your query also appears to be a match for Pfam entry
+        <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
+          [% lookupHit.pfama_id %]</a></em>
+        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
+        and this row is <span class="highlight">highlighted</span> in the
+        results table.
+      [% END %]
     [% END %]
   </p>
 
