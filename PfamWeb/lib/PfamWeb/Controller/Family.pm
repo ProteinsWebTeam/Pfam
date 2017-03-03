@@ -632,11 +632,11 @@ sub get_db_xrefs : Private {
   my @ataSCOOP2 = $c->model('PfamDB::Pfama2pfamaScoop')
                 ->search( { pfama_acc_2 => $c->stash->{pfam}->pfama_acc,
                               score       => { '>', 10.0 } },
-                             { join        => [ qw( pfama_acc_1 pfama_acc_2 ) ],
-                               select      => [ qw( pfama_acc_1.pfama_id
-                                                    pfama_acc_2.pfama_id
-                                                    pfama_acc_1.pfama_acc
+                             { join        => [ qw( pfama_acc_2 pfama_acc_1 ) ],
+                               select      => [ qw( pfama_acc_2.pfama_id
+                                                    pfama_acc_1.pfama_id
                                                     pfama_acc_2.pfama_acc
+                                                    pfama_acc_1.pfama_acc
                                                     score ) ],
                                as          => [ qw( l_pfama_id
                                                     r_pfama_id
