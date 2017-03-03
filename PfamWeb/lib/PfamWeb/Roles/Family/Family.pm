@@ -2019,11 +2019,11 @@ sub get_db_xrefs : Private {
   my @ataSCOOP2 = $c->model('PfamDB::Pfama2pfamaScoopResults')
                    ->search( { pfama_acc_2 => $c->stash->{pfam}->pfama_acc,
                                score       => { '>', 10.0 } }, 
-                             { join        => [ qw( pfamA1 pfamA2 ) ],
-                               select      => [ qw( pfamA1.pfama_id 
-                                                    pfamA2.pfama_id
-                                                    pfamA1.pfama_acc
+                             { join        => [ qw( pfamA2 pfamA1 ) ],
+                               select      => [ qw( pfamA2.pfama_id 
+                                                    pfamA1.pfama_id
                                                     pfamA2.pfama_acc
+                                                    pfamA1.pfama_acc
                                                     score ) ],
                                as          => [ qw( l_pfama_id
                                                     r_pfama_id
