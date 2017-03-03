@@ -53,7 +53,7 @@ sub lookup_term : Private {
   # we're going to assume that there's only one hit here... we're in
   # trouble if there's more than one, certainly
   my $hit = $rs->next;
-  if ($hit->previous_id) {
+  if ($hit && $hit->previous_id) {
     foreach my $id (split ';', $hit->previous_id) {
        $id =~ s{^\s+}{};
        $id =~ s{\s+$}{};
