@@ -615,7 +615,7 @@ sub get_db_xrefs : Private {
   # PfamA relationship based on SCOOP
   my @ataSCOOP = $c->model('PfamDB::Pfama2pfamaScoop')
                    ->search( { pfama_acc_1 => $c->stash->{pfam}->pfama_acc,
-                               score       => { '>', 50.0 } },
+                               score       => { '>', 10.0 } },
                              { join        => [ qw( pfama_acc_1 pfama_acc_2 ) ],
                                select      => [ qw( pfama_acc_1.pfama_id
                                                     pfama_acc_2.pfama_id
@@ -629,7 +629,24 @@ sub get_db_xrefs : Private {
                                                     score ) ]
                              } );
 
-  foreach my $ref ( @ataSCOOP ) {
+  my @ataSCOOP2 = $c->model('PfamDB::Pfama2pfamaScoopResults')
+                   ->search( { pfama_acc_2 => $c->stash->{pfam}->pfama_acc,
+                               score       => { '>', 10.0 } }, 
+                             { join        => [ qw( pfamA1 pfamA2 ) ],
+                               select      => [ qw( pfamA1.pfama_id 
+                                                    pfamA2.pfama_id
+                                                    pfamA1.pfama_acc
+                                                    pfamA2.pfama_acc
+                                                    score ) ],
+                               as          => [ qw( l_pfama_id
+                                                    r_pfama_id
+                                                    l_pfama_acc
+                                                    r_pfama_acc
+                                                    score ) ]
+                             } ); 
+
+
+  foreach my $ref ( @ataSCOOP, @ataSCOOP2 ) {
     if ( $ref->get_column('l_pfama_acc') ne $ref->get_column('r_pfama_acc') ) {
       push @{ $xRefs->{scoop} }, $ref;
     }
