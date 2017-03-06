@@ -646,7 +646,10 @@ sub get_db_xrefs : Private {
                              } );
 
 
-  foreach my $ref ( @ataSCOOP, @ataSCOOP2 ) {
+   push(@ataSCOOP, @ataSCOOP2);
+   my @sortedSCOOP = sort { lc($a->get_column('r_pfama_id')) cmp lc($b->get_column('r_pfama_id'))  } @ataSCOOP;
+   
+   foreach my $ref ( @sortedSCOOP ) {
     if ( $ref->get_column('l_pfama_acc') ne $ref->get_column('r_pfama_acc') ) {
       push @{ $xRefs->{scoop} }, $ref;
     }
