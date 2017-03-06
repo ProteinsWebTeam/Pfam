@@ -1,7 +1,7 @@
 [%
 # links.tt
 # jt6 20060720 WTSI
-# 
+#
 # a block to format links for various databases
 #
 # $Id: links.tt,v 1.31 2010-01-08 11:11:37 jt6 Exp $
@@ -39,15 +39,15 @@ labels = {
 
 # these two arrays store the order in which those links will be shown in
 # the respective tables
-internal = [
+internalDBNames = [
     "scoop",
     "atoaHH",
 ]
 external = [
     "CATH",
-    "CAZY",    
-    "COGS",      
-    "HOMSTRAD",  
+    "CAZY",
+    "COGS",
+    "HOMSTRAD",
     "MEROPS",
     "MIM",
     "PRINTS",
@@ -62,8 +62,8 @@ external = [
 
 # ditched link types
 #    "FUNSHIFT",
-#    "interpro",  
-#    "pdb",       
+#    "interpro",
+#    "pdb",
 
 #-------------------------------------------------------------------------------
 #- "public" blocks -------------------------------------------------------------
@@ -73,7 +73,7 @@ external = [
 # that are intended to be called from the page generation templates.
 
 #-------------------------------------------------------------------------------
-# a block to construct HTML tables showing database links for a family 
+# a block to construct HTML tables showing database links for a family
 
 BLOCK buildLinksTable;
   PROCESS internalLinks;
@@ -81,7 +81,7 @@ BLOCK buildLinksTable;
 END; # of "buildLinksTable" block
 
 #-------------------------------------------------------------------------------
-# a block to take a string and convert the crudely marked up links into 
+# a block to take a string and convert the crudely marked up links into
 # proper HTML links
 
 # parameters: input - the string to parse
@@ -114,7 +114,7 @@ END; # of "addLinks" block
 #- "private" blocks ------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-# these blocks are intended to be "private" to this template. They should be 
+# these blocks are intended to be "private" to this template. They should be
 # called by the public blocks, rather than by anything outside of this template
 
 #-------------------------------------------------------------------------------
@@ -175,56 +175,56 @@ END; # of "buildLink" block
 
 #-------------------------------------------------------------------------------
 # a block that builds the HTML table showing "internal" links table, i.e. those
-# links that are within the Pfam website. This block should only be called from 
+# links that are within the Pfam website. This block should only be called from
 # the buildLinksTable block
 
 BLOCK internalLinks;
 
   # inside of the internalLinks block, we define another block that actually
-  # walks the link data in the stash and tries to generate rows of an HTML 
+  # walks the link data in the stash and tries to generate rows of an HTML
   # table, storing it in a variable
-  # NOTE: this block must produce no spaces or blank lines, otherwise the check 
+  # NOTE: this block must produce no spaces or blank lines, otherwise the check
   # for content below could include an empty section in the final page output
-  
+
   internalLinksContent = BLOCK;
     oe = 0;
-    FOREACH db IN internal;
+    FOREACH db IN internalDBNames;
       IF xrefs.$db.size -%]
       <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
-        <td class="label">[% 
+        <td class="label">[%
           IF labels.$db;
             labels.$db; ": ";
           ELSE -%]
             Unknown links ([% db %]):
           [%- END;
       %]</td>
-        <td>[%- 
+        <td>[%-
           SWITCH db;
             CASE "interpro";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
-                  [%- PROCESS buildLink type="interpro" 
+                  [%- PROCESS buildLink type="interpro"
                                         id=ref -%]
-                </span>[% 
+                </span>[%
               END;
             CASE "atoaHH";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
-                  [%- PROCESS buildLink type="PFAMA" 
+                  [%- PROCESS buildLink type="PFAMA"
                                         id=ref.get_column("r_pfama_id") -%]
                 </span>[%
               END;
             CASE "atobPRODOM";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
-                  [%- PROCESS buildLink type="PFAMB" 
+                  [%- PROCESS buildLink type="PFAMB"
                                         id=ref.db_link -%]
                 </span>
               [%- END;
             CASE "btoaPRODOM";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
-                  [%- PROCESS buildLink type="PFAMA" 
+                  [%- PROCESS buildLink type="PFAMA"
                                         id=ref.db_link -%]
                 </span>
               [%- END;
@@ -232,18 +232,18 @@ BLOCK internalLinks;
               FOREACH ref IN xrefs.$db;
                 IF ref.get_column("l_pfama_acc") != ref.get_column("r_pfama_acc"); -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type="PFAMA"  
+                    [%- PROCESS buildLink type="PFAMA"
                                           id=ref.get_column("r_pfama_id") -%]
                   </span>
                 [%- END;
               END;
-          END; # of SWITCH db 
+          END; # of SWITCH db
       -%]</td>
       </tr>
       [%- END; # end of "if xrefs..."
     END; # end of "foreach db"
   END; # of "internalLinksContent" block
-  
+
   # now we check the output of that nested block above, to see if there were
   # any link lines generated. If there were, we can go ahead and build the
   # HTML table and drop it into the output. If not, we don't have any output.
@@ -260,7 +260,7 @@ END; # of "internalLinks" block
 
 #-------------------------------------------------------------------------------
 # a block to build an HTML table showing the "external" links table, i.e. those
-# links that point to resources outside of the Pfam website. This should only 
+# links that point to resources outside of the Pfam website. This should only
 # be called from the buildLinksTable block
 
 BLOCK externalLinks;
@@ -270,11 +270,11 @@ BLOCK externalLinks;
     oe = 0;
     FOREACH db IN external;
       IF entryType == "A";
-        IF db == "FUNSHIFT" OR 
-           db == "PANDIT"   OR 
+        IF db == "FUNSHIFT" OR
+           db == "PANDIT"   OR
            db == "PSEUDOFAM" -%]
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
-          <td class="label">[% 
+          <td class="label">[%
             IF labels.$db;
               labels.$db; ": ";
             ELSE -%]
@@ -283,10 +283,10 @@ BLOCK externalLinks;
           </td>
           <td>
             [%- IF db == "PSEUDOFAM";
-              PROCESS buildLink type=db 
+              PROCESS buildLink type=db
                                 id=acc;
             ELSE;
-              PROCESS buildLink type=db 
+              PROCESS buildLink type=db
                                 id=xrefs.entryAcc;
             END -%]
           </td>
@@ -302,12 +302,12 @@ BLOCK externalLinks;
               Unknown links ([% db %]):
             [%- END -%]
           </td>
-          <td>[% 
+          <td>[%
             SWITCH db;
               CASE "pdb";
                 FOREACH pdb IN pdbUnique.keys.sort -%]
                   <span class="entry pdbEntry">
-                    [%- PROCESS buildLink type="pdb" 
+                    [%- PROCESS buildLink type="pdb"
                                           id=pdb -%]
                   </span>
                 [%- END;
@@ -318,7 +318,7 @@ BLOCK externalLinks;
                 END;
                 FOREACH id IN cogs.sort -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type="COGS" 
+                    [%- PROCESS buildLink type="COGS"
                                           id=id -%]
                   </span>
                 [%- END;
@@ -330,24 +330,24 @@ BLOCK externalLinks;
                 FOREACH ref IN xrefs.$db;
                   cazy_id = ref.db_link.remove( "_" ); -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type=db 
+                    [%- PROCESS buildLink type=db
                                           id=cazy_id -%]
                   </span>
                 [%- END;
               # TODO for release 25.0 onwards, CAZY can be added back into this list
-              CASE [ "CATH", "HOMSTRAD", "MEROPS", "MIM", "PRINTS", "PRODOM", 
+              CASE [ "CATH", "HOMSTRAD", "MEROPS", "MIM", "PRINTS", "PRODOM",
                      "PROSITE", "PROSITE_PROFILE", "SMART", "TC" ];
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type=db 
+                    [%- PROCESS buildLink type=db
                                           id=ref.db_link -%]
                   </span>
                 [%- END;
               CASE "SCOP";
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type=db 
-                                          id=ref.db_link 
+                    [%- PROCESS buildLink type=db
+                                          id=ref.db_link
                                           other=ref.other_params -%]
                   </span>
                 [%- END;
@@ -355,8 +355,8 @@ BLOCK externalLinks;
                 count = 1;
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type="URL" 
-                                          id=ref.db_link 
+                    [%- PROCESS buildLink type="URL"
+                                          id=ref.db_link
                                           number=count;
                         count = count + 1 -%]
                   </span>
