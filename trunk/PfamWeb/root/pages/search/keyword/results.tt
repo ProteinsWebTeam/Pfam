@@ -58,7 +58,16 @@ sharedRequirements.js.push( "tablekit.js" );
   <p>
     We found <strong>[% results.size %]</strong> unique results for your query
     &quot;<em>[% rawQueryTerms %]</em>&quot; in <strong>[% hitPlugins %]</strong>
-    sections of the database.
+    sections of the database. The number of hits in each section is shown below.
+
+    [% hitsSummary %]
+   
+  </p>
+</div> <!-- end of div "key" -->
+
+<div id="results">
+  <h3>Matching Pfam families</h3>
+   <p>
     [% IF lookupHit %]
       Your query also appears to match the Pfam entry
       <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
@@ -67,27 +76,16 @@ sharedRequirements.js.push( "tablekit.js" );
       . This family is shown in the <span class="highlight">highlighted</span> row in the
       results table below.
       [% IF prevID %]
-        Previous ID for this family was [% prevID %]
+        The previous ID for this family was [% prevID %]
       [% END %]
     [% END %]
   </p>
-
-  [% hitsSummary %]
-
-  <p>
-    This key shows a brief description of each of the database
-    sections, in the order that they were searched, along with the
-    number of hits found in each one. The table of results may be
-    sorted by clicking on the column titles, or restored to the
+   <p>
+     This table can be sorted by clicking on the column titles, or restored to the
     original order <span class="link"
     onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');">here</span>.
-    Note that the final list of hits shows only unique Pfam accessions.
+    Only unique Pfam accessions are displayed.
   </p>
-
-</div> <!-- end of div "key" -->
-
-<div id="results">
-  <h3>Search results table</h3>
   <table class="resultTable" id="resultTable" summary="Search results">
     <thead class="sortIndicator">
       <tr>
@@ -143,8 +141,8 @@ sharedRequirements.js.push( "tablekit.js" );
                                } );
     // ]]>
   </script>
-
 </div> <!-- end of div "results" -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
