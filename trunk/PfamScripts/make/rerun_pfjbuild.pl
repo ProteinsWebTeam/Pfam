@@ -4,11 +4,13 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-my ($dir, $help);
+my ($dir, $help, $memory_gb);
 
   &GetOptions(
         "help"   => \$help,
-        "dir=s"  => \$dir);  
+        "dir=s"  => \$dir,
+        "M=i"  => \$memory_gb);  
+
 
 if($help) {
   help();
@@ -17,6 +19,15 @@ if($help) {
 
 unless(-d $dir) {
   help();
+}
+
+if($memory_gb) {
+  unless($memory_gb > 0 and $memory_gb < 64) {
+    die "The amount of memory requested ($memory_gb". "gb does not seem sensible\n";
+  }
+}
+else {
+  $memory_gb=8; #Default of 8gb if not specified
 }
 
 chdir($dir) or die "Couldn't chdir into $dir, $!";
@@ -64,7 +75,7 @@ foreach my $directory (sort keys %log_files) {
     print STDERR "failed\n";
     chdir($directory) or die "Couldn't chdir into $directory, $!";
     print STDERR "Re-running $directory\n";
-    system("pfjbuild -N 3 -fa seq.fa -gzip -M 8");
+    system("pfjbuild -N 3 -fa seq.fa -gzip -M $memory_gb");
     $count++;
     chdir("../") or die "Couldn't chdir up from $directory, $!";
   }
@@ -85,6 +96,9 @@ re-run any that have failed, this time requesting more memory.
 Usage:
 
 $0 -dir <dir>";
+
+Options:
+  -M <integer>: Amount of memory in Gb to request on farm (default 8 Gb) 
 
 EOF
 
