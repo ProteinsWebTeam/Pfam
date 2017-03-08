@@ -55,8 +55,8 @@ $logger->info("Checking release numbers");
 my ( $major, $point, $old_major, $old_point ) =
   checkReleaseNumbers( $newRelease, $oldRelease );
 
-$logger->info("Making release dir");
 unless ( -e "$relDir/$major.$point" ) {
+  $logger->info("Making release dir");
   mkdir("$relDir/$major.$point")
     or
     $logger->logdie("Could not make release directory $relDir/$major.$point");
@@ -64,9 +64,9 @@ unless ( -e "$relDir/$major.$point" ) {
 my $thisRelDir = "$relDir/$major.$point";
 $logger->info("Made $thisRelDir");
 
-$logger->info("Making release log dir");
 my $logDir = "$relDir/Logs";
 unless ( -e $logDir ) {
+  $logger->info("Making release log dir");
   mkdir($logDir)
     or $logger->logdie("Could not make release directory $logDir");
 }
@@ -128,18 +128,15 @@ else {
   $logger->info("All view processes are complete!");
 }
 
+#The swissprot/trembl/reference proteome version used to be updated in this section
+#Have taken it out as it is updated when the sequence databases are loaded in the db
+#(jaina Feb 2017)
 my $version = $pfamDB->getSchema->resultset('Version')->search()->first;
 if ( $version->pfam_release ne "$major.$point" ) {
+  $logger->info("Updating version table with release number, release date and hmmer version");
   my $dt  = DateTime->now;
   my $ymd = $dt->ymd;
 
-  my ( $sqV, $trV );
-  open( V, $updateDir . "/reldate.txt" );
-  while (<V>) {
-    $sqV = $1 if (m|UniProtKB/Swiss-Prot Release (\S+)|);
-    $trV = $1 if (m|UniProtKB/TrEMBL Release (\S+)|);
-  }
-  close(V);
 
   #Set the hmmer version
   my $hmmerVersion;
@@ -157,16 +154,9 @@ if ( $version->pfam_release ne "$major.$point" ) {
     $logger->logdie("Failed to detect hmmer version!");
   }
 
-  $version->update(
-    {
-      pfam_release       => "$major.$point",
-      pfam_release_date  => $ymd,
-      hmmer_version      => $hmmerVersion,
-      reference_proteome_version => $sqV, #RP version will be same as sprot version
-      swiss_prot_version => $sqV,
-      trembl_version     => $trV
-    }
-  );
+  my $sth_version=$dbh->prepare("update version set pfam_release='$major.$point', pfam_release_date='$ymd', hmmer_version='$hmmerVersion'");
+  $sth_version->execute() or $logger->logdie("Couldn't execute statement ".$sth_version->errstr);
+
 }
 
 #Get the latest userman.txt and relnotes.txt from the ftp site.
@@ -234,9 +224,17 @@ unless ( -e "$logDir/checkedA" ) {
 
 
 #Make the stats for the release
-
 unless ( -s "$thisRelDir/stats.txt" ) {
-  unless ( $numSeqs and $numRes ) {
+  unless ( $numSeqs and $numRes ) {  #This could be undefined if the script had to be restarted
+    open( S, $logDir . "/pfamseqSize" ) or $logger->logdie("Could not open $logDir./pfamseqSize:[$!]");
+    while (<S>) {
+      $numSeqs = $1 if (/sequences\: (\d+)/);
+      $numRes  = $1 if (/residues\: (\d+)/);
+    } 
+  }
+
+
+  unless ( $numSeqs and $numRes ) { 
     $logger->logdie(
       "Need to have the number of sequences and residues defined.\n");
   }
@@ -364,35 +362,8 @@ unless ( -e "$logDir/updatedClans" ) {
 }
 $logger->info("Updated clans table");
 
-#sections below hashed out as ncbi and metaseq tables don't exist so these can't be run
-#unless ( -s "$thisRelDir/metaseq.stats" ) {
-#  $logger->info("Caclculating metaseq coverage stats");
-#  chdir("$thisRelDir")
-#    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
-#  system("calculate_coverage.pl -meta > metaseq.stats ")
-#    and $logger->logdie("Could not run calculate coverage:[$!]");
-#  chdir($pwd);
-#}
-#
-#unless ( -s "$thisRelDir/ncbi.stats" ) {
-#  $logger->info("Caclculating ncbi coverage stats");
-#  chdir("$thisRelDir")
-#    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
-#  system("calculate_coverage.pl -ncbi > ncbi.stats ")
-#    and $logger->logdie("Could not run calculate coverage:[$!]");
-#  chdir($pwd);
-#}
 
-unless ( -e "$thisRelDir/PfamFamily.xml.gz" ) {
-  $logger->info("Making site search xml");
-  chdir("$thisRelDir")
-    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
-
-#TODO system("pfamSiteSearchXML.pl") and $logger->logdie("Could not run pfamSiteSearchXML.pl:[$!]");
-  chdir($pwd);
-}
-$logger->info("Made site search xml");
-
+#Make pdbmap file
 unless ( -e "$thisRelDir/pdbmap" ) {
   $logger->info("Making pdbmap");
 
@@ -571,33 +542,6 @@ unless ( -s "$thisRelDir/swisspfam" ) {
 }
 
 
-# TODO Swisspfam style file fpr meta and ncbi
-
-#unless( -e "$logDir/madeSeqInfo"){
-#  $logger->info("Making seq info, they will take about 48 hours!!!");
-#  #TODO $dbh->do("drop table if exists seq_info") or $logger->logdie("Error dropping seq_info table:".$dbh->errstr);
-#  $dbh->do("CREATE TABLE seq_info AS
-#  SELECT DISTINCT( p.pfamA_acc ),
-#         p.pfamA_id,
-#         p.description,
-#         prf.auto_pfamA,
-#         prf.auto_pfamseq,
-#         ps.pfamseq_id,
-#         ps.pfamseq_acc,
-#         ps.description AS seq_description,
-#         ps.species
-#  FROM   pfamA AS p,
-#         pfamseq AS ps,
-#         pfamA_reg_full_significant AS prf
-#  WHERE  prf.in_full = 1
-#  AND    p.auto_pfamA     = prf.auto_pfamA
-#  AND    prf.auto_pfamseq = ps.auto_pfamseq;") or $logger->logdie("Error generating seq_info table:".$dbh->errstr);
-#  open(L, ">$logDir/madeSeqInfo") or $logger->logdie("Error opening $logDir/madeSeqInfo for writing:[$!]\n");
-#  print L "Done\n";
-#  close(L);
-#}
-
-#Dump the database.
 # TODO - refactor make_ftp
 unless ( -d "$thisRelDir/ftp" ) {
     $logger->info("Making ftp files");  
@@ -606,7 +550,6 @@ unless ( -d "$thisRelDir/ftp" ) {
 
 
 #make keyword indices
-
 unless ( -d "$thisRelDir/SeqInfo" ){
     $logger->info("Making SeqInfo");
     my $seqinfo_dir = $thisRelDir . "/SeqInfo";
@@ -638,7 +581,6 @@ unless ( -d "$thisRelDir/SeqInfo" ){
     }
 
 }
-
 unless (-d "$thisRelDir/KW_indices"){
     $logger->info("Making keyword indices");
     my $index_dir = $thisRelDir . "/KW_indices";
@@ -646,6 +588,23 @@ unless (-d "$thisRelDir/KW_indices"){
     mkdir($index_dir);
     system("makeIndexes.pl -seq_files $seqinfo_dir -output $index_dir") and $logger->logdie("Could not run makeIndexes.pl");
 }
+
+
+#Make XML file for EBI site search
+unless ( -e "$thisRelDir/PfamFamily.xml" ) {
+  $logger->info("Making site search xml");
+  chdir("$thisRelDir")
+    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+
+  system("pfamSiteSearchXML.pl") and $logger->logdie("Could not run pfamSiteSearchXML.pl:[$!]"); 
+
+  my $filename = "PfamFamily_".$major."_".$point.".xml";
+  system("cp PfamFamily.xml /ebi/production/xfam/pfam/data/site-search/$filename") and $logger->logdie("Couldn't cp PfamFamily.xml to /ebi/production/xfam/pfam/data/site-search/$filename, $!");
+  chdir($pwd);
+}
+$logger->info("Made site search xml");
+
+
 
 
 ###################################################################################################################
@@ -887,7 +846,7 @@ sub errors {
     }
     close(ERRS);
     $logger->logdie(
-      "SERIOUS ERROR whilst making the flatfile!!! See thisRelDir/fatalErrors");
+      "SERIOUS ERROR whilst making the flatfile!!! See $thisRelDir/fatalErrors");
   }
 }
 
