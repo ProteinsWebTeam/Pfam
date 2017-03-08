@@ -20,4 +20,4 @@ nytprof.out
 *.o
 *.bs
 /_eumm/
-
+pfamweb_*.conf
