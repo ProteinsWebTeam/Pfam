@@ -59,14 +59,22 @@ foreach my $dir (@dirs) {
   next if(-s "$full_dir/summary.txt");
   next if($full_dir =~ /Done$/);
 
-  unless(-s "$full_dir/align") {
-    $logger->info("Skipping $full_dir (no align file)");
+  my $aln;
+  if(-e "$full_dir/align") {
+    $aln="align";
+  }
+  else {
+    $aln="ALIGN";
+  }
+
+  unless(-s "$full_dir/$aln") {
+    $logger->info("Skipping $full_dir (no $aln file)");
     next;
   }
 
   $logger->info("Doing $full_dir");
 
-  open(ALN, "$full_dir/align") or $logger->logdie("Couldn't open $full_dir/align, $!");
+  open(ALN, "$full_dir/$aln") or $logger->logdie("Couldn't open $full_dir/aln, $!");
   my %align;
 
   while(<ALN>) {
