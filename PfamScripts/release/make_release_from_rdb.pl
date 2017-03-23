@@ -605,8 +605,6 @@ unless ( -e "$thisRelDir/PfamFamily.xml" ) {
 $logger->info("Made site search xml");
 
 
-
-
 ###################################################################################################################
 
 sub checkPfamseqSize {
@@ -1427,13 +1425,30 @@ my ( $thisRelDir, $pfamDB, $families ) = @_;
     );
 
     if ( $row and $row->pfama_acc ) {
-
       #Okay, looks like we have an alignment
       my $ali = Compress::Zlib::memGunzip( $row->alignment );
-      if ( length($ali) > 10 ) {
+      my $length = length($ali);
+      if(!$ali) {
+        my $fam= $family->pfama_acc;
+        open(FAM, ">$thisRelDir/$fam.gz") or $logger->logdie("Couldn't open $thisRelDir/$fam.gz for writing, $!");
+        print FAM $row->alignment; #This will print it in gzipped format (alignments > 4gb won't unzip correctly with Compress::Zlib::memGunzip)
+        close FAM;
+        system("gunzip $thisRelDir/$fam.gz") and $logger->logdie("Couldn't 'gunzip $thisRelDir/$fam.gz', $!");
+        open(FAM, "$thisRelDir/$fam") or $logger->logdie("Couldn't open fh to $thisRelDir/$fam, $!");
+        my $c;
+        while(<FAM>) {
+          print PFAMANCBI $_;
+          $c++;
+        }
+        close FAM;
+        unlink("$thisRelDir/$fam");
+        $length=$c; 
+      }
+      elsif ( $length > 10 ) {
         print PFAMANCBI $ali;
       }
-      else {
+      
+      if($length <= 10) {
         $logger->warn("NCBI ali has incorrect size");
         push(
           @errors,
@@ -1456,7 +1471,7 @@ my ( $thisRelDir, $pfamDB, $families ) = @_;
           message => 'No row from database'
         }
       );
-    }
+    }  
   }
   close(PFAMANCBI);
   errors( \@errors );
