@@ -29,8 +29,6 @@ use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::ViewProcess::ActiveSite;
 use Bio::Pfam::FamilyIO;
-use Bio::Pfam::PfamJobsDBManager;
-use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Bio::Pfam::ViewProcess::Consensus;
 
@@ -2169,13 +2167,23 @@ sub uploadTreesAndAlign {
   );
 
   my $file;
-  open( ANN, "gzip -c $filename.ann|" )
-    or $self->mailUserAndFail("Failed to run gzip -c $filename.ann:[$!]" );
-  while (<ANN>) {
-    $file .= $_;
+  if(-s "$filename.ann" >= 4000000000) { #If the file is >=4gb in size
+    system("gzip $filename.ann") and $self->mailUserAndFail("Failed to gzip $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
+    open(ANN, "$filename.ann.gz") or $self->mailUserAndFail("Failed to open $filename.ann.gz, $!" );
+    while(<ANN>) {
+      $file .= $_; 
+    }    
+    close ANN; 
+  } 
+  else {
+    open( ANN, "gzip -c $filename.ann|" )
+      or $self->mailUserAndFail("Failed to run gzip -c $filename.ann:[$!]" );
+    while (<ANN>) {
+      $file .= $_;
+    }
+    close(ANN);
   }
-  close(ANN);
-   $self->logger->debug("Length of gzip $filename.ann is:".length($file));
+  $self->logger->debug("Length of gzip $filename.ann is:".length($file));
   $row->update( { alignment => $file } );
 
   if($type eq 'seed'){
