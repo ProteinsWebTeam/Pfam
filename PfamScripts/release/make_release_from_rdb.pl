@@ -589,20 +589,50 @@ unless (-d "$thisRelDir/KW_indices"){
     system("makeIndexes.pl -seq_files $seqinfo_dir -output $index_dir") and $logger->logdie("Could not run makeIndexes.pl");
 }
 
-
-#Make XML file for EBI site search
-unless ( -e "$thisRelDir/PfamFamily.xml" ) {
-  $logger->info("Making site search xml");
+#Make XML files for EBI site search
+my $release_num=$major."_".$point;
+my $site_search_dir = "/ebi/production/xfam/pfam/data/site-search/$major".".".$point;
+unless(-d $site_search_dir) {
+  mkdir("$site_search_dir", 0775) or $logger->logdie("Couldn't mkdir site_search_dir, $!");
+}
+unless ( -s "$thisRelDir/PfamFamily.xml" ) {
+  $logger->info("Making site search Pfam entry xml");
   chdir("$thisRelDir")
     or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
 
   system("pfamSiteSearchXML.pl") and $logger->logdie("Could not run pfamSiteSearchXML.pl:[$!]"); 
-
-  my $filename = "PfamFamily_".$major."_".$point.".xml";
-  system("cp PfamFamily.xml /ebi/production/xfam/pfam/data/site-search/$filename") and $logger->logdie("Couldn't cp PfamFamily.xml to /ebi/production/xfam/pfam/data/site-search/$filename, $!");
+  my $filename = "PfamFamily_".$release_num.".xml";
+ 
+  copy("PfamFamily.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamFamily.xml to $site_search_dir/$filename, $!");
   chdir($pwd);
 }
-$logger->info("Made site search xml");
+$logger->info("Made site search Pfam entry xml");
+
+unless ( -s "$thisRelDir/PfamClan.xml" ) {
+  $logger->info("Making site search Pfam Clan xml");
+  chdir("$thisRelDir")
+    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+
+  system("pfamClanSiteSearchXML.pl") and $logger->logdie("Could not run pfamClanSiteSearchXML.pl:[$!]"); 
+
+  my $filename = "PfamClan_".$release_num.".xml";
+  copy("PfamClan.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamClan.xml to $site_search_dir/$filename, $!");
+  chdir($pwd);
+}
+$logger->info("Made site search Pfam Clan xml");
+
+unless ( -s "$thisRelDir/PfamSequence.xml" ) {
+  $logger->info("Making site search Pfam Sequence xml");
+  chdir("$thisRelDir")
+    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+
+  system("pfamSequenceSiteSearchXML.pl") and $logger->logdie("Could not run pfamSequenceSiteSearchXML.pl:[$!]");
+     
+  my $filename = "PfamSequence_".$release_num.".xml";
+  copy("PfamSequence.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamSequence.xml to $site_search_dir/$filename, $!");
+  chdir($pwd);
+}             
+$logger->info("Made site search Pfam Sequence xml");
 
 
 ###################################################################################################################
