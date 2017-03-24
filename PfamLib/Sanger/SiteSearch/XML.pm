@@ -174,22 +174,36 @@ sub _databaseEntry {
     }
     print $fh '</dates>'; 
   }
-  
+ 
   if($entry->{addFields}){
     print $fh '<additional_fields>';
-      while( my($field, $value) = each( %{$entry->{addFields}})){
-        print $fh '<field name="'.$field.'">'.encode_entities($value, qw("&<>)).'</field>' if $value;
+    foreach my $af (keys %{$entry->{addFields}}) {
+      if(ref($entry->{addFields}->{$af}) eq "HASH") {
+        foreach my $a (keys %{$entry->{addFields}->{$af}}) {
+          print $fh '<field name="'.$af.'">'.encode_entities($a, qw("&<>)).'</field>';
+        }  
       }
+      else {
+        print $fh '<field name="'.$af.'">'.encode_entities($entry->{addFields}->{$af}, qw("&<>)).'</field>';
+      }
+    }
     print $fh '</additional_fields>';
   }
-  
+
   if($entry->{xrefs}){
-    print $fh '<cross_references>';
-    while( my($db, $dbkey) = each( %{$entry->{xrefs}})){
-       print $fh '<ref dbname="'.$db.'" dbkey="'.$dbkey.'"/>';
+    print $fh '<cross_references>';    
+    foreach my $db_name (keys %{$entry->{xrefs}}) {
+      if(ref($entry->{xrefs}->{$db_name}) eq "HASH") {
+        foreach my $d (keys %{$entry->{xrefs}->{$db_name}}) {
+          print $fh '<ref dbname="'.$db_name.'" dbkey="'.$d.'"/>';
+        }  
+      }
+      else {
+        print $fh '<ref dbname="'.$db_name.'" dbkey="'.$entry->{xrefs}->{$db_name}.'"/>';
+      }
     }
     print $fh '</cross_references>';
-  }
+  } 
   
   print $fh '</entry>';
     
