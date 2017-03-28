@@ -15,6 +15,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Compress::Zlib;
 use Getopt::Long;
+use bytes; #This changes length function to return number of bytest instead of number of characters
 
 
 my ($all, $clan);
@@ -68,44 +69,71 @@ foreach my $clan (@clans) {
       my $acc_se="$acc/$st-$en";
       $in_full{$acc_se}=1;
     }
-
+    
     #Get uncompeted alignment from db
+    open(ALN, ">$pfamA_acc.aln.gz") or die "Couldn't open fh to $pfamA_acc.aln.gz, $!";
     my $rs = $pfamDB->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
-    my $alignment = Compress::Zlib::memGunzip($rs->alignment) ;
-
-    #Create competed alignment
+    print ALN $rs->alignment;
+    close ALN;
+    
     my $num_full=0;
     my $competed_aln;
+    open(A, "gunzip -c $pfamA_acc.aln.gz |") or die "Couldn't open fh to 'gunzip -c $pfamA_acc.aln.gz', $!";
+    while(<A>) {
 
-    while($alignment =~ /(.+)\n/g) {
-      my $line = $1; 
-      if($line =~ /^(\S+)\/(\d+)-(\d+)/) {
+      #Create competed alignment
+      if(/^(\S+)\/(\d+)-(\d+)/) {
         my ($acc, $st, $en) = ($1, $2, $3);
         if($acc =~ /(\S+)\.\d+/) {
           $acc=$1;
         }
         my $acc_se="$acc/$st-$en";
         if($in_full{$acc_se}) {
-          $competed_aln.= "$line\n";
+          $competed_aln.= $_;
           $num_full++;
         }
       }
-      elsif($line =~ /^\/\//) {
-        $competed_aln.="$line\n";
+      elsif(/^\/\//) {
+        $competed_aln.=$_;
       }
       else {
         die "Unrecognised line in alignment: $_";
       }
     }
-
+    close A;
+    unlink("$pfamA_acc.aln.gz");
+    
     #Upload competed alignment to db
-    $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
-        pfama_acc => $pfamA_acc,
-        alignment  => Compress::Zlib::memGzip($competed_aln),
-        type       => 'uniprot'
+    my $num_bytes = length($competed_aln); #use bytes statement at top of script means length returns number of bytes
+    if($num_bytes >= 4000000000) { #If the alignment is >=4gb in size
+      open(ALN, ">$pfamA_acc.uniprot") or die "Couldn't open fh to $pfamA_acc.uniprot, $!";
+      print ALN $competed_aln;
+      close ALN;
+      my $upload_aln;
+      system("gzip $pfamA_acc.uniprot") and die "Couldn't run 'gzip $pfamA_acc.uniprot', $!";
+      open(GZIP, "$pfamA_acc.uniprot.gz") or die "Couldn't open fh to $pfamA_acc.uniprot.gz, $!";
+      while(<GZIP>) {
+        $upload_aln.=$_;
       }
-    );  
+      close GZIP;
+      unlink("$pfamA_acc.uniprot.gz");
 
+      $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+          pfama_acc => $pfamA_acc,
+          alignment  => $upload_aln,
+          type       => 'uniprot'
+        }   
+      );  
+    }
+    else {
+      $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+          pfama_acc => $pfamA_acc,
+          alignment  => Compress::Zlib::memGzip($competed_aln),
+          type       => 'uniprot'
+        }
+      );  
+    }
+    
     #Update num_uniprot in pfamA
     $st_update_pfamA->execute($num_full, $pfamA_acc);
 
