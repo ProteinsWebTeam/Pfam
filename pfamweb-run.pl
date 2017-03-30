@@ -26,38 +26,31 @@ foreach my $lib (@LIBS) {
 
 $pfamConfigFile = $PFAMWEB_CONFIG if (defined $PFAMWEB_CONFIG && !defined $pfamConfigFile);
 if (defined $pfamConfigFile && -f $pfamConfigFile) {
-    my $configObj = Config::General->new($pfamConfigFile);
-    my %config = $configObj->getall();
+    open(IN, "<$pfamConfigFile") or die ("Failed to open config file: $!");
+    my $newConfigFile = File::Spec->join($Bin, $pfamConfigFile . ".autogen");
+    open(OUT, ">", "$newConfigFile") or die ("Failed to create new config file '$newConfigFile': $!");
+
     my $baseRootPath = File::Spec->join($Bin, "PfamBase", "root");
     die ("Failed to find $baseRootPath") unless (-e $baseRootPath);
     my $webRootPath = File::Spec->join($Bin, "PfamWeb", "root");
     die ("Failed to find $webRootPath") unless (-e $webRootPath);
-    my @incudePaths = [$baseRootPath, $webRootPath];
 
-    ${$config{'Plugin::Static::Simple'}->{'include_path'}}[0] = $baseRootPath;#MAQ
-    ${$config{'Plugin::Static::Simple'}->{'include_path'}}[1] =  $webRootPath;#MAQ
-
-    p(@{$config{'Plugin::Static::Simple'}->{'include_path'}});# = (); #empty array
-    #exit(0);
-    @{$config{'Plugin::Static::Simple'}->{'include_path'}} = ();
-    for my $dir (@incudePaths) {
-        push(@{$config{'Plugin::Static::Simple'}->{'include_path'}}, $dir);
+    while(<IN>) {
+        my $line = $_;
+        if ($line =~ /PfamBase/i) {
+            $line =~ s/include_path.*?PfamBase.*?$/include_path $baseRootPath/;
+            $line =~ s/INCLUDE_PATH.*?PfamBase.*?$/INCLUDE_PATH "$baseRootPath"/;
+        } elsif ($line =~ /PfamWeb/i) {
+            $line =~ s/include_path.*?PfamWeb.*?$/include_path $webRootPath/;
+            $line =~ s/INCLUDE_PATH.*?PfamWeb.*?$/INCLUDE_PATH "$webRootPath"/;
+        }
+        print OUT $line;
     }
-    @{$config{'View TT'}->{'include_path'}} = ();#empty array
-    for my $dir (@incudePaths) {
-        push(@{$config{'View'}->{'include_path'}}, $dir);
-    }
+    close(IN);
+    close(OUT);
 
-    #p($config{'Plugin::Static::Simple'}->{include_path});
-    #p($config{'View'}->{include_path});
-    my ($volume, $dirs, $configFileName) = File::Spec->splitpath($pfamConfigFile);
-
-    my $newConfigFile = File::Spec->join($Bin, $pfamConfigFile . ".autogen");
-    open(FILE, ">", "$newConfigFile") or die ("Failed to create new config file '$newConfigFile': $!");
-    close(FILE);
-    $configObj->save_file($newConfigFile, \%config);
     die("Failed to create new config file $newConfigFile") unless (-e $newConfigFile);
-    $PFAMWEB_CONFIG = $newConfigFile;
+    $PFAMWEB_CONFIG = $pfamConfigFile;
 }
 die ("Either set PFAMWEB_CONFIG environment variable or provide path to Pfam web config file") unless (defined $PFAMWEB_CONFIG);
 
