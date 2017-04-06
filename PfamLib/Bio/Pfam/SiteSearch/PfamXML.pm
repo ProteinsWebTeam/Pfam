@@ -28,6 +28,7 @@ Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 use strict;
 use warnings;
 use Carp;
+use HTML::Strip;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -117,6 +118,7 @@ sub _databaseEntries{
 
   my $fh = $self->_filehandle;
   print $fh "<entries>";
+  my $hs = HTML::Strip->new;
   foreach my $pfama (@$families){
     my $data;
     $data->{id}  = $pfama->pfama_id;
@@ -135,7 +137,8 @@ sub _databaseEntries{
   
     if($interPro){
       if( defined( $interPro->interpros->first)){
-        $data->{addFields}->{interproAbstract} = $interPro->interpros->first->abstract;     
+        $data->{addFields}->{interproAbstract} = $hs->parse($interPro->interpros->first->abstract);
+        $hs->eof;
         $data->{xrefs}->{interpro} = $interPro->interpros->first->interpro_id;
       }
     }
