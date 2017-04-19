@@ -28,6 +28,7 @@ Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 use strict;
 use warnings;
 use Carp;
+use HTML::Strip;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -40,9 +41,9 @@ sub createNewDump{
   my( $self, $type ) = @_;
   
   
-  unless($type and $type =~ /^(protein|family|clan)$/){
+  unless($type and $type =~ /^(sequence|family|clan)$/){
     croak ( "Need a type of file that you want to dump") unless($type);
-    croak ( "$type must match one of protein, family, clan\n");
+    croak ( "$type must match one of sequence, family, clan\n");
   }
   
   #Now we need to get a pfamDB manager object
@@ -66,15 +67,27 @@ sub createNewDump{
     $data->{releaseDate} = $version->pfam_release_date;
     $self->_databaseHeader( $data );
     $self->_databaseEntries( $pfamDB );
-  }elsif($type eq 'sequence'){
+  }
+  elsif($type eq 'sequence'){
     my $data; 
     $data->{name}        = 'PfamSequence';
-    $data->{count}       = $pfamDB->numberOfPfamseq;
+    $data->{count}       = $config->dbsize;
     $data->{description} = 'The sequences and their domain annotation contained within the database';
     $data->{release}     = $version->pfam_release;
     $data->{releaseDate} = $version->pfam_release_date;
     $self->_databaseHeader( $data );
     $self->_databaseSeqEntries( $pfamDB );
+  }
+  elsif($type eq 'clan') {
+    my $data;
+    my @clan=$pfamDB->getSchema->resultset('Clan')->search();
+    $data->{name}        = 'PfamClan';
+    $data->{count}       = scalar(@clan);
+    $data->{description} = 'The clans contained within the database';
+    $data->{release}     = $version->pfam_release;
+    $data->{releaseDate} = $version->pfam_release_date;
+    $self->_databaseHeader( $data );
+    $self->_databaseClanEntries( $pfamDB );
   }
       
   $self->_databaseFooter();
@@ -84,9 +97,28 @@ sub _databaseEntries{
   my($self, $pfamDB) = @_;
   
   my $families = $pfamDB->getAllPfamFamilyData;
-  
+ 
+  my $reg_full="regfull_dump_site_search.txt";
+
+  unless(-s $reg_full) {
+    my $regionsCommand = "mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{user}." -p". $pfamDB->{password}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." --skip-column-names --quick -e 'select pfamseq_acc, pfamA_acc from pfamA_reg_full_significant where in_full=1' > $reg_full";
+    system("$regionsCommand") and die "Couldn't run mysql command [$regionsCommand], $!";
+  }
+
+  my %regs;
+  open(REGS, $reg_full) or die "Couldn't open fh to $reg_full, $!";
+  while(<REGS>) {
+    if(/^(\S+)\s+(\S+)/) {
+      my ($pfamseq_acc, $pfamA_acc) = ($1, $2);
+      $regs{$pfamA_acc}{$pfamseq_acc}=1;
+    }   
+  }
+  close REGS;
+
+
   my $fh = $self->_filehandle;
   print $fh "<entries>";
+  my $hs = HTML::Strip->new;
   foreach my $pfama (@$families){
     my $data;
     $data->{id}  = $pfama->pfama_id;
@@ -99,12 +131,14 @@ sub _databaseEntries{
     
     $data->{addFields}->{comment} = $pfama->comment if($pfama->comment);
     $data->{addFields}->{type}    = $pfama->type;
-    #  #Get Interpro Xrefs;
+
+    #Get Interpro Xrefs;
     my $interPro = $pfamDB->getPfamInterPro($pfama->pfama_acc);
   
     if($interPro){
       if( defined( $interPro->interpros->first)){
-        $data->{addFields}->{interproAbstract} = $interPro->interpros->first->abstract;     
+        $data->{addFields}->{interproAbstract} = $hs->parse($interPro->interpros->first->abstract);
+        $hs->eof;
         $data->{xrefs}->{interpro} = $interPro->interpros->first->interpro_id;
       }
     }
@@ -114,19 +148,132 @@ sub _databaseEntries{
     if( $go ){
       foreach my $g (@{$go}){
        foreach my $go ($g->gene_ontologies){ 
-        $data->{addFields}->{$go->category} = $go->go_id.';'.$go->term;  
-        $data->{xrefs}->{ go } = $go->go_id;
+        $data->{addFields}->{$go->category}->{$go->go_id.';'.$go->term}=1;  
+        $data->{xrefs}->{go}->{$go->go_id}=1;
        }
      }  
-   }                     
-    $self->_databaseEntry($data);  
+   }
+   
+   #Get clan data
+   my $clanResult = $pfamDB->getSchema->resultset("ClanMembership")->find(
+     { "pfama_acc.pfama_acc" => $pfama->pfama_acc },
+     {  join     => [qw/pfama_acc clan_acc/], prefetch => [qw/clan_acc/] } );
+
+   if($clanResult) {
+     $data->{xrefs}->{pfam_clans}->{$clanResult->clan_acc->clan_acc}=1;
+   }
+
+   #Add pfamseq data
+   foreach my $pfamseq_acc (keys %{$regs{$pfama->pfama_acc}}) {
+     $data->{xrefs}->{pfam_seqs}->{$pfamseq_acc} = 1;
+   }
+  
+                  
+   $self->_databaseEntry($data);  
   }
   print $fh "</entries>\n";
 
 }
 
-sub _databaseSeqEntries{
-  my ( $pfamDB ) = @_;
+sub _databaseClanEntries {
+  my($self, $pfamDB) = @_;
+
+  my $clans = $pfamDB->getAllClanData;
+ 
+  my @membership = $pfamDB->getSchema->resultset("ClanMembership")
+                  ->search( {} );
+
+  my %membership;
+  foreach my $c (@membership) {
+    $membership{$c->clan_acc->clan_acc}{$c->pfama_acc->pfama_acc}=1;
+  }
+
+
+  my $fh = $self->_filehandle;
+  print $fh "<entries>";
+  foreach my $clan (@$clans){
+    my $data;
+    $data->{id}  = $clan->clan_id;
+    $data->{acc} = $clan->clan_acc;
+    $data->{name} = $clan->clan_id;
+    $data->{authors} = $clan->clan_author;
+    $data->{description} = $clan->clan_description;
+    $data->{dates}->{creation} = $clan->created;
+    $data->{dates}->{last_modified} = $clan->updated;    
+    
+    $data->{addFields}->{comment} = $clan->clan_comment if($clan->clan_comment);
+  
+    #Link to families in the clan 
+    foreach my $pfamA_acc (keys %{$membership{$clan->clan_acc}} ) {
+      $data->{xrefs}->{pfam_entries}->{$pfamA_acc}=1;
+    }
+    $self->_databaseEntry($data);  
+  }
+  print $fh "</entries>\n";
 }
+
+
+
+sub _databaseSeqEntries{
+  my ($self, $pfamDB ) = @_;
+
+  my $pfamseq_file="pfamseq_dump_site_search.txt";
+  my $reg_full="regfull_dump_site_search.txt";
+
+  unless(-s $pfamseq_file) {
+    my $pfamseqCommand = "mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{user}." -p". $pfamDB->{password}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." --skip-column-names --quick -e 'select pfamseq_acc, pfamseq_id, description, species, ncbi_taxid from pfamseq' > $pfamseq_file";
+    system("$pfamseqCommand") and die "Couldn't run mysql command [$pfamseqCommand], $!";
+  }
+
+  unless(-s $reg_full) {
+    my $regionsCommand = "mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{user}." -p". $pfamDB->{password}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." --skip-column-names --quick -e 'select pfamseq_acc, pfamA_acc from pfamA_reg_full_significant where in_full=1' > $reg_full";
+    system("$regionsCommand") and die "Couldn't run mysql command [$regionsCommand], $!";
+  }
+
+  my %regs;
+  open(REGS, $reg_full) or die "Couldn't open fh to $reg_full, $!";
+  while(<REGS>) {
+    if(/^(\S+)\s+(\S+)/) {
+      my ($pfamseq_acc, $pfamA_acc) = ($1, $2);
+      $regs{$pfamseq_acc}{$pfamA_acc}=1;
+    }
+  }
+  close REGS;  
+
+  my $fh = $self->_filehandle;
+  print $fh "<entries>";
+
+  open(PFAMSEQ, $pfamseq_file) or die "Couldn't open fh to $pfamseq_file, $!";
+  while(<PFAMSEQ>) {
+    my @line = split(/\t/, $_);
+    my ($pfamseq_acc, $pfamseq_id, $description, $species, $ncbi_taxid) = ($line[0], $line[1], $line[2], $line[3], $line[4]); 
+    chomp $ncbi_taxid;
+
+    my $data;
+    $data->{id}  = $pfamseq_id;
+    $data->{acc} = $pfamseq_acc;
+    $data->{name} = $pfamseq_id;
+    $data->{description} = $description;
+    $data->{addFields}->{species} = $species;
+    $data->{xrefs}->{ncbi_taxid} = $ncbi_taxid;
+
+      
+    #Add uniprot reference
+    $data->{xrefs}->{uniprotkb}->{$pfamseq_acc}=1;
+    
+    #Add pfamA references, if any
+    if($regs{$pfamseq_acc}) {
+      foreach my $pfamA_acc (keys %{$regs{$pfamseq_acc}}) {
+        $data->{xrefs}->{pfam_entries}->{$pfamA_acc} = 1;
+      }
+    }
+
+    $self->_databaseEntry($data);  
+
+  }
+  close PFAMSEQ;
+  print $fh "</entries>\n";
+}
+
 1;
 

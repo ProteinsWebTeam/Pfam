@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/PfamBackend/PfamBackend.iml" filepath="$PROJECT_DIR$/PfamBackend/PfamBackend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PfamBase/PfamBase.iml" filepath="$PROJECT_DIR$/PfamBase/PfamBase.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PfamConfig/PfamConfig.iml" filepath="$PROJECT_DIR$/PfamConfig/PfamConfig.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PfamLib/PfamLib.iml" filepath="$PROJECT_DIR$/PfamLib/PfamLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PfamSchemata/PfamSchemata.iml" filepath="$PROJECT_DIR$/PfamSchemata/PfamSchemata.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PfamScripts/PfamScripts.iml" filepath="$PROJECT_DIR$/PfamScripts/PfamScripts.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PfamTests/PfamTests.iml" filepath="$PROJECT_DIR$/PfamTests/PfamTests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PfamWeb/PfamWeb.iml" filepath="$PROJECT_DIR$/PfamWeb/PfamWeb.iml" />
+    </modules>
+  </component>
+</project>
