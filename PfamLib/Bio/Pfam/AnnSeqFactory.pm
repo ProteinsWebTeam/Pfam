@@ -147,7 +147,7 @@ sub addScanPfamDBToAnnSeq{
  Title   : createAnnotatedSequence
  Usage   :
  Function: Abstract; returns an empty AnnotatedSequence object.
-    The caller may then add a seqence to the object, or add the
+    The caller may then add a sequence to the object, or add the
     appropriate kind of annotatedRegion by calling
   Bio::Pfam::AnnSeqFactory::addHMMResultsToAnnSeq (for example)
  Returns : An AnnotatedSequence object
