@@ -492,7 +492,12 @@ sub get_seq_type : Private {
 
   # turn sequence into a FASTA file...
   print $seq_file ">user_seq\n";
-  print $seq_file substr( $c->stash->{data}->{seq}, 0, 500 );
+  my $seq = substr($c->stash->{data}->{seq}, 0, 500);
+  my $last_nl = rindex($seq, "\n");
+  if ($last_nl && substr($seq, $last_nl, 1) eq "\n") {
+      substr($seq, $last_nl + 1) = "";
+  }
+  print $seq_file $seq;
 
   $seq_file->close;
 
