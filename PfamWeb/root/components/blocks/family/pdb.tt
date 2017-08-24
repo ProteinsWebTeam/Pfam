@@ -29,7 +29,7 @@ RETURN UNLESS summaryData.numStructures;
       domain has been found. There are [% summaryData.numStructures %]
       instances of this domain found in the PDB. Note that there may be 
       multiple copies of the domain in a single PDB structure, since many 
-      structures contain multiple copies of the same protein seqence.
+      structures contain multiple copies of the same protein sequence.
     </p>
 
     <div id="familyStructureTabHolder">

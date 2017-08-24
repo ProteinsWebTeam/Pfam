@@ -65,18 +65,35 @@ system("esl-reformat --informat stockholm pfam $pfamA_acc.stockholm | grep -v \'
 
 #Read in the alignment and upload to db
 my $aln;
-open(ALN, "$pfamA_acc.pfam") or die "Couldn't open fh to $pfamA_acc.pfam, $!"; 
-while(<ALN>) {
-  $aln.=$_;
-}
-close ALN;
-
-$pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
-    pfama_acc => $pfamA_acc,
-    alignment  => Compress::Zlib::memGzip($aln),
-    type       => 'uniprot'
+if(-s "$pfamA_acc.pfam" >= 4000000000) { #If the file is >=4gb in size
+  system("gzip $pfamA_acc.pfam") and die "Couldn't gzip $pfamA_acc.pfam, $!";
+  open(ALN, "$pfamA_acc.pfam.gz") or die "Couldn't open fh to $pfamA_acc.pfam.gz, $!"; 
+  while(<ALN>) {
+    $aln.=$_;
   }
-);
+  close ALN;
+
+  $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+      pfama_acc => $pfamA_acc,
+      alignment  => $aln,
+      type       => 'uniprot'
+    }
+  );
+}
+else {
+  open(ALN, "$pfamA_acc.pfam") or die "Couldn't open fh to $pfamA_acc.pfam, $!"; 
+  while(<ALN>) {
+    $aln.=$_;
+  }
+  close ALN;
+
+  $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+      pfama_acc => $pfamA_acc,
+      alignment  => Compress::Zlib::memGzip($aln),
+      type       => 'uniprot'
+    }
+  );
+}
 
 #Delete old regions, if any
 $pfamDB->getSchema->resultset('UniprotRegFull')->search( { pfama_acc => $pfamA_acc} )->delete;

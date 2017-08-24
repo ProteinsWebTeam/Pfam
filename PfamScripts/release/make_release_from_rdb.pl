@@ -589,20 +589,50 @@ unless (-d "$thisRelDir/KW_indices"){
     system("makeIndexes.pl -seq_files $seqinfo_dir -output $index_dir") and $logger->logdie("Could not run makeIndexes.pl");
 }
 
-
-#Make XML file for EBI site search
-unless ( -e "$thisRelDir/PfamFamily.xml" ) {
-  $logger->info("Making site search xml");
+#Make XML files for EBI site search
+my $release_num=$major."_".$point;
+my $site_search_dir = "/ebi/production/xfam/pfam/data/site-search/$major".".".$point;
+unless(-d $site_search_dir) {
+  mkdir("$site_search_dir", 0775) or $logger->logdie("Couldn't mkdir site_search_dir, $!");
+}
+unless ( -s "$thisRelDir/PfamFamily.xml" ) {
+  $logger->info("Making site search Pfam entry xml");
   chdir("$thisRelDir")
     or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
 
   system("pfamSiteSearchXML.pl") and $logger->logdie("Could not run pfamSiteSearchXML.pl:[$!]"); 
-
-  my $filename = "PfamFamily_".$major."_".$point.".xml";
-  system("cp PfamFamily.xml /ebi/production/xfam/pfam/data/site-search/$filename") and $logger->logdie("Couldn't cp PfamFamily.xml to /ebi/production/xfam/pfam/data/site-search/$filename, $!");
+  my $filename = "PfamFamily_".$release_num.".xml";
+ 
+  copy("PfamFamily.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamFamily.xml to $site_search_dir/$filename, $!");
   chdir($pwd);
 }
-$logger->info("Made site search xml");
+$logger->info("Made site search Pfam entry xml");
+
+unless ( -s "$thisRelDir/PfamClan.xml" ) {
+  $logger->info("Making site search Pfam Clan xml");
+  chdir("$thisRelDir")
+    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+
+  system("pfamClanSiteSearchXML.pl") and $logger->logdie("Could not run pfamClanSiteSearchXML.pl:[$!]"); 
+
+  my $filename = "PfamClan_".$release_num.".xml";
+  copy("PfamClan.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamClan.xml to $site_search_dir/$filename, $!");
+  chdir($pwd);
+}
+$logger->info("Made site search Pfam Clan xml");
+
+unless ( -s "$thisRelDir/PfamSequence.xml" ) {
+  $logger->info("Making site search Pfam Sequence xml");
+  chdir("$thisRelDir")
+    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+
+  system("pfamSequenceSiteSearchXML.pl") and $logger->logdie("Could not run pfamSequenceSiteSearchXML.pl:[$!]");
+     
+  my $filename = "PfamSequence_".$release_num.".xml";
+  copy("PfamSequence.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamSequence.xml to $site_search_dir/$filename, $!");
+  chdir($pwd);
+}             
+$logger->info("Made site search Pfam Sequence xml");
 
 
 ###################################################################################################################
@@ -1371,10 +1401,28 @@ sub makePfamAUniprot {
 
       #Okay, looks like we have an alignment
       my $ali = Compress::Zlib::memGunzip( $row->alignment );
-      if ( length($ali) > 10 ) {
+      my $length = length($ali);
+      if(!$ali) {
+        my $fam= $family->pfama_acc;
+        open(FAM, ">$thisRelDir/$fam.gz") or $logger->logdie("Couldn't open $thisRelDir/$fam.gz for writing, $!");
+        print FAM $row->alignment; #This will print it in gzipped format (alignments > 4gb won't unzip correctly with Compress::Zlib::memGunzip)
+        close FAM;
+        system("gunzip $thisRelDir/$fam.gz") and $logger->logdie("Couldn't 'gunzip $thisRelDir/$fam.gz', $!");
+        open(FAM, "$thisRelDir/$fam") or $logger->logdie("Couldn't open fh to $thisRelDir/$fam, $!");
+        my $c;
+        while(<FAM>) {
+          print PFAMAUNIPROT $_;
+          $c++;
+        }
+        close FAM;
+        unlink("$thisRelDir/$fam");
+        $length=$c; 
+      }
+      elsif ( $length > 10 ) {
         print PFAMAUNIPROT $ali;
-      }    
-      else {
+      }
+
+      if($length <= 10) {
         $logger->warn("Uniprot ali has incorrect size");
         push(
           @errors,
@@ -1385,7 +1433,6 @@ sub makePfamAUniprot {
           }    
         );   
       }    
-
     }    
     else {
       $logger->warn("Failed to get Uniprot row");

@@ -14,10 +14,6 @@ use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
 
-#Add pud directory to $PATH so all the scripts can be found
-$ENV{'PATH'}.=":/nfs/production/xfam/pfam/software/Scripts/PfamScripts/pud";
-
-
 #Start up the logger
 Log::Log4perl->easy_init();
 my $logger = get_logger();

@@ -118,7 +118,7 @@ sub _exp_as {
  Title    : _pattern_info
  Usage    : _pattern_info($aln_object, $aln_object)
  Function : Takes an alignment and extracts active site patterns into a second alignment
- Returns  : Nothing, populates a second alignment object with active site seqences
+ Returns  : Nothing, populates a second alignment object with active site sequences
  Args     : alignment object, empty alignment object
 
 =cut
