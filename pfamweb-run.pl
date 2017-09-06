@@ -6,6 +6,7 @@ use Env qw(@PERL5LIB @PATH $PFAMWEB_CONFIG);
 use Cwd;
 use FindBin qw($Bin $Script $RealBin $RealScript);
 use File::Spec;
+use File::Basename;
 use Config::General;
 use Data::Printer;
 
@@ -27,7 +28,8 @@ foreach my $lib (@LIBS) {
 $pfamConfigFile = $PFAMWEB_CONFIG if (defined $PFAMWEB_CONFIG && !defined $pfamConfigFile);
 if (defined $pfamConfigFile && -f $pfamConfigFile) {
     open(IN, "<$pfamConfigFile") or die ("Failed to open config file: $!");
-    my $newConfigFile = File::Spec->join($Bin, $pfamConfigFile . ".autogen");
+    my ($name, $path, $suffix) = fileparse($pfamConfigFile, ".conf");
+    my $newConfigFile = File::Spec->join($Bin, $path . "$name"."_autogen$suffix");
     open(OUT, ">", "$newConfigFile") or die ("Failed to create new config file '$newConfigFile': $!");
 
     my $baseRootPath = File::Spec->join($Bin, "PfamBase", "root");
@@ -50,7 +52,9 @@ if (defined $pfamConfigFile && -f $pfamConfigFile) {
     close(OUT);
 
     die("Failed to create new config file $newConfigFile") unless (-e $newConfigFile);
-    $PFAMWEB_CONFIG = $pfamConfigFile;
+    #$PFAMWEB_CONFIG = $pfamConfigFile;
+    $PFAMWEB_CONFIG = $newConfigFile;
+    print "Running using $name, $path, $suffix\n";
 }
 die ("Either set PFAMWEB_CONFIG environment variable or provide path to Pfam web config file") unless (defined $PFAMWEB_CONFIG);
 
