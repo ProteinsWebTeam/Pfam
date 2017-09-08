@@ -49,15 +49,17 @@ pageList = PROCESS "components/pageList.tt",
   </div>
   <div class="blockContent">
 
-    <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]">
+    <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">
       <img id="paLogo"
            alt="Search for domain architectures using PfamAlyzer"
            src="[% c.uri_for('/static/images/PfamAlyzer.png') %]" /></a>
 
     <p>
-      Search for sequence architectures using the
-      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]">PfamAlyzer</a>
-      Web Start application.
+      Search for sequence architectures using the PfamAlyzer from the
+      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">Desktop</a>
+      (recommended for most users) or in the
+      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]"> Browser</a>
+      (requires adding Pfam website to Java security exception list).
       <span class="moreLink" onclick="reveal(this,'paNotes',false, true)">More...</span>
     </p>
 
