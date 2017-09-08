@@ -55,11 +55,11 @@ pageList = PROCESS "components/pageList.tt",
            src="[% c.uri_for('/static/images/PfamAlyzer.png') %]" /></a>
 
     <p>
-      Search for sequence architectures using the PfamAlyzer from the
-      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">Desktop</a>
-      (recommended for most users) or in the
-      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]"> Browser</a>
-      (requires adding Pfam website to Java security exception list).
+      Search for sequence architectures using the PfamAlyzer either as a Java
+      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">application</a>
+      (recommended for most users) or as an
+      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]"> applet</a>
+      run via Web Start (requires adding Pfam website to Java security exception list).
       <span class="moreLink" onclick="reveal(this,'paNotes',false, true)">More...</span>
     </p>
 
