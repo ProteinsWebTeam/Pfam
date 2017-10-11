@@ -59,7 +59,25 @@ pageList = PROCESS "components/pageList.tt",
       <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">application</a>
       (recommended for most users) or as an
       <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]"> applet</a>
-      run via Web Start (requires adding Pfam website to Java security exception list).
+      run via Web Start. You may be requested to add the Pfam website to the list of Java security exceptions.
+      <h3>To run as an application</h3>
+        <ol>
+            <li>Ensure Java is installed. Java can be downloaded
+                <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">here</a>.
+            <li>Download the application <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">here</a></li>
+            <li>Some browsers will launch the jar file automatically. If not, open a terminal or console, change
+                directory to the Downloads directory and type "java -jar PfamAlyzerApp.jar</li>
+            <li>Accept the security risk when prompted.</li>
+        </ol>
+      <h3>To run as an applet</h3>
+        <ol>
+          <li>Ensure Java is installed. Java can be downloaded
+              <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">here</a>.
+          <li>Download the applet <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]">here</a></li>
+          <li>Some browsers will launch the jar file automatically. If not, open a terminal or console, change
+              directory to the Downloads directory and type "javaws PfamAlyzer.jnlp"</li>
+          <li>Accept the security risk when prompted.</li>
+          </ol>
       <span class="moreLink" onclick="reveal(this,'paNotes',false, true)">More...</span>
     </p>
 
