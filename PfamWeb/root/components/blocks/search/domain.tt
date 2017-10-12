@@ -64,7 +64,9 @@ pageList = PROCESS "components/pageList.tt",
         <ol>
             <li>Ensure Java is installed. Java can be downloaded
                 <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">here</a>.
-            <li>Download the application <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">here</a></li>
+            <li>
+                Download the application <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">here</a>
+            </li>
             <li>Some browsers will launch the jar file automatically. If not, open a terminal or console, change
                 directory to the Downloads directory and type "java -jar PfamAlyzerApp.jar</li>
             <li>Accept the security risk when prompted.</li>
@@ -98,7 +100,12 @@ pageList = PROCESS "components/pageList.tt",
         PfamAlyzer is implemented as a Java Web Start application and can be run
         directly from the browser or from the desktop. It requires a Java runtime
         environment (JRE) of at least
-        <a class="ext" href="http://java.sun.com/j2se/1.4.2/download.html">Java2 1.4.2</a>.
+          <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">Java2 1.4.2</a>. If using Linux you may
+          prefer to use the OS package manager. e.g For Debian derived versions of Linux type the following into a
+          terminal:
+        <pre>sudo apt-get install openjdk-8-jdk openjdk-8-jre</pre>
+      </p>
+      <p>
         The default security settings in many browsers makes it difficult to run
         web start applications directly from this page, but PfamAlyzer can also
         be downloaded as a jar file and run as a
