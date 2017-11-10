@@ -178,7 +178,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <form
         method="post"
         id="proteinBatchSearchForm"
-        action="http://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
+        action="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
         data-oldaction="[% c.uri_for( "/search/batch" ) %]"
         enctype="multipart/form-data"
         style="overflow: auto;"
