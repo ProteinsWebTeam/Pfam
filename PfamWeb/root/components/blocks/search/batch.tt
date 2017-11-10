@@ -40,7 +40,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     <div id="hmmerBlock" class="hmmerBlock">
         <p>
             The internal search feature on this website will soon be switched
-            off, so we recomment you run your searches through
+            off, so we recommend you run your searches through
             the <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank"> Hmmer website</a>
         </p>
         <p>
