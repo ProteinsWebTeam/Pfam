@@ -44,7 +44,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
             the <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank"> Hmmer website</a>
         </p>
         <p>
-            The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is what we use behind the scenes to run your searches.
+            The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is
+            what we use behind the scenes to run your searches. Results will be identical.
         </p>
     </div>
 
@@ -274,12 +275,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           message += 'maintained anymore and will be removed soon.\n';
           message += 'Are you sure you want to continue?';
           if (!confirm(message)) return;
-          var warningBoxes = document.querySelectorAll('.hmmerBlock');
-          if (warningBoxes.length) {
-            for (var i = 0; i < warningBoxes.length; i++) {
-              warningBoxes[i].classList.add('warningBox')
-            }
-          }
+          var warningBox = document.querySelector('.hmmerBlock');
+          if (warningBox) warningBox.classList.add('warningBox');
           form.action = form.dataset.oldaction;
           const file = form.querySelector('[data-oldname');
           file.name = file.dataset.oldname;
