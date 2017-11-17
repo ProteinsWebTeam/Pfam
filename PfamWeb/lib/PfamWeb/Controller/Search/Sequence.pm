@@ -493,9 +493,9 @@ sub get_seq_type : Private {
   # turn sequence into a FASTA file...
   print $seq_file ">user_seq\n";
   my $seq = substr($c->stash->{data}->{seq}, 0, 500);
-  my $last_nl = rindex($seq, "\n");
-  if ($last_nl && substr($seq, $last_nl, 1) eq "\n") {
-      substr($seq, $last_nl + 1) = "";
+  my $last_seq = rindex($seq, ">");
+  if (substr($seq, $last_seq) !~ m{>.+\n.+}) { # check last sequence has complete header and at least one letter
+      substr($seq, $last_seq) = "";
   }
   print $seq_file $seq;
 
