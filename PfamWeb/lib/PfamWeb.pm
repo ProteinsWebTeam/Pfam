@@ -47,6 +47,7 @@ configuration files.
 # template
 __PACKAGE__->config( server_name => hostname() );
 __PACKAGE__->config( server_pid  => $$ );
+__PACKAGE__->config(using_frontend_proxy => 1);
 
 # grab the location of the configuration file from the environment and
 # detaint it. Doing this means we can configure the location of the
