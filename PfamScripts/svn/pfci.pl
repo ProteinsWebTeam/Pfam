@@ -202,8 +202,9 @@ elsif ($removeFromClan) {
   close(C);
 
   $client->addPFCIRMCLog();
-}
-else {
+}elsif($onlydesc){
+  $client->addPFCIDESCLog;
+}else {
   $client->addPFCILog();
 }
 
