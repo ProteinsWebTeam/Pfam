@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="http://es.scilifelab.se/" href="PfamAlyzer.jnlp">
+    <information>
+        <title>PfamAlyzer</title>
+        <vendor>Sonnhammer group</vendor>
+        <icon href="http://www.sbc.su.se/furniture/sbclogo.png"/>
+        <offline-allowed/>
+    </information>
+
+<resources>
+  <j2se version="1.7+"
+    href="http://java.sun.com/products/autodl/j2se"/>
+  <jar href="http://pfam.xfam.org/static/pfamalyzer/PfamAlyzer.jar" main="true" />
+</resources>
+
+<applet-desc main-class="PfamAlyzer.PfamAlyzer" name="PfamAlyzer" width="100" height="100">
+    <param name="baseURL" value="http://pfam.xfam.org/" />
+</applet-desc>
+
+</jnlp>

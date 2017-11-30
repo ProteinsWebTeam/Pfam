@@ -1,13 +1,13 @@
 [%
 # domain.tt
 # jt6 20061108 WTSI
-# 
+#
 # build the domain search block
 #
 # $Id: domain.tt,v 1.11 2009-10-27 14:16:53 jt6 Exp $
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -17,7 +17,7 @@ PROCESS "components/require.tt";
 # if canvas is implemented before trying to inject itself
 requirements.js.push( "excanvas.js" );
 
-# need to load the canvas.text.js file before trying to load the font file, 
+# need to load the canvas.text.js file before trying to load the font file,
 # otherwise it bails with an error about "face.glyphs is undefined"
 requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
 requirements.jsIe.push( "faces/optimer-bold-normal.js" );
@@ -38,7 +38,7 @@ pages = [ "new", "top twenty", "numbers",
 # generate the page list
 pageList = PROCESS "components/pageList.tt",
                    lcChar=lcChar;
-                             
+
 -%]
 
 <!-- start domain search block -->
@@ -49,17 +49,37 @@ pageList = PROCESS "components/pageList.tt",
   </div>
   <div class="blockContent">
 
-    <a href="[% c.uri_for('/search/pfamalyzer/applet') %]"
-       onclick="popUp(this.href,'console',800,800,'avWin');return false;">
+    <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">
       <img id="paLogo"
            alt="Search for domain architectures using PfamAlyzer"
            src="[% c.uri_for('/static/images/PfamAlyzer.png') %]" /></a>
 
     <p>
-      Search for sequence architectures using the
-      <a href="[% c.uri_for('/search/pfamalyzer/applet') %]"
-         onclick="popUp(this.href,'console',800,800,'avWin');return false;">PfamAlyzer</a>
-      applet.
+      Search for sequence architectures using the PfamAlyzer either as a Java
+      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">application</a>
+      (recommended for most users) or as an
+      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]"> applet</a>
+      run via Web Start. You may be requested to add the Pfam website to the list of Java security exceptions.
+      <h3>To run as an application</h3>
+        <ol>
+            <li>Ensure Java is installed. Java can be downloaded
+                <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">here</a>.
+            <li>
+                Download the application <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">here</a>
+            </li>
+            <li>Some browsers will launch the jar file automatically. If not, open a terminal or console, change
+                directory to the Downloads directory and type "java -jar PfamAlyzerApp.jar</li>
+            <li>Accept the security risk when prompted.</li>
+        </ol>
+      <h3>To run as an applet</h3>
+        <ol>
+          <li>Ensure Java is installed. Java can be downloaded
+              <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">here</a>.
+          <li>Download the applet <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]">here</a></li>
+          <li>Some browsers will launch the jar file automatically. If not, open a terminal or console, change
+              directory to the Downloads directory and type "javaws PfamAlyzer.jnlp"</li>
+          <li>Accept the security risk when prompted.</li>
+          </ol>
       <span class="moreLink" onclick="reveal(this,'paNotes',false, true)">More...</span>
     </p>
 
@@ -67,31 +87,45 @@ pageList = PROCESS "components/pageList.tt",
       <p>
         PfamAlyzer is designed to provide insight into the Pfam protein domain
         database. It integrates and extends many popular Pfam tools and
-        provides means for the study of domain architecture evolution. 
+        provides means for the study of domain architecture evolution.
       </p>
       <p>
-        You can read more about PfamAlyzer in an accompanying 
+        You can read more about PfamAlyzer in an accompanying
         <a href="[% c.uri_for( '/static/documents/PfamAlyzer_handout.pdf' ) %]">
-          handout</a> or 
+          handout</a> or
         <a href="[% c.uri_for( '/static/documents/PfamAlyzer_poster.pdf' ) %]">
           poster</a> (PDF format).
       </p>
       <p>
-        PfamAlyzer is implemented as a Java applet. It requires a Java runtime
-        environment (JRE) of at least 
-        <a class="ext" href="http://java.sun.com/j2se/1.4.2/download.html">Java2 1.4.2</a>. 
+        PfamAlyzer is implemented as a Java Web Start application and can be run
+        directly from the browser or from the desktop. It requires a Java runtime
+        environment (JRE) of at least
+          <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">Java2 1.4.2</a>. If using Linux you may
+          prefer to use the OS package manager. e.g For Debian derived versions of Linux type the following into a
+          terminal:
+        <pre>sudo apt-get install openjdk-8-jdk openjdk-8-jre</pre>
+      </p>
+      <p>
+        The default security settings in many browsers makes it difficult to run
+        web start applications directly from this page, but PfamAlyzer can also
+        be downloaded as a jar file and run as a
+        <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]"> desktop application</a>.
+        On some systems (MacOS) you may need to accept a security warning in the system security setup.
+        There are more details about how to run the PfamAlyzer
+        <a class="ext" href="http://es.scilifelab.se/pfamalyzer.html">here</a>
+        <!--
         Most browsers are shipped with previous Java versions. However, there are plug-ins
         for various browsers and platforms available which enable you to run
         PfamAlyzer. You may find out which Java version you currently have installed at
-        <a class="ext" href="http://www.java.com/en/download/help/testvm.jsp">this page</a>.
+        <a class="ext" href="http://www.java.com/en/download/help/testvm.jsp">this page</a -->
       </p>
 
       <h3>Why do I get a security warning when I start PfamAlyzer?</h3>
 
       <p>
         In general, Java does not grant applets access to the local computer's
-        resources. PfamAlyzer enables the user to enter sequences by means of 
-        cut-and-paste. For this purpose, PfamAlyzer requires access to the system 
+        resources. PfamAlyzer enables the user to enter sequences by means of
+        cut-and-paste. For this purpose, PfamAlyzer requires access to the system
         clipboard which is also beyond scope the applet's sandbox. Therefore, PfamAlyzer comes a
         signed applet which is allowed to leave the sandbox in which unsigned applets
         are alwalys confined. However, the user is alerted if this fact and asked for
@@ -112,8 +146,8 @@ pageList = PROCESS "components/pageList.tt",
 
     <div id="dsNotes" style="display: none">
       <p>
-        You can specify one or more domains that <strong>must</strong> appear 
-        in an architecture and one or more domains that must 
+        You can specify one or more domains that <strong>must</strong> appear
+        in an architecture and one or more domains that must
         <strong>not</strong> appear in the result architectures:
       </p>
       <ol>
@@ -130,7 +164,7 @@ pageList = PROCESS "components/pageList.tt",
       <p>
         Note that the query itself can take some time to run, depending on how
         many domains you add to each constraint. If the search returns a lot of
-        results, you may also find that your browser hangs momentarily, while 
+        results, you may also find that your browser hangs momentarily, while
         the domain graphics are rendered in the page.
       </p>
     </div>
@@ -139,79 +173,79 @@ pageList = PROCESS "components/pageList.tt",
       [% pageList -%]
     </div>
 
-    <form id="domainSearchForm" 
-          onsubmit="submitter();return false" 
+    <form id="domainSearchForm"
+          onsubmit="submitter();return false"
           action="[% c.uri_for( "/search/domain" ) %]">
 
       <div id="idList" class="domainList">
 
         <h3>Pfam domains</h3>
-  
+
         <p class="domainQueryInstruction">
           Select a Pfam domain from this list and choose &quot;Includes&quot; or
           &quot;Does NOT include&quot; to add it to the query.<br />
-          <span id="nlUpdateSpinner" 
+          <span id="nlUpdateSpinner"
                 style="display: none"
                 class="loading">Loading IDs...</span>
         </p>
-  
+
         <div class="cleaner"><!-- empty --></div>
-  
+
         <div id="idSelectionWrapper">
           <select id="idSelection" size="15">
             <option id="idBlank"></option>
           </select>
         </div>
-  
+
         <span class="buttons">
           <input id="haveButton" type="button" onclick="addId('have')" value="Includes"/>
           <input id="notButton"  type="button" onclick="addId('not')"  value="Does NOT include" />
         </span>
-  
+
       </div>
 
       <div id="haveList" class="domainList">
 
         <h3>Architecture must include...</h3>
-  
+
         <p class="domainQueryInstruction">
           These are the families that must appear in the architecture.
           Remove unwanted domains by selecting them and pressing &quot;Remove&quot;.
         </p>
-    
+
         <div class="cleaner"><!-- empty --></div>
-    
+
         <select id="have" size="15">
           <option id="haveBlank"></option>
         </select>
-    
+
         <span class="buttons">
           <input type="button" onclick="removeId('have')" value="Remove" />
         </span>
-    
+
       </div>
 
       <div id="notList" class="domainList">
 
         <h3>Architecture must <em>not</em> include...</h3>
-  
+
         <p class="domainQueryInstruction">
           These are the families that must <em>not</em> appear in the architecture.
           Remove unwanted domains by selecting them and pressing &quot;Remove&quot;.
         </p>
-  
+
         <div class="cleaner"><!-- empty --></div>
-  
+
         <select id="not" size="15">
           <option id="notBlank"></option>
         </select>
-  
+
         <span class="buttons">
           <input type="button" onclick="removeId('not')" value="Remove"/>
         </span>
-  
+
       </div>
-  
+
       <div id="domainSearchButtons">
         <input type="submit" value="Submit query" id="domainSearchSubmit" />
         <input type="button" value="Reset" id="resetDomainQuery" />
@@ -228,21 +262,21 @@ pageList = PROCESS "components/pageList.tt",
     </p>
 
     <div id="textResults"><!-- empty --></div>
-        
+
   </div>
 
   <script type="text/javascript">
     // <![CDATA[
     function submitter() {
       dsStarted();
-      var r = new Ajax.Updater( 
+      var r = new Ajax.Updater(
         "textResults",
-        "[% c.uri_for( '/search/domain' ) %]", 
+        "[% c.uri_for( '/search/domain' ) %]",
         {
           evalScripts: true,
           parameters: $("domainSearchForm").serialize(true),
           onComplete: function() {
-            dsCompleted(); 
+            dsCompleted();
           }
         }
       );
@@ -254,18 +288,18 @@ pageList = PROCESS "components/pageList.tt",
       function(s) {
         $A( s.childNodes ).each(
           function(c) {
-            s.remove(c);          
+            s.remove(c);
           }
-        );      
+        );
       }
     );
 
     var letters = $("pageListWrapper").select("span.letter");
     var browseUri = "[% c.uri_for( "/family/browse" ) %]";
-    
+
     letters.each( function(letter) {
       letter.observe( "click", function(e) {
-        
+
         var r = new Ajax.Updater(
           "idSelectionWrapper",
           browseUri,

@@ -37,13 +37,15 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
     [%- END %]
 
-    <div id="hmmerBlock">
+    <div id="hmmerBlock" class="hmmerBlock">
         <p>
-            Have you tried running your searches through the
-            <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer website</a>?
+            The internal search feature on this website will soon be switched
+            off, so we recommend you run your searches through
+            the <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank"> Hmmer website</a>
         </p>
         <p>
-            The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is what we use behind the scenes to run your searches.
+            The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is
+            what we use behind the scenes to run your searches. Results will be identical.
         </p>
     </div>
 
@@ -175,15 +177,18 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
       [% END %]
 
-      <form method="post"
-            id="proteinBatchSearchForm"
-            action="[% c.uri_for( "/search/batch" ) %]"
-            enctype="multipart/form-data"
-            style="overflow: auto;">
-
+      <form
+        method="post"
+        id="proteinBatchSearchForm"
+        action="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
+        data-oldaction="[% c.uri_for( "/search/batch" ) %]"
+        enctype="multipart/form-data"
+        style="overflow: auto;"
+      >
+        <input hidden name="hmmdb" value="pfam" />
         <div class="row">
           <label for="batchSeq">Sequences file</label>
-          <input type="file" required name="batchSeq" id="batchSeq" />
+          <input type="file" required name="file" data-oldname="batchSeq" id="batchSeq" />
         </div>
         <div id="batchCheckFile" class="row">
           <div class="message problem error">
@@ -252,12 +257,33 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label class="blankLabel">Submit</label>
-          <input class="submit" type="submit" name="submit" value="Submit" />
+          <input class="submit" type="submit" name="submit" value="Submit through Hmmer" />
           <input class="reset" type="reset" name="reset" value="Reset" />
+          <input type="button" name="oldsubmit" value="Switch to deprecated submission" />
         </div>
 
       </form>
     </div>
+
+    <script>
+      (function() {
+        var form = document.querySelector('form#proteinBatchSearchForm');
+        var button = form.querySelector('input[name="oldsubmit"]');
+        if (!button) return;
+        button.addEventListener('click', function(e) {
+          var message = 'The batch searches through the Pfam website are not ';
+          message += 'maintained anymore and will be removed soon.\n';
+          message += 'Are you sure you want to continue?';
+          if (!confirm(message)) return;
+          var warningBox = document.querySelector('.hmmerBlock');
+          if (warningBox) warningBox.classList.add('warningBox');
+          form.action = form.dataset.oldaction;
+          const file = form.querySelector('[data-oldname');
+          file.name = file.dataset.oldname;
+          form.submit.value = 'Submit (using the deprecated way)';
+        });
+      })();
+    </script>
 
     <div id="batchCheck">
       <p>Already submitted a batch search? Check its status here.</p>
