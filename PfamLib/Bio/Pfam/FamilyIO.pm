@@ -223,7 +223,7 @@ sub parseDESC {
           . "\n" );
     }
 
-    if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|TP|SQ|BM|SM|CL)\s{3}(.*)$/ ) {
+    if ( $file[$i] =~ /^(AC|ID|DE|PI|SE|TP|SQ|BM|SM|CL)\s{3}(.*)$/ ) {
       if(exists($params{$1})){
         confess("\nFound more than one line containing the $1 tag\n\n"
          . "-" x 80
@@ -247,6 +247,25 @@ sub parseDESC {
         else {
           $params{"WIKI"} = { $page => 1 };
         }
+    }
+    elsif ($file[$i] =~ m{^AU\s{3}(.*)$}) {
+        my $order = 0;
+        $params{AU} = [];
+        do {
+            my $au_line = $1;
+            chomp $au_line;
+            my ($author, $orcid) = split ';', $au_line;
+            if ($orcid && $orcid !~ m{\d{4}-\d{4}-\d{4}-\d{3}[\d|X]}) {
+                croak(qq(Invalid ORCID $orcid));
+            }
+            unless ($author =~ m{^\S+}) {
+                croak(qq(Invalid Author $author));
+            }
+            push @{$params{AU}}, { name => $author, orcid => $orcid, rank => $order };
+            $order++;
+            $i++;
+        } while ($file[$i] =~ m{^AU\s{3}(.*)$});
+        $i--;
     }
     elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
@@ -525,7 +544,13 @@ sub writeDESC {
   $Text::Wrap::unexpand = 0;
   $Text::Wrap::columns = 75;
   foreach my $tagOrder ( @{ $desc->order } ) {
-    if ( length($tagOrder) == 2 ) {
+    if ($tagOrder eq 'AU') {
+      foreach my $author (@{$desc->AU}) {
+         print D "AU   $author->{name}";
+         print D ";$author->{orcid}" if $author->{orcid};
+         print D "\n";
+      }
+    } elsif ( length($tagOrder) == 2 ) {
       if ( $desc->$tagOrder and $desc->$tagOrder =~ /\S+/ ) {
         print D wrap( "$tagOrder   ", "$tagOrder   ", $desc->$tagOrder );
         print D "\n";
