@@ -290,6 +290,7 @@ if ($onlydesc) {
   }
 }
 
+warn 'ignore';
 #These are more sanity checks
 unless ($ignore) {
 

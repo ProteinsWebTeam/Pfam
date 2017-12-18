@@ -121,6 +121,7 @@ sub commitFamily {
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
 
   }
+  $familyIO->create_or_update_author;
   $guard->commit;
   
   #If this family is part of a clan, we need to compete it
@@ -132,6 +133,28 @@ sub commitFamily {
   }
 
 }
+
+
+sub create_or_update_author {
+  my ($self, $familyObj) = @_;
+  
+  if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family')){
+    croak('Either the Bio::Rfam::Family object was undefined or not an object of that type.');
+  }
+
+  if (defined($familyObj->{DESC}->{AU})) {
+    foreach my $author (@{$familyObj->DESC->AU}){ 
+    # search for an author by name
+    my $author_entry = $self->find({name => $author->{name}});
+    if (defined $author_entry) {
+        $author_entry->update({orcid => $author->{orcid}}) if defined $author->{orcid};
+        return;
+    }
+    # create a new entry
+    $self->create({name => $author->{name}, orcid => $author->{orcid}});
+  }
+}
+
 
 sub commitNewFamily {
   my ( $self, $pfamDB ) = @_;
