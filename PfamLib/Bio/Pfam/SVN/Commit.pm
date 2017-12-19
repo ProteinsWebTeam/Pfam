@@ -143,13 +143,13 @@ sub create_or_update_author {
   }
 
   if (defined($familyObj->{DESC}->{AU})) {
-    foreach my $author (@{$familyObj->DESC->AU}){ 
-    # search for an author by name
-    my $author_entry = $self->find({name => $author->{name}});
-    if (defined $author_entry) {
+    foreach my $author (@{$familyObj->DESC->AU}) { 
+      # search for an author by name
+      my $author_entry = $self->find({name => $author->{name}});
+      if (defined $author_entry) {
         $author_entry->update({orcid => $author->{orcid}}) if defined $author->{orcid};
         return;
-    }
+      }
     # create a new entry
     $self->create({name => $author->{name}, orcid => $author->{orcid}});
   }
