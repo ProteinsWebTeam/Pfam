@@ -138,7 +138,7 @@ sub commitFamily {
 sub create_or_update_author {
   my ($self, $familyObj) = @_;
   
-  if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family')){
+  if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family')) {
     croak('Either the Bio::Rfam::Family object was undefined or not an object of that type.');
   }
 
@@ -151,6 +151,7 @@ sub create_or_update_author {
         return;
       }
     # create a new entry
+    }
     $self->create({name => $author->{name}, orcid => $author->{orcid}});
   }
 }
