@@ -1,4 +1,4 @@
-[% 
+[%
 # poll_xml.tt
 # jt6 20071128 WTSI
 #
@@ -17,9 +17,9 @@ META naked = 1;
 </error>
 [% ELSE -%]
 <jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.xfam.org/"
-      xsi:schemaLocation="http://pfam.xfam.org/
-                          http://pfam.xfam.org/static/documents/schemas/submission.xsd">
+      xmlns="https://pfam.xfam.org/"
+      xsi:schemaLocation="https://pfam.xfam.org/
+                          https://pfam.xfam.org/static/documents/schemas/submission.xsd">
 [% FOREACH jobId IN results.keys -%]
   <job job_id="[% jobId %]">
     <opened>[% results.$jobId.rows.0.opened %]</opened>

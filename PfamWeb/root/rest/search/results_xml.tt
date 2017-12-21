@@ -1,4 +1,4 @@
-[% 
+[%
 # results_xml.tt
 # jt6 20071129 WTSI
 #
@@ -10,7 +10,7 @@ USE dumper;
 
 META naked = 1;
 
-baseUri = "http://pfam.xfam.org/";
+baseUri = "https://pfam.xfam.org/";
 
 # get the job ID
 jobId = results.keys.shift;
@@ -19,7 +19,7 @@ jobId = results.keys.shift;
 # same search string, this should be fine. Pretty ugly though.
 seqLength = results.$jobId.rows.0.stdin.length;
 
-# build hashes of arrays-of-hits, keyed on the family ID  
+# build hashes of arrays-of-hits, keyed on the family ID
 a_hits = {};
 b_hits = {};
 
@@ -27,14 +27,14 @@ FOREACH row IN results.$jobId.hits.A;
   IF ! a_hits.${row.name}.defined;
     a_hits.${row.name} = [];
   END;
-  a_hits.${row.name}.push( row );  
+  a_hits.${row.name}.push( row );
 END;
 
 FOREACH row IN results.$jobId.hits.B;
   IF ! b_hits.${row.name}.defined;
     b_hits.${row.name} = [];
   END;
-  b_hits.${row.name}.push( row );  
+  b_hits.${row.name}.push( row );
 END;
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
@@ -42,7 +42,7 @@ END;
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
                           [% baseUri %]static/documents/schemas/pfam_family.xsd"
-      release="[% relData.pfam_release %]" 
+      release="[% relData.pfam_release %]"
       release_date="[% relData.pfam_release_date %]">
 [% IF seqSearchError -%]
 <error>
@@ -58,7 +58,7 @@ IF a_hits.size OR b_hits.size -%]
     <matches>
       <protein length="[% seqLength %]">
         <database id="pfam" release="[% relData.pfam_release %]" release_date="[% relData.pfam_release_date %]">
-[% 
+[%
 # Pfam-A hits
 FOREACH hitKey IN a_hits.keys;
   hit = a_hits.$hitKey;
@@ -66,7 +66,7 @@ FOREACH hitKey IN a_hits.keys;
     IF c.debug;
  -%]
           <match accession="[% hit.0.acc %]" id="[% hit.0.name %]" type="Pfam-A" class="[% hit.0.type %]">
-[% 
+[%
 # location lines
 FOREACH row IN hit -%]
             <location start="[% row.env.from %]" end="[% row.env.to %]" ali_start="[% row.seq.from %]" ali_end="[% row.seq.to %]" hmm_start="[% row.hmm.from %]" hmm_end="[% row.hmm.to %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" evidence="hmmer v[% relData.hmmer_version %]" significant="[% row.sig %]">
@@ -91,7 +91,7 @@ FOREACH row IN hit -%]
 [% END -%]
           </match>
 [% END; # of Pfam-A hits
-  
+
 # Pfam-B hits
 FOREACH hitKey IN b_hits.keys;
   hit = b_hits.$hitKey;

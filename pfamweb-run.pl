@@ -36,10 +36,14 @@ if (defined $pfamConfigFile && -f $pfamConfigFile) {
     die ("Failed to find $baseRootPath") unless (-e $baseRootPath);
     my $webRootPath = File::Spec->join($Bin, "PfamWeb", "root");
     die ("Failed to find $webRootPath") unless (-e $webRootPath);
+    my $configRootPath = File::Spec->join($Bin, "PfamConfig", "PfamWeb");
+    die ("Failed to find $configRootPath") unless (-e $configRootPath);
 
     while(<IN>) {
         my $line = $_;
-        if ($line =~ /PfamBase/i) {
+        if ($line =~ /^l4p_config/i) {
+          $line =~ s/.*?l4p\.conf/l4p_config $configRootPath\/l4p.conf/;
+        } elsif ($line =~ /PfamBase/i) {
             $line =~ s/include_path.*?PfamBase.*?$/include_path $baseRootPath/;
             $line =~ s/INCLUDE_PATH.*?PfamBase.*?$/INCLUDE_PATH "$baseRootPath"/;
         } elsif ($line =~ /PfamWeb/i) {
@@ -54,7 +58,7 @@ if (defined $pfamConfigFile && -f $pfamConfigFile) {
     die("Failed to create new config file $newConfigFile") unless (-e $newConfigFile);
     #$PFAMWEB_CONFIG = $pfamConfigFile;
     $PFAMWEB_CONFIG = $newConfigFile;
-    print "Running using $name, $path, $suffix\n";
+    print "Running using $name$suffix in $path\n";
 }
 die ("Either set PFAMWEB_CONFIG environment variable or provide path to Pfam web config file") unless (defined $PFAMWEB_CONFIG);
 
@@ -65,4 +69,5 @@ unless (-e $linkDir && -l $linkDir) {
     die ("Failed to create link $linkDir") unless ($linkCreated);
 }
 
+$ENV{CATALYST_DEBUG} = 1;
 system("perl $pfamExe -p $port --follow_symlink");

@@ -11,7 +11,7 @@ META title = "Generate domain images";
 META fullPage = 1;
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -24,19 +24,19 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
 
 <h1>Generate domain images</h1>
 <p>
-  This tool allows you to generate your own domain images, by uploading an XML 
-  file describing the image you need. The XML must conform to the Pfam 
-  <a href="[% schemaUri %]">schema</a>. Badly formed or non-validating XML 
-  uploads will be rejected. Please <a href="[% schemaUri %]">download the 
-    schema</a> and validate your XML locally before uploading it. 
-  Please note that only one image (the first one in the XML description) will 
+  This tool allows you to generate your own domain images, by uploading an XML
+  file describing the image you need. The XML must conform to the Pfam
+  <a href="[% schemaUri %]">schema</a>. Badly formed or non-validating XML
+  uploads will be rejected. Please <a href="[% schemaUri %]">download the
+    schema</a> and validate your XML locally before uploading it.
+  Please note that only one image (the first one in the XML description) will
   be generated, even if the XML contains multiple &lt;sequence&gt; tags.
 </p>
 <p>
   Be default, this tool returns another page, with the image displayed along
   with a form for generating more images. If you would prefer to have just the
   image returned, check the &quot;Image only&quot; box. When you submit the form,
-  your browser should ask you whether you want to save or view the resulting 
+  your browser should ask you whether you want to save or view the resulting
   image.
 </p>
 
@@ -49,31 +49,31 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
 </div>
 [% END %]
 
-<form method="post" 
-      action="[% c.uri_for( "/renderXML" ) %]" 
+<form method="post"
+      action="[% c.uri_for( "/renderXML" ) %]"
       enctype="multipart/form-data">
   <div id="form">
     <label for="uploadField">Upload your XML file:</label>
-    <input type="file" 
-           name="XMLupload" 
-           tabindex="1"  
-           size="30" 
+    <input type="file"
+           name="XMLupload"
+           tabindex="1"
+           size="30"
            id="uploadField" />
     <label>
-      <input type="checkbox" 
-             name="image_only" 
-             value="1" 
+      <input type="checkbox"
+             name="image_only"
+             value="1"
              tabindex="2" />Image only
     </label>
-    <input type="submit" 
-           tabindex="3" 
-           name="upload" 
-           value="Upload" 
+    <input type="submit"
+           tabindex="3"
+           name="upload"
+           value="Upload"
            class="button" />
-    <input type="reset" 
-           tabindex="4" 
-           name="Reset" 
-           value="Reset" 
+    <input type="reset"
+           tabindex="4"
+           name="Reset"
+           value="Reset"
            class="button" />
   </div>
 </form>
@@ -87,11 +87,11 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
 <div class="graphicItem">
 
   <p>
-    <strong>Example domain image:</strong>This image shows all of the available 
+    <strong>Example domain image:</strong>This image shows all of the available
     rendering features of the domain image generator.
   </p>
 
-  <img src="[% c.uri_for( "/static/images/domain_image_example.png" ) %]" 
+  <img src="[% c.uri_for( "/static/images/domain_image_example.png" ) %]"
        alt="Example Pfam graphic" />
 
 </div>
@@ -103,13 +103,13 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
   <div id="xmlFragment" style="display: none">
     <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd&quot;
+&lt;image xmlns=&quot;https://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd&quot;
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-       xsi:schemaLocation=&quot;http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd
-                           http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd&quot;
-       format=&quot;png&quot; 
-       layout=&quot;continuous&quot; 
-       scale_x=&quot;0.5&quot; 
+       xsi:schemaLocation=&quot;https://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd
+                           https://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd&quot;
+       format=&quot;png&quot;
+       layout=&quot;continuous&quot;
+       scale_x=&quot;0.5&quot;
        scale_y=&quot;1.0&quot;&gt;
   &lt;sequence length=&quot;800&quot; display_data=&quot;test all drawing features&quot; name=&quot;TestSeq&quot;&gt;
     &lt;region start=&quot;600&quot; end=&quot;790&quot; label=&quot;curvedBig&quot;&gt;
@@ -266,7 +266,7 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
           &lt;hex hexcode=&quot;cc9933&quot;/&gt;
         &lt;/colour&gt;
       &lt;/head&gt;
-    &lt;/markup&gt;      
+    &lt;/markup&gt;
   &lt;/sequence&gt;
 &lt;/image&gt;
     </pre>
@@ -275,8 +275,8 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
 </div>
 
 <p>
-  <strong>Note:</strong> You can also see the domain graphics for a particular 
-  UniProt entry <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">here</a>, 
+  <strong>Note:</strong> You can also see the domain graphics for a particular
+  UniProt entry <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">here</a>,
   along with the XML file that was used to generate the image.
 </p>
 [%#

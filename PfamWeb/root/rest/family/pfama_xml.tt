@@ -1,4 +1,4 @@
-[% 
+[%
 # pfama_xml.tt
 # jt6 20071123 WTSI
 #
@@ -10,7 +10,7 @@ USE date;
 
 META naked = 1;
 
-baseUri = "http://pfam.xfam.org/";
+baseUri = "https://pfam.xfam.org/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on Pfam-A family [% pfam.pfama_acc %] ([% pfam.pfama_id %]), generated: [% date.format %] -->
@@ -18,7 +18,7 @@ baseUri = "http://pfam.xfam.org/";
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
                           [% baseUri %]static/documents/schemas/pfam_family.xsd"
-      release="[% relData.pfam_release %]" 
+      release="[% relData.pfam_release %]"
       release_date="[% relData.pfam_release_date %]">
   <entry entry_type="Pfam-A" accession="[% pfam.pfama_acc %]" id="[% pfam.pfama_id %]">
     <description>
@@ -38,7 +38,7 @@ IF clanRow -%]
     <clan_membership clan_acc="[% clanRow.clan_acc %]" clan_id="[% clanRow.clan_id %]" />
 [% END;
 IF goTerms.size;
-  categories = { 
+  categories = {
     function  => { label   => "Molecular function",
                    goTerms => [] },
     process   => { label   => "Biological process",
@@ -47,7 +47,7 @@ IF goTerms.size;
                    goTerms => [] }
   };
   FOREACH goTerm IN goTerms;
-    categories.${goTerm.category}.goTerms.push( goTerm ); 
+    categories.${goTerm.category}.goTerms.push( goTerm );
   END -%]
     <go_terms>
 [% FOREACH categoryName IN categories.keys.sort;

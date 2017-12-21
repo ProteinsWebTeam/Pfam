@@ -1,4 +1,4 @@
-[% 
+[%
 # entry_xml.tt
 # jt6 20100906 WTSI
 #
@@ -11,11 +11,11 @@ USE String;
 
 META naked = 1;
 
-baseUri = "http://pfam.xfam.org/";
+baseUri = "https://pfam.xfam.org/";
 
 totalFam = 0;
 totalSeq = 0;
-FOREACH pfam IN clanMembers 
+FOREACH pfam IN clanMembers
   totalFam = totalFam + 1;
   totalSeq = totalSeq + pfam.pfama_acc.num_full;
 END -%]
@@ -25,7 +25,7 @@ END -%]
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
                           [% baseUri %]static/documents/schemas/clan_xml.xsd"
-      release="[% relData.pfam_release %]" 
+      release="[% relData.pfam_release %]"
       release_date="[% relData.pfam_release_date %]">
   <entry entry_type="Clan" accession="[% clan.clan_acc %]" id="[% clan.clan_id %]">
     <description>

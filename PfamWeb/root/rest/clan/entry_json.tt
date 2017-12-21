@@ -11,7 +11,7 @@ USE String;
 
 META naked = 1;
 
-baseUri = "http://pfam.xfam.org/";
+baseUri = "https://pfam.xfam.org/";
 
 totalFam = 0;
 totalSeq = 0;
@@ -30,7 +30,7 @@ END -%]
       "pfama_acc": "[% pfam.pfama_acc.pfama_acc %]",
       "pfama_id": "[% pfam.pfama_acc.pfama_id %]",
       "num_full": [% pfam.pfama_acc.num_full %],
-      "link": "http://pfam.xfam.org/family/[% pfam.pfama_acc.pfama_acc %]",
+      "link": "[% baseUri %]family/[% pfam.pfama_acc.pfama_acc %]",
       "percentage_hits": [% percentS %]
     }[%- "," IF not loop.last %]
     [% END -%]

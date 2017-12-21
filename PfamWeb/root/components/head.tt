@@ -30,7 +30,7 @@ IF refreshUri != "";
 <!-- ====================================================================== -->
 <!-- make the site RSS feed discoverable -->
 
-<link href="http://xfam.wordpress.com/tag/pfam/feed/"
+<link href="//xfam.wordpress.com/tag/pfam/feed/"
       rel="alternate"
       type="application/rss+xml"
       title="Pfam News" />
@@ -49,18 +49,18 @@ IF refreshUri != "";
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js"></script>
 
 <!-- YUI -->
-<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
-<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/element/element-min.js"></script>
+<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/element/element-min.js"></script>
 
-<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/tabview/tabview-min.js"></script>
-<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/tabview/assets/skins/sam/tabview.css"/>
+<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/tabview/tabview-min.js"></script>
+<link rel="stylesheet" type="text/css" href="//yui-s.yahooapis.com/2.8.0r4/build/tabview/assets/skins/sam/tabview.css"/>
 
-<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/treeview/treeview-min.js"></script>
-<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/treeview/assets/skins/sam/treeview.css" />
+<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/treeview/treeview-min.js"></script>
+<link rel="stylesheet" type="text/css" href="//yui-s.yahooapis.com/2.8.0r4/build/treeview/assets/skins/sam/treeview.css" />
 
-<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
+<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
 
-<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script>
+<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script>
 
 <!-- prototip -->
 <script type='text/javascript' src='[% sharedUri %]/javascripts/prototip.js'></script>
@@ -121,7 +121,7 @@ PROCESS "components/load_requirements.tt" -%]
 <link rel="canonical" href="[% rootURI %]" />
 <script type="application/ld+json">
   {
-    "@context": "http://schema.org",
+    "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Pfam",
     "url": "[% rootURI %]",
@@ -133,7 +133,7 @@ PROCESS "components/load_requirements.tt" -%]
 </script>
 <script type="application/ld+json">
   {
-    "@context": "http://schema.org",
+    "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Pfam",
     "url": "[% rootURI %]",
@@ -164,5 +164,5 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 details.
 
 You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
+this program. If not, see <//www.gnu.org/licenses/>.
 -%]

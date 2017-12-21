@@ -1,4 +1,4 @@
-[% 
+[%
 # pfamb_xml.tt
 # jt6 20071127 WTSI
 #
@@ -10,7 +10,7 @@ USE date;
 
 META naked = 1;
 
-baseUri = "http://pfam.xfam.org/";
+baseUri = "https://pfam.xfam.org/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on Pfam-B family [% pfam.pfamb_acc %] ([% pfam.pfamb_id %]), generated: [% date.format %] -->
@@ -18,7 +18,7 @@ baseUri = "http://pfam.xfam.org/";
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
                           [% baseUri %]static/documents/schemas/pfam_family.xsd"
-      release="[% relData.pfam_release %]" 
+      release="[% relData.pfam_release %]"
       release_date="[% relData.pfam_release_date %]">
   <entry entry_type="Pfam-B" accession="[% pfam.pfamb_acc %]" id="[% pfam.pfamb_id %]">
     <curation_details>
