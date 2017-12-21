@@ -251,21 +251,30 @@ sub parseDESC {
     elsif ($file[$i] =~ m{^AU\s{3}(.*)$}) {
         my $order = 0;
         $params{AU} = [];
-        do {
-            my $au_line = $1;
+        my $au_line = $1;
+        if ($file[$i] =~ m{,} && $file[$i + 1] !~ m{^AU}) {
             chomp $au_line;
-            my ($author, $orcid) = split ';', $au_line;
-            if ($orcid && $orcid !~ m{\d{4}-\d{4}-\d{4}-\d{3}[\d|X]}) {
-                croak(qq(Invalid ORCID $orcid));
+            foreach my $au (split m{, }, $au_line) {
+                push @{$params{AU}}, { name => $au, orcid => undef, rank => $order };
+                $order++;
             }
-            unless ($author =~ m{^\S+}) {
-                croak(qq(Invalid Author $author));
-            }
-            push @{$params{AU}}, { name => $author, orcid => $orcid, rank => $order };
-            $order++;
-            $i++;
-        } while ($file[$i] =~ m{^AU\s{3}(.*)$});
-        $i--;
+        } else {
+            do {
+                $au_line = $1;
+                chomp $au_line;
+                my ($author, $orcid) = split ';', $au_line;
+                if ($orcid && $orcid !~ m{\d{4}-\d{4}-\d{4}-\d{3}[\d|X]}) {
+                    croak(qq(Invalid ORCID $orcid));
+                }
+                unless ($author =~ m{^\S+}) {
+                    croak(qq(Invalid Author $author));
+                }
+                push @{$params{AU}}, { name => $author, orcid => $orcid, rank => $order };
+                $order++;
+                $i++;
+            } while ($file[$i] =~ m{^AU\s{3}(.*)$});
+            $i--;
+        }
     }
     elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
@@ -651,6 +660,29 @@ sub writeDESC {
   }
   close(D);
 }
+
+
+sub create_or_update_author {
+  my ($self, $familyObj) = @_;
+  
+  if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family')) {
+    croak('Either the Bio::Rfam::Family object was undefined or not an object of that type.');
+  }
+
+  if (defined($familyObj->{DESC}->{AU})) {
+    foreach my $author (@{$familyObj->DESC->AU}) { 
+      # search for an author by name
+      my $author_entry = $self->find({name => $author->{name}});
+      if (defined $author_entry) {
+        $author_entry->update({orcid => $author->{orcid}}) if defined $author->{orcid};
+        return;
+      }
+      # create a new entry
+      $self->create({name => $author->{name}, orcid => $author->{orcid}});
+    }
+  }
+}
+
 
 sub updatePfamAInRDB {
   my ( $self, $famObj, $pfamDB, $isNew, $depositor ) = @_;
