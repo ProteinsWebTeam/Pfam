@@ -66,7 +66,7 @@ oe = 0;
       Event.observe( window, "load", function() {
         var r = new Ajax.Updater(
           "statsTableDiv",
-          "[% c.uri_for( '/proteome/stats' ) %]",
+          "[% c.secure_uri_for( '/proteome/stats' ) %]",
           {
             method:      "get",
             evalScripts: true,
@@ -87,7 +87,7 @@ oe = 0;
                 // and finally make the AJAX call
                 var r = new Ajax.Updater(
                   "statsTableDiv",
-                  "[% c.uri_for( '/proteome/stats' ) %]",
+                  "[% c.secure_uri_for( '/proteome/stats' ) %]",
                   {
                     method:     "get",
                     parameters: { taxId: "[% taxId %]",

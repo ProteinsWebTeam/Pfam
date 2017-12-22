@@ -60,7 +60,7 @@
 
     <img class="tables"
          alt="Version table"
-         src="[% c.uri_for( '/static/images/help/db_schema/version.png' ) %]" />
+         src="[% c.secure_uri_for( '/static/images/help/db_schema/version.png' ) %]" />
 
     <p>
       The <span class="table">version</span> table contains information that relates to a particular Pfam
@@ -97,7 +97,7 @@
     
     <img class="tables"
          alt="Domain information"
-         src="[% c.uri_for( '/static/images/help/db_schema/domain.png' ) %]" />
+         src="[% c.secure_uri_for( '/static/images/help/db_schema/domain.png' ) %]" />
 
     <p>
       Two of the central tables in the Pfam database are <span
@@ -279,7 +279,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <img class="tables"
          alt="Other regions, sites, disulphides"
-         src="[% c.uri_for( "/static/images/help/db_schema/pfamseq_other.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/pfamseq_other.png" ) %]" />
 
     <p>
       This section contains a few tables that link to the <span
@@ -336,7 +336,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <img class="tables"
          alt="Other regions, sites, disulphides"
-         src="[% c.uri_for( "/static/images/help/db_schema/other_regions.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/other_regions.png" ) %]" />
 
     <p>
       These tables contain sequence specific information about
@@ -442,7 +442,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <img class="tables"
          alt="Architecture table"
-         src="[% c.uri_for( "/static/images/help/db_schema/architecture.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/architecture.png" ) %]" />
 
     <p>
       In Pfam, an architecture is the combination of domains that are present
@@ -514,7 +514,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <img class="tables"
          alt="Literature references"
-         src="[% c.uri_for( '/static/images/help/db_schema/annotation.png' ) %]" />
+         src="[% c.secure_uri_for( '/static/images/help/db_schema/annotation.png' ) %]" />
 
     <p>
       In addition to the Pfam annotation, we also store <a class="ext"
@@ -702,7 +702,7 @@ mysql> SELECT a.pfamA_id, \
 
     <img class="tables"
          alt="Clan table"
-         src="[% c.uri_for( "/static/images/help/db_schema/clan.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/clan.png" ) %]" />
 
     <p>
       A Pfam <em>clan</em> is a set of related Pfam-A families. The information
@@ -908,7 +908,7 @@ architecture_acc: PF07657 PF01414 PF12661 PF00008 PF00008 PF00008
 
     <img class="tables"
          alt="Dead families"
-         src="[% c.uri_for( "/static/images/help/db_schema/dead.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/dead.png" ) %]" />
 
     <p>
       Sometimes we find that two or more Pfam-A families can be merged into a single
@@ -968,7 +968,7 @@ clan_description: Xylose isomerase-like TIM barrel superfamily
 
     <img class="tables"
          alt="Nested domains"
-         src="[% c.uri_for( '/static/images/help/db_schema/nested.png' ) %]" />
+         src="[% c.secure_uri_for( '/static/images/help/db_schema/nested.png' ) %]" />
 
     <p>
       Some Pfam-A domains are disrupted by the insertion of another domain (or
@@ -1040,7 +1040,7 @@ clan_description: Xylose isomerase-like TIM barrel superfamily
 
     <img class="tables"
          alt="PDB table"
-         src="[% c.uri_for( "/static/images/help/db_schema/pdb.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/pdb.png" ) %]" />
 
     <p>
       In order for the <a class="ext" href="http://www.wwpdb.org/">Protein
@@ -1131,7 +1131,7 @@ clan_description: Xylose isomerase-like TIM barrel superfamily
 
     <img class="tables"
          alt="Proteome tables"
-         src="[% c.uri_for( "/static/images/help/db_schema/proteome.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/proteome.png" ) %]" />
 
     <p>
       As of Pfam 29.0, all sequences in the <span class="table">pfamseq</span>
@@ -1259,7 +1259,7 @@ total_genome_proteins: 69682
 
     <img class="tables"
          alt="Related families"
-         src="[% c.uri_for( "/static/images/help/db_schema/related_families.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/related_families.png" ) %]" />
 
     <p>
       <a class="ext"
@@ -1339,7 +1339,7 @@ total_genome_proteins: 69682
 
     <img class="tables"
          alt="HMM tables"
-         src="[% c.uri_for( "/static/images/help/db_schema/alignments_and_trees.png" ) %]" />
+         src="[% c.secure_uri_for( "/static/images/help/db_schema/alignments_and_trees.png" ) %]" />
 
     <p>
       The seed, full, UniProtKB, NCBI, representative proteome and metaseq 

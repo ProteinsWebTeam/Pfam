@@ -26,7 +26,7 @@ familyPages = [ "new", "top twenty", "numbers" ];
 clanPages =   [ "numbers" ];
 
 # shortcuts for URIs
-baseUri     = c.uri_for( "/" );
+baseUri     = c.secure_uri_for( "/" );
 familyURI   = "${baseUri}family/browse";
 clanURI     = "${baseUri}clan/browse";
 proteomeURI = "${baseUri}proteome/browse";

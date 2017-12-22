@@ -49,23 +49,23 @@ pageList = PROCESS "components/pageList.tt",
   </div>
   <div class="blockContent">
 
-    <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">
+    <a href="[% c.secure_uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">
       <img id="paLogo"
            alt="Search for domain architectures using PfamAlyzer"
-           src="[% c.uri_for('/static/images/PfamAlyzer.png') %]" /></a>
+           src="[% c.secure_uri_for('/static/images/PfamAlyzer.png') %]" /></a>
 
     <p>
       Search for sequence architectures using the PfamAlyzer either as a Java
-      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">application</a>
+      <a href="[% c.secure_uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">application</a>
       (recommended for most users) or as an
-      <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]"> applet</a>
+      <a href="[% c.secure_uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]"> applet</a>
       run via Web Start. You may be requested to add the Pfam website to the list of Java security exceptions.
       <h3>To run as an application</h3>
         <ol>
             <li>Ensure Java is installed. Java can be downloaded
                 <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">here</a>.
             <li>
-                Download the application <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">here</a>
+                Download the application <a href="[% c.secure_uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]">here</a>
             </li>
             <li>Some browsers will launch the jar file automatically. If not, open a terminal or console, change
                 directory to the Downloads directory and type "java -jar PfamAlyzerApp.jar</li>
@@ -75,7 +75,7 @@ pageList = PROCESS "components/pageList.tt",
         <ol>
           <li>Ensure Java is installed. Java can be downloaded
               <a href="//www.oracle.com/technetwork/java/javase/downloads/index.html">here</a>.
-          <li>Download the applet <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]">here</a></li>
+          <li>Download the applet <a href="[% c.secure_uri_for( '/static/pfamalyzer/PfamAlyzer.jnlp' ) %]">here</a></li>
           <li>Some browsers will launch the jar file automatically. If not, open a terminal or console, change
               directory to the Downloads directory and type "javaws PfamAlyzer.jnlp"</li>
           <li>Accept the security risk when prompted.</li>
@@ -91,9 +91,9 @@ pageList = PROCESS "components/pageList.tt",
       </p>
       <p>
         You can read more about PfamAlyzer in an accompanying
-        <a href="[% c.uri_for( '/static/documents/PfamAlyzer_handout.pdf' ) %]">
+        <a href="[% c.secure_uri_for( '/static/documents/PfamAlyzer_handout.pdf' ) %]">
           handout</a> or
-        <a href="[% c.uri_for( '/static/documents/PfamAlyzer_poster.pdf' ) %]">
+        <a href="[% c.secure_uri_for( '/static/documents/PfamAlyzer_poster.pdf' ) %]">
           poster</a> (PDF format).
       </p>
       <p>
@@ -109,7 +109,7 @@ pageList = PROCESS "components/pageList.tt",
         The default security settings in many browsers makes it difficult to run
         web start applications directly from this page, but PfamAlyzer can also
         be downloaded as a jar file and run as a
-        <a href="[% c.uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]"> desktop application</a>.
+        <a href="[% c.secure_uri_for( '/static/pfamalyzer/PfamAlyzerApp.jar' ) %]"> desktop application</a>.
         On some systems (MacOS) you may need to accept a security warning in the system security setup.
         There are more details about how to run the PfamAlyzer
         <a class="ext" href="http://es.scilifelab.se/pfamalyzer.html">here</a>
@@ -175,7 +175,7 @@ pageList = PROCESS "components/pageList.tt",
 
     <form id="domainSearchForm"
           onsubmit="submitter();return false"
-          action="[% c.uri_for( "/search/domain" ) %]">
+          action="[% c.secure_uri_for( "/search/domain" ) %]">
 
       <div id="idList" class="domainList">
 
@@ -271,7 +271,7 @@ pageList = PROCESS "components/pageList.tt",
       dsStarted();
       var r = new Ajax.Updater(
         "textResults",
-        "[% c.uri_for( '/search/domain' ) %]",
+        "[% c.secure_uri_for( '/search/domain' ) %]",
         {
           evalScripts: true,
           parameters: $("domainSearchForm").serialize(true),
@@ -295,7 +295,7 @@ pageList = PROCESS "components/pageList.tt",
     );
 
     var letters = $("pageListWrapper").select("span.letter");
-    var browseUri = "[% c.uri_for( "/family/browse" ) %]";
+    var browseUri = "[% c.secure_uri_for( "/family/browse" ) %]";
 
     letters.each( function(letter) {
       letter.observe( "click", function(e) {

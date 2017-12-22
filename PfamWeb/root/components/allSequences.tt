@@ -12,7 +12,7 @@ META naked = 1;
 
 USE String;
 
-baseUrl = c.uri_for( "/" );
+baseUrl = c.secure_uri_for( "/" );
 
 BLOCK graphicRow; -%]
 
@@ -22,7 +22,7 @@ BLOCK graphicRow; -%]
        class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
     <span class="graphicLabel">
-      <a href="[% c.uri_for( "/protein", id ) %]">[% id %]</a>
+      <a href="[% c.secure_uri_for( "/protein", id ) %]">[% id %]</a>
       [% # capitalise the species name
       info = String.new( seqInfo.$id.species );
       "["; info.replace( '\[\s*', '' ).capital; "]" -%]

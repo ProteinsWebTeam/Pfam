@@ -75,7 +75,7 @@ sub old_id : Path( '/family/id' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'id', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'id', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ sub old_acc : Path( '/family/acc' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'acc', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'acc', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------

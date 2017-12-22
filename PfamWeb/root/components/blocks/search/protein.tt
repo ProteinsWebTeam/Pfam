@@ -44,7 +44,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     <div class="formWrapper">
   
       <form id="proteinSearchForm"
-            action="[% c.uri_for( "/protein" ) %]">
+            action="[% c.secure_uri_for( "/protein" ) %]">
         <div>
           <input type="hidden" name="type" value="Protein" />
         </div>

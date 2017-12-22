@@ -30,7 +30,7 @@ avScript = BLOCK;
 background '0xEEEEEE';
 
 [%- # load the PDB file from the server -%]
-molecule load mol '[% c.uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) %].pdb';
+molecule load mol '[% c.secure_uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) %].pdb';
 
 [%- # hide the default wireframe display of atoms -%]
 display lines off all;
@@ -144,11 +144,11 @@ title = "AstexViewer"
 <object classid="java:MoleculeViewerApplet.class" 
         id="av"
         type="application/x-java-applet"
-        archive="[% c.uri_for( '/static/av/AstexViewer2.jar' ) %]" 
+        archive="[% c.secure_uri_for( '/static/av/AstexViewer2.jar' ) %]" 
         height="500"
         width="500">
   <!-- Konqueror browser needs the following param -->
-  <param name="archive" value="[% c.uri_for( '/static/av/AstexViewer2.jar' ) %]" />
+  <param name="archive" value="[% c.secure_uri_for( '/static/av/AstexViewer2.jar' ) %]" />
   <param name="script" value="[% avScript %]" />
 <!--<![endif]-->
   <!-- MSIE (Microsoft Internet Explorer) will use inner object --> 
@@ -157,7 +157,7 @@ title = "AstexViewer"
           codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0-windows-i586.cab"
           height="500"
           width="500">
-    <param name="archive" value="[% c.uri_for( '/static/av/AstexViewer2.jar' ) %]" />
+    <param name="archive" value="[% c.secure_uri_for( '/static/av/AstexViewer2.jar' ) %]" />
     <param name="code" value="MoleculeViewerApplet" />
     <param name="script" value="[% avScript %]" />
     <strong>
@@ -227,17 +227,17 @@ title = "AstexViewer"
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( '/protein', m.pfamseq_acc.pfamseq_id ) %]" 
+        <a href="[% c.secure_uri_for( '/protein', m.pfamseq_acc.pfamseq_id ) %]" 
            onclick="opener.location=this.href;return false;">
           [% m.pfamseq_acc.pfamseq_id %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
-        <a href="[% c.uri_for( '/family', m.pfama_acc.pfama_id ) %]"
+        <a href="[% c.secure_uri_for( '/family', m.pfama_acc.pfama_id ) %]"
           onclick="opener.location=this.href;return false;">
           [% m.pfama_acc.pfama_id %]</a>
-        (<a href="[% c.uri_for( '/family', m.pfama_acc.pfama_acc ) %]" 
+        (<a href="[% c.secure_uri_for( '/family', m.pfama_acc.pfama_acc ) %]" 
           onclick="opener.location=this.href;return false;">
           [% m.pfama_acc.pfama_acc %]</a>)
       </td>

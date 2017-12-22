@@ -44,7 +44,7 @@ title = "View selected sequences"
   <p>
     [% i = 0;
     WHILE i < 10 %]
-      <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
+      <a href="[% c.secure_uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
         [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -55,7 +55,7 @@ title = "View selected sequences"
   <div id="extraAccs" style="display: none">
     [% i = 10;
     WHILE i < selectedSeqAccs.size %]
-    <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
+    <a href="[% c.secure_uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
       [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -64,7 +64,7 @@ title = "View selected sequences"
 [% ELSE %]
   <p>
   [% FOREACH seq IN selectedSeqAccs %]
-    <a href="[% c.uri_for( "/protein", { acc = seq } ) %]">[% seq %]</a>
+    <a href="[% c.secure_uri_for( "/protein", { acc = seq } ) %]">[% seq %]</a>
   [% END %]
   </p>
 [% END %]  

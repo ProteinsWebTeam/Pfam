@@ -44,7 +44,7 @@ RETURN UNLESS summaryData.numStructures;
     
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Request( 
-        "[% c.uri_for( '/family/' _ acc _ '/mapping' ) %]",
+        "[% c.secure_uri_for( '/family/' _ acc _ '/mapping' ) %]",
         { 
           method: 'get',
           onSuccess: function ( oResponse ) {

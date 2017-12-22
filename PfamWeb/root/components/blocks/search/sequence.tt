@@ -38,7 +38,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         Sequence searches have been <strong>disabled</strong> in the
         configuration of this website. You can still perform searches using the
         main 
-        <a class="ext" href="[% c.uri_for( '/search' ) %]">Pfam website</a>.
+        <a class="ext" href="[% c.secure_uri_for( '/search' ) %]">Pfam website</a>.
       </div>
     [%- END %]
 
@@ -148,7 +148,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="post" 
             id="proteinSeqSearchForm"
-            action="[% c.uri_for( "/search/sequence" ) %]"
+            action="[% c.secure_uri_for( "/search/sequence" ) %]"
             enctype="multipart/form-data">
 
         <div class="row">
@@ -315,7 +315,7 @@ belong to the full alignment of a Pfam entry.",
         1, // 1 second
         function( el, pastedSequence ) {
           var r = new Ajax.Request( 
-            "[% c.uri_for( '/search/sequence/type' ) %]",
+            "[% c.secure_uri_for( '/search/sequence/type' ) %]",
             { 
               method: 'post',
               parameters: { seq: pastedSequence.substr( 0, 500 ) },

@@ -9,8 +9,8 @@
 META naked = 1;
 
 # the base URL for static content
-staticUri = c.uri_for( "/static" );
-sharedUri = c.uri_for( "/shared" );
+staticUri = c.secure_uri_for( "/static" );
+sharedUri = c.secure_uri_for( "/shared" );
 -%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -32,7 +32,7 @@ sharedUri = c.uri_for( "/shared" );
              id="siteLogo"
              src="[% sharedUri %]/images/blank.gif" /></a>
       
-      <a class="pfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
+      <a class="pfamLogoHolder" style="float: right" href="[% c.secure_uri_for( "/" ) %]">
         <img alt="Pfam" 
              id="pfamLogo" 
              src="[% sharedUri %]/images/blank.gif" /></a>

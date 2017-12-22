@@ -63,7 +63,7 @@ RETURN UNLESS mapping.size;
       // structure graphic
       var r = new Ajax.Updater(
         "structureGraphicsHolder",
-        "[% c.uri_for( '/structure/graphics' ) %]",
+        "[% c.secure_uri_for( '/structure/graphics' ) %]",
         {
           parameters: { seqIds: '[% unpIdList %]',
                         id:     '[% pdbId %]' },

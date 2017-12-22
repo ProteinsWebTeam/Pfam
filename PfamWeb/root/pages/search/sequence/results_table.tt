@@ -16,7 +16,7 @@ USE String;
 #-------------------------------------------------------------------------------
 
 # shortcuts to the show/hide glass buttons
-imageUri   = c.uri_for( "/static/images" );
+imageUri   = c.secure_uri_for( "/static/images" );
 showButton = "${imageUri}/showButton.png";
 hideButton = "${imageUri}/hideButton.png";
 
@@ -210,7 +210,7 @@ BLOCK buildTableBody;
       <td>
         [% IF hit.acc -%]
         <a id="[% ( job_type == 'A' ? 'region_' : 'motif_' ) _ hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
-           href="[% c.uri_for( job_type == 'A' ? '/family' : '/pfamb', hit.acc ) %]">[% hit.name %]</a>
+           href="[% c.secure_uri_for( job_type == 'A' ? '/family' : '/pfamb', hit.acc ) %]">[% hit.name %]</a>
         [% ELSE;
           hit.name;
         END -%]
@@ -243,7 +243,7 @@ BLOCK buildTableBody;
       </td>
       <td>
         [% IF hit.clan AND hit.clan != 'No_clan' -%]
-          <a href="[% c.uri_for( '/clan', hit.clan ) %]">[% hit.clan %]</a>
+          <a href="[% c.secure_uri_for( '/clan', hit.clan ) %]">[% hit.clan %]</a>
         [% ELSE -%]
           <span class="inactive">n/a</span>
         [% END -%]

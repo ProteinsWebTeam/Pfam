@@ -28,7 +28,7 @@ FOREACH article IN articles -%]
     <div class="switcher biolitFigures">
 
       <img rel="prev"
-           src="[% c.uri_for('/shared/images/blank.gif') %]"
+           src="[% c.secure_uri_for('/shared/images/blank.gif') %]"
            class="switcherControl prev disabled" />
 
       <span class="switcherNumbers biolitFigureNumber">
@@ -37,7 +37,7 @@ FOREACH article IN articles -%]
       </span>
 
       <img rel="next"
-           src="[% c.uri_for('/shared/images/blank.gif') %]"
+           src="[% c.secure_uri_for('/shared/images/blank.gif') %]"
            class="switcherControl next[% " disabled" UNLESS article.figures.size > 1 %]" />
 
       <div>

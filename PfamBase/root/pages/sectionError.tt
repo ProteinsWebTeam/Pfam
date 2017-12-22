@@ -44,7 +44,7 @@
     You might like to go <a href="javascript:history.go(-1)">back</a> to the
     previous page
     [%- IF searchTerm %], 
-    <a href="[% c.uri_for( "/search", { query = searchTerm } ) %]">search</a> 
+    <a href="[% c.secure_uri_for( "/search", { query = searchTerm } ) %]">search</a> 
     for the entry you&rsquo;re looking for
     [%- END %]
     or report a broken link in the site.

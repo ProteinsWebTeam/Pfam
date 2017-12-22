@@ -248,7 +248,7 @@ PROCESS components/links.tt; %]
             [% pfam.description %]
             <a id="addAnnotationButton"
                class="btn go"
-               href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
+               href="[% c.secure_uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
               <span class="btn-inner">Provide feedback</span></a>
           </h1>
 
@@ -410,7 +410,7 @@ PROCESS components/links.tt; %]
         # set up the AJAX call to load the structure image %]
         var r = new Ajax.Updater(
           "siph",
-          "[% c.uri_for( '/family/' _ acc _ '/structures' ) %]",
+          "[% c.secure_uri_for( '/family/' _ acc _ '/structures' ) %]",
           {
             evalScripts: true,
             method: 'get',

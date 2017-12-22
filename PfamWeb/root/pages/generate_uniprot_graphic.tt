@@ -38,7 +38,7 @@ requirements.js.push( "uniprot_graphic_generator.js" );
 <p>
   This tool allows you to generate Pfam-style domain graphics for specific
   UniProt sequences. You can also generate 
-  <a href="[% c.uri_for('/generate_graphic') %]">custom domain graphics</a> 
+  <a href="[% c.secure_uri_for('/generate_graphic') %]">custom domain graphics</a> 
   by specifying your own domain graphics description.
 </p>
 <p>
@@ -128,7 +128,7 @@ requirements.js.push( "uniprot_graphic_generator.js" );
 
   var generator;
   document.observe( "dom:loaded", function() {
-    generator = new UniprotGraphicGenerator( "[% c.uri_for('/protein', '%s', 'graphic' ) %]" );
+    generator = new UniprotGraphicGenerator( "[% c.secure_uri_for('/protein', '%s', 'graphic' ) %]" );
   } );
 
   // ]]>

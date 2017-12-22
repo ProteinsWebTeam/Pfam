@@ -206,7 +206,7 @@ BLOCK buildTableBody;
       <td>
         [% IF hit.acc -%]
         <a id="[% 'region_' _ hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
-           href="[% c.uri_for( '/family', hit.acc ) %]">[% hit.name %]</a>
+           href="[% c.secure_uri_for( '/family', hit.acc ) %]">[% hit.name %]</a>
         [% ELSE;
           hit.name;
         END -%]
@@ -239,7 +239,7 @@ BLOCK buildTableBody;
       </td>
       <td>
         [% IF hit.clan AND hit.clan != 'No_clan' -%]
-          <a href="[% c.uri_for( '/clan', hit.clan ) %]">[% hit.clan %]</a>
+          <a href="[% c.secure_uri_for( '/clan', hit.clan ) %]">[% hit.clan %]</a>
         [% ELSE -%]
           <span class="inactive">n/a</span>
         [% END -%]

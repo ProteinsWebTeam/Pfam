@@ -91,7 +91,7 @@ oe = 0;
       // <![CDATA[
 
       var u = new Updater(
-        "[% c.uri_for( '/search/sequence/graphic', jobId ) %]",
+        "[% c.secure_uri_for( '/search/sequence/graphic', jobId ) %]",
         {
           method:    "get",
           frequency: 1,

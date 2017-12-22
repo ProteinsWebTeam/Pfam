@@ -124,7 +124,7 @@ alignments.alignments.0 %]
 </form>
 
 <p>
-  <a href="[% c.uri_for('/family', acc, 'alignment/build/download', jobId=jobId ) %]">
+  <a href="[% c.secure_uri_for('/family', acc, 'alignment/build/download', jobId=jobId ) %]">
     Download</a> this alignment.
 </p>
 
@@ -149,7 +149,7 @@ alignments.alignments.0 %]
   scrollHorizontal( $F('scrollValue'), $('alignmentData'), slider );
 
   // reformat the UniProt accessions as links to Pfam protein pages
-  formatAlignment( "[% c.uri_for( "/protein", { entry = '' } ) %]", slider );
+  formatAlignment( "[% c.secure_uri_for( "/protein", { entry = '' } ) %]", slider );
   
   [% IF pager.last_page == 1 %]
   // there's only one page, so just hide the next/prev/first/last buttons 
@@ -186,7 +186,7 @@ alignments.alignments.0 %]
 
     // submit the form
     var r = new Ajax.Updater( "caph",
-                               "[% c.uri_for( "/pfamviewer/view" ) %]", 
+                               "[% c.secure_uri_for( "/pfamviewer/view" ) %]", 
                                { parameters:  params,
                                  evalScripts: true
                                }

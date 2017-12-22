@@ -70,9 +70,9 @@ sharedRequirements.js.push( "tablekit.js" );
    <p>
     [% IF lookupHit %]
       Your query also appears to match the Pfam entry
-      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
+      <em><a href="[% c.secure_uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
       [% lookupHit.pfama_id %]</a></em>
-      (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
+      (<a href="[% c.secure_uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
       . This family is shown in the <span class="highlight">highlighted</span> row in the
       results table below.
       [% IF prevID %]
@@ -106,8 +106,8 @@ sharedRequirements.js.push( "tablekit.js" );
          id  = row.dbObj.pfama_id %]
       <tr class="[% loop.index % 2 ? "odd" : "even"; lookupHit.pfama_id == id ? " highlight" : "" %]">
         <td class="rowNum">[% loop.index %]</td>
-        <td><a href="[% c.uri_for( "/family", acc ) %]">[% acc %]</a></td>
-        <td><a href="[% c.uri_for( "/family", acc ) %]">[% id %]</a></td>
+        <td><a href="[% c.secure_uri_for( "/family", acc ) %]">[% acc %]</a></td>
+        <td><a href="[% c.secure_uri_for( "/family", acc ) %]">[% id %]</a></td>
         <td class="desc">[% row.dbObj.description %]</td>
         [% FOREACH pluginName IN pluginsArray;
           IF pluginHits.$pluginName;

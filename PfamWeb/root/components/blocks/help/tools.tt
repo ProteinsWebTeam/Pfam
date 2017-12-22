@@ -45,7 +45,7 @@ sharedRequirements.css.push( "buttons.css" );
       As we are regularly approached for producing domain graphics for use in 
       publications, we have produced a tool for users to upload a &quot;domain graphics&quot; XML. This file will be validated 
       against the
-      <a href="[% c.uri_for( "/static/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
+      <a href="[% c.secure_uri_for( "/static/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
       and subsequently rendered. The images that the tool produces can then 
       be saved for your own use. 
     </p>
@@ -61,7 +61,7 @@ sharedRequirements.css.push( "buttons.css" );
         Guide to Graphics</span> section of the help pages. 
     </p>
     <p>
-      There is a similar <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">tool</a> 
+      There is a similar <a href="[% c.secure_uri_for( "/generateUniprotGraphic" ) %]">tool</a> 
       which allows you to see the domain graphic for a given 
       <a class="ext" href="http://www.uniprot.org/">UniProt</a> entry.
     </p>

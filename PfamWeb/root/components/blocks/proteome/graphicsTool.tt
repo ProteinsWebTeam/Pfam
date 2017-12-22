@@ -38,7 +38,7 @@ pageContent = BLOCK
 
   var r = new Ajax.Updater(
     "dgph",
-    "[% c.uri_for( '/domaingraphics' ) %]",
+    "[% c.secure_uri_for( '/domaingraphics' ) %]",
     {
       method:     "get",
       evalScripts: true,

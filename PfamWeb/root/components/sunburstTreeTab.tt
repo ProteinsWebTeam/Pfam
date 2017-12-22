@@ -42,7 +42,7 @@
         <div class="handle" style="height:21;width:20"></div>
       </div>
     </div>
-    [%- imgs = c.uri_for("/shared/images/sunburst_colours") %]
+    [%- imgs = c.secure_uri_for("/shared/images/sunburst_colours") %]
     <div id="sunburstColours"
          class="sunburstControlPanel">
       <h3>Colour assignments</h3>
@@ -293,7 +293,7 @@
     }
 
     var r = new Ajax.Request(
-      "[% c.uri_for( '/family', acc, 'sunburst', 'json' ) %]",
+      "[% c.secure_uri_for( '/family', acc, 'sunburst', 'json' ) %]",
       {
         method: "get",
         onSuccess: function( response ) {

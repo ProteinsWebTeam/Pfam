@@ -141,11 +141,11 @@ BLOCK buildLink;
     [%- CASE "PANDIT" -%]
 <a class="ext" href="http://www.ebi.ac.uk/goldman-srv/pandit/pandit.cgi?action=browse&amp;fam=[% id %]">[% id %]</a>
     [%- CASE "pdb" -%]
-<a href="[% c.uri_for( "/structure", id ) %]">[% id %]</a>
+<a href="[% c.secure_uri_for( "/structure", id ) %]">[% id %]</a>
     [%- CASE [ "PFAMA", "Pfam" ] -%]
-<a href="[% c.uri_for( "/family", id ) %]">[% id %]</a>
+<a href="[% c.secure_uri_for( "/family", id ) %]">[% id %]</a>
     [%- CASE "PFAMB" -%]
-<a href="[% c.uri_for( "/pfamb", id ) %]">[% id %]</a>
+<a href="[% c.secure_uri_for( "/pfamb", id ) %]">[% id %]</a>
     [%- CASE "PRINTS" -%]
 <a class="ext" href="http://umber.sbs.man.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&amp;category=None&amp;queryform=false&amp;prints_accn=[% id %]">[% id %]</a>
     [%- CASE "PRODOM" -%]

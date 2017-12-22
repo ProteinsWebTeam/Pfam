@@ -17,20 +17,20 @@ navNames = {
 
 # the URIs for the links
 navLinks = {
-  home   = c.uri_for( "/" ),
-  search = c.uri_for( "/search" ),
-  browse = c.uri_for( "/browse" ),
+  home   = c.secure_uri_for( "/" ),
+  search = c.secure_uri_for( "/search" ),
+  browse = c.secure_uri_for( "/browse" ),
   ftp    = "ftp://ftp.ebi.ac.uk/pub/databases/Pfam",
-  help   = c.uri_for( "/help" ),
-  about  = c.uri_for( "/about" ) };
+  help   = c.secure_uri_for( "/help" ),
+  about  = c.secure_uri_for( "/about" ) };
 
 # the order of the items in the navbar - these are the keys for the two
 # hashes above
 navItems = [ "home", "search", "browse", "ftp", "help", "about" ];
 
 # the base URL for static content
-staticUri = c.uri_for( "/static" );
-sharedUri = c.uri_for( "/shared" );
+staticUri = c.secure_uri_for( "/static" );
+sharedUri = c.secure_uri_for( "/shared" );
 -%]
 
 <!-- header starts here -->
@@ -60,7 +60,7 @@ sharedUri = c.uri_for( "/shared" );
   </div>
 
   <div class="pfamLogoHolder column">
-    <a href="[% c.uri_for( "/" ) %]">
+    <a href="[% c.secure_uri_for( "/" ) %]">
       <img alt="Pfam" 
            [%- IF c.config.live %]
            class="prePfamLogo"
@@ -69,7 +69,7 @@ sharedUri = c.uri_for( "/shared" );
            [%- END %]
            id="pfamLogo" 
            src="[% sharedUri %]/images/blank.gif" /></a>
-    <form action="[% c.uri_for( "/search/keyword" ) %]" 
+    <form action="[% c.secure_uri_for( "/search/keyword" ) %]" 
           id="siteSearchForm">
       <div id="searchBox">
         <input class="entryField"

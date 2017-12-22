@@ -37,12 +37,12 @@ title = "PfamAlyzer"
 <object classid="java:PfamAlyzer.PfamAlyzer.class" 
         id="pa"
         type="application/x-java-applet"
-        archive="[% c.uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" 
+        archive="[% c.secure_uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" 
         height="1"
         width="1">
   <!-- Konqueror browser needs the following param -->
-  <param name="archive" value="[% c.uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" />
-  <param name="baseURL" value="[% c.uri_for ( '/' )%]" />
+  <param name="archive" value="[% c.secure_uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" />
+  <param name="baseURL" value="[% c.secure_uri_for ( '/' )%]" />
 <!--<![endif]-->
   <!-- MSIE (Microsoft Internet Explorer) will use inner object --> 
   <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
@@ -50,9 +50,9 @@ title = "PfamAlyzer"
           codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0-windows-i586.cab"
           height="1"
           width="1">
-    <param name="archive" value="[% c.uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" />
+    <param name="archive" value="[% c.secure_uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" />
     <param name="code" value="PfamAlyzer.PfamAlyzer.class" />
-    <param name="baseURL" value="[% c.uri_for ( '/' )%]" />
+    <param name="baseURL" value="[% c.secure_uri_for ( '/' )%]" />
     <strong>
       This browser does not have a Java Plug-in.
       <br />

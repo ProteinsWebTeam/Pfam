@@ -193,10 +193,10 @@ sub family_page : Chained( 'family' )
 
     if ( $c->stash->{pfam}->forward_to ) {
       $c->stash->{refreshUri} =
-        $c->uri_for( '/family', $c->stash->{pfam}->forward_to );
+        $c->secure_uri_for( '/family', $c->stash->{pfam}->forward_to );
     }
     else {
-      $c->stash->{refreshUri} = $c->uri_for( '/' );
+      $c->stash->{refreshUri} = $c->secure_uri_for( '/' );
 
       # the default delay for redirecting is 5 seconds, but that's maybe
       # too short to allow the user to read the message telling them that
@@ -221,7 +221,7 @@ sub family_page : Chained( 'family' )
       if $c->debug;
 
     $c->stash->{refreshUri} =
-      $c->uri_for( '/family', $c->stash->{acc} );
+      $c->secure_uri_for( '/family', $c->stash->{acc} );
     
     # set the template for the intermediate page
     $c->stash->{template} = 'pages/moved.tt';
@@ -327,7 +327,7 @@ sub old_family : Path( '/family' ) {
   delete $c->req->params->{entry};
 
   if ( $c->stash->{param_entry} ) {
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
   }
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
@@ -397,7 +397,7 @@ sub old_logo : Path( '/family/logo' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'logo', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'logo', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -454,7 +454,7 @@ sub old_logo_image : Path( '/family/logo_image' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'logo_image', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'logo_image', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -554,7 +554,7 @@ sub old_hmm : Path( '/family/hmm' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'hmm', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'hmm', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -607,7 +607,7 @@ sub old_id : Path( '/family/id' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'id', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'id', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -660,7 +660,7 @@ sub old_acc : Path( '/family/acc' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'acc', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'acc', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -795,7 +795,7 @@ sub old_structures : Path( '/family/structures' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'structures', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'structures', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -874,7 +874,7 @@ sub old_mapping : Path( '/family/structures/mapping' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'mapping', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'mapping', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -963,17 +963,17 @@ sub old_tree : Path( '/family/tree' ) {
   if ( ( $action || '' ) eq 'image' ) {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "image"' )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/image", $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/image", $c->req->params ) );
   }
   elsif ( ( $action || '' ) eq 'download' ) {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "download"' )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/download", $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/download", $c->req->params ) );
   }
 	else {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "tree"' )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type", $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type", $c->req->params ) );
   }
 }
 
@@ -1003,7 +1003,7 @@ sub image : Chained( 'tree' )
   }
     else {
     # TODO this is bad. We should avoid hard-coding a path to an image here
-    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) ) if $c->debug;
+    $c->res->redirect( $c->secure_uri_for( '/shared/images/blank.gif' ) ) if $c->debug;
   }
 
 }
@@ -1211,7 +1211,7 @@ sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/gzipped", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/gzipped", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1378,7 +1378,7 @@ sub old_format : Path( '/family/alignment/download/format' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/format", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/format", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1472,7 +1472,7 @@ sub old_html : Path( '/family/alignment/download/html' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/html", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/html", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1563,7 +1563,7 @@ sub old_heatmap : Path( '/family/alignment/download/heatmap' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/full/heatmap', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'alignment/full/heatmap', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1612,7 +1612,7 @@ sub old_jalview : Path( '/family/alignment/jalview' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/jalview", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/jalview", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1683,7 +1683,7 @@ sub old_dasviewer : Path( '/family/alignment/dasviewer' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/dasViewer", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/dasViewer", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1773,7 +1773,7 @@ sub old_build : Path( '/family/alignment/builder' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/build', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'alignment/build', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1839,7 +1839,7 @@ sub old_view : Path( '/family/alignment/builder/view' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/view', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'alignment/view', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -2661,9 +2661,9 @@ sub queueAlignment : Private {
   # of hashes, each of which gives details of a separate job
   my $jobStatus = [
                     {
-                      checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
-                      doneURI       => $c->uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
+                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
                       jobId         => $jobId,

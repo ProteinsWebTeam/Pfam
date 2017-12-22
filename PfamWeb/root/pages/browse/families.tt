@@ -32,9 +32,9 @@ pages = [ "new", "top twenty", "numbers",
 # the page
 
 # shortcuts for URIs
-familyURI    = c.uri_for( "/family" );
-tickURI      = c.uri_for( "/shared/images/tick.gif" );
-blankTickURI = c.uri_for( "/shared/images/blank_tick.gif" );
+familyURI    = c.secure_uri_for( "/family" );
+tickURI      = c.secure_uri_for( "/shared/images/tick.gif" );
+blankTickURI = c.secure_uri_for( "/shared/images/blank_tick.gif" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 

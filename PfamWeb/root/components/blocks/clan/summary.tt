@@ -51,7 +51,7 @@ membershipList = BLOCK;
   FOREACH pfam IN members.sort( "pfama_id" ); -%]
     <span class="listItem">
       <a title="[% pfam.pfama_acc %]"
-         href="[% c.uri_for( '/family', pfam.pfama_acc ) %]">
+         href="[% c.secure_uri_for( '/family', pfam.pfama_acc ) %]">
         [% pfam.pfama_id %]</a>
     </span>
     [% total = total + pfam.num_full;
@@ -92,10 +92,10 @@ END;
          style="display: none">&nbsp;</div>
 
     <h1>[% clan.clan_description %]
-      <a href="[% c.uri_for( "/annotate", { acc = clan.clan_acc } ) %]">
+      <a href="[% c.secure_uri_for( "/annotate", { acc = clan.clan_acc } ) %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
-             src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
+             src="[% c.secure_uri_for( "/static/images/annotation.png" ) %]" /></a>
     </h1>
 
     <p>[% clan.clan_comment %]</p>
@@ -154,7 +154,7 @@ END;
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Updater( 
         "siph",
-        "[% c.uri_for( '/family', members.first.pfama_acc, 'structures' ) %]",
+        "[% c.secure_uri_for( '/family', members.first.pfama_acc, 'structures' ) %]",
         {
           method:      "get",
           evalScripts: true,

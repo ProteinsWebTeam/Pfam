@@ -23,7 +23,7 @@ META naked = 1;
 [% FOREACH jobId IN results.keys -%]
   <job job_id="[% jobId %]">
     <opened>[% results.$jobId.rows.0.opened %]</opened>
-    <result_url>[% c.uri_for( '/search/sequence/resultset', jobId, { output => 'xml' } ) %]</result_url>
+    <result_url>[% c.secure_uri_for( '/search/sequence/resultset', jobId, { output => 'xml' } ) %]</result_url>
   </job>
 [% END -%]
 </jobs>

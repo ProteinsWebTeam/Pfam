@@ -39,13 +39,13 @@ META fullPage = 1;
   </p>
   <div class="logos">
       <a href="https://www.ebi.ac.uk/">
-        <img src="[% c.uri_for('/static/images/site_logos/embl_ebi_logo.jpg') %]" alt="EMBL-EBI">
+        <img src="[% c.secure_uri_for('/static/images/site_logos/embl_ebi_logo.jpg') %]" alt="EMBL-EBI">
       </a>
       <a href="https://www.mcb.harvard.edu/mcb/home/">
-        <img src="[% c.uri_for('/static/images/site_logos/harvard_logo.png') %]" alt="Harvard University">
+        <img src="[% c.secure_uri_for('/static/images/site_logos/harvard_logo.png') %]" alt="Harvard University">
       </a>
       <a href="https://www.sbc.su.se/">
-        <img src="[% c.uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC">
+        <img src="[% c.secure_uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC">
       </a>
   </div>
   <ul class="funding">Pfam is supported by the following organisations:
@@ -53,7 +53,7 @@ META fullPage = 1;
       <div>
         <a href="http://www.embl.org/">
           <img
-            src="[% c.uri_for('/static/images/site_logos/embl_logo.png') %]"
+            src="[% c.secure_uri_for('/static/images/site_logos/embl_logo.png') %]"
             alt="EMBL-EBI"
           >
         </a>
@@ -67,7 +67,7 @@ META fullPage = 1;
       <div>
         <a href="http://www.wellcome.ac.uk/">
           <img
-            src="[% c.uri_for('/static/images/site_logos/wt_logo.jpg') %]"
+            src="[% c.secure_uri_for('/static/images/site_logos/wt_logo.jpg') %]"
             alt="Wellcome Trust"
           >
         </a>
@@ -85,7 +85,7 @@ META fullPage = 1;
       <div>
         <a href="http://www.bbsrc.ac.uk/">
           <img
-            src="[% c.uri_for('/static/images/site_logos/bbsrc_logo.jpg') %]"
+            src="[% c.secure_uri_for('/static/images/site_logos/bbsrc_logo.jpg') %]"
             alt="BBSRC"
           >
         </a>
@@ -99,7 +99,7 @@ META fullPage = 1;
       <div>
         <a href="https://www.hhmi.org/">
           <img
-            src="[% c.uri_for('/static/images/site_logos/hhmi_logo.jpg') %]"
+            src="[% c.secure_uri_for('/static/images/site_logos/hhmi_logo.jpg') %]"
             alt="HHMI"
           >
         </a>

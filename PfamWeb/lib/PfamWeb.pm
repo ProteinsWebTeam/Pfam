@@ -28,6 +28,7 @@ use Catalyst::Runtime 5.80;
 use Sys::Hostname;
 use Config::General;
 use Log::Log4perl::Catalyst;
+use DDP;
 
 extends 'PfamBase';
 
@@ -47,7 +48,7 @@ configuration files.
 # template
 __PACKAGE__->config( server_name => hostname() );
 __PACKAGE__->config( server_pid  => $$ );
-__PACKAGE__->config(using_frontend_proxy => 1);
+__PACKAGE__->config( using_frontend_proxy => 1); #This is supposed to enable https
 
 # grab the location of the configuration file from the environment and
 # detaint it. Doing this means we can configure the location of the
@@ -66,6 +67,14 @@ __PACKAGE__->setup( qw( HTML::Widget
 # l4p output using a config file, which we specify in the main server
 # config.
 __PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config} ) );
+
+sub secure_uri_for {
+  my ($c, @args) = @_;
+  my $uri = $c->uri_for(@args);
+  $c->log->error(np($c->request->uri->scheme));
+  #$uri->scheme($c->request->uri->scheme); #re-enable after testing
+  return $uri;
+}
 
 #-------------------------------------------------------------------------------
 

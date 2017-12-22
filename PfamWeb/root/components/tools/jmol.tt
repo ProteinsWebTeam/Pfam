@@ -29,7 +29,7 @@ activeSites = String.new( 'select none; ' );
 unassigned  = String.new( 'select not (' );
 
 script      = String.new( 'background [xe7e7e7]; load "' );
-CALL script.append( c.uri_for( "/structure/getpdbfile", pdb.pdb_id ) );
+CALL script.append( c.secure_uri_for( "/structure/getpdbfile", pdb.pdb_id ) );
 CALL script.append( '"; select all; cartoons on; cpk off; wireframe off; ' );
 
 FOREACH m IN mapping;
@@ -94,7 +94,7 @@ END;
   //   # it takes the name of the parent, so targetted links back to the parent
   //   # will fail (stupid commenting to keep eclipse happy...) %]
   window.name = "jmolWin";
-  jmolInitialize(" [% c.uri_for( '/shared/jmol' ) %]"); // REQUIRED
+  jmolInitialize(" [% c.secure_uri_for( '/shared/jmol' ) %]"); // REQUIRED
   jmolSetAppletColor( "white" );
   jmolApplet(500, '[% script %]');
   // ]]>
@@ -126,16 +126,16 @@ END;
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/protein", m.pfamseq_acc.pfamseq_id ) %]" 
+        <a href="[% c.secure_uri_for( "/protein", m.pfamseq_acc.pfamseq_id ) %]" 
            onclick="opener.location=this.href;return false;">[% m.pfamseq_acc.pfamseq_id %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/family", m.pfama_acc.pfama_id ) %]"
+        <a href="[% c.secure_uri_for( "/family", m.pfama_acc.pfama_id ) %]"
           onclick="opener.location=this.href;return false;">
           [% m.pfama_acc.pfama_id %]</a>
-        (<a href="[% c.uri_for( "/family", m.pfama_acc.pfama_acc ) %]" 
+        (<a href="[% c.secure_uri_for( "/family", m.pfama_acc.pfama_acc ) %]" 
             onclick="opener.location=this.href;return false;">
           [% m.pfama_acc.pfama_acc %]</a>)
       </td>

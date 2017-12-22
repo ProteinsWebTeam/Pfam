@@ -82,9 +82,9 @@ END -%]
   <tbody>
 
   [%-
-    proteinUri         = c.uri_for( "/protein" );
-    structureUri       = c.uri_for( "/structure" );
-    structureViewerUri = c.uri_for( "/structure/viewer" );
+    proteinUri         = c.secure_uri_for( "/protein" );
+    structureUri       = c.secure_uri_for( "/structure" );
+    structureViewerUri = c.secure_uri_for( "/structure/viewer" );
 
     USE seqKeyIter = iterator( mapping.keys.sort );
     FOREACH seqKey IN seqKeyIter;

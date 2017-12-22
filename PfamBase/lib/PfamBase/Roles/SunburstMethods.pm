@@ -720,9 +720,9 @@ sub queue_alignment : Private {
   # of hashes, each of which gives details of a separate job
   my $job_status = [
                     {
-                      checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
-                      doneURI       => $c->uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
+                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
                       estimatedTime => 0,
                       interval      => $this->{pollingInterval},
                       jobId         => $job_id,

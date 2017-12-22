@@ -104,17 +104,17 @@ sub old_tree : Path( '/family/tree' ) {
   if ( ( $action || '' ) eq 'image' ) {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "image"' )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/image", $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/image", $c->req->params ) );
   }
   elsif ( ( $action || '' ) eq 'download' ) {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "download"' )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/download", $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/download", $c->req->params ) );
   }
 	else {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "tree"' )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type", $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type", $c->req->params ) );
   }
 }
 
@@ -161,7 +161,7 @@ sub gone_tree_seed : Chained( 'tree' )
 
   $c->log->debug( 'Family::Tree::gone_tree_seed: redirecting from seed alignment request' )
     if $c->debug;
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{acc}, 'tree', @args ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{acc}, 'tree', @args ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -190,7 +190,7 @@ sub image : Chained( 'tree' )
   }
     else {
     # TODO this is bad. We should avoid hard-coding a path to an image here
-    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) ) if $c->debug;
+    $c->res->redirect( $c->secure_uri_for( '/shared/images/blank.gif' ) ) if $c->debug;
   }
 
 }

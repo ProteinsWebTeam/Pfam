@@ -31,7 +31,7 @@ pageContent = BLOCK
 <script type="text/javascript">
   // <![CDATA[
   document.observe( "dom:loaded", function() {
-    var r = new Ajax.Request( "[% c.uri_for( '/pfamviewer/view' ) %]",
+    var r = new Ajax.Request( "[% c.secure_uri_for( '/pfamviewer/view' ) %]",
                                { parameters: [% paramString %],
                                  onSuccess:  function( oResponse ) {
                                                $("caph").update( oResponse.responseText );

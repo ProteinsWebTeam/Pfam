@@ -27,7 +27,7 @@ pages = [ "numbers",
 	        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
 
 # shortcuts for URIs
-clanURI = c.uri_for( "/clan" );
+clanURI = c.secure_uri_for( "/clan" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 

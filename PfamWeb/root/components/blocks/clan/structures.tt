@@ -49,7 +49,7 @@ PROCESS "components/require.tt";
 
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Request( 
-        "[% c.uri_for( '/clan/' _ clan.clan_acc _ '/structures' ) %]",
+        "[% c.secure_uri_for( '/clan/' _ clan.clan_acc _ '/structures' ) %]",
         { 
           method:     "get",
           onComplete: function( oResponse ) {

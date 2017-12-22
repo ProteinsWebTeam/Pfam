@@ -7,7 +7,7 @@
 #
 # $Id$
 
-imagesUri = c.uri_for( "/static/images" );
+imagesUri = c.secure_uri_for( "/static/images" );
 %]
 
 <!-- start view block -->
@@ -68,11 +68,11 @@ imagesUri = c.uri_for( "/static/images" );
     <ul>
       <li>
         <a onclick="popUp(this.href,'console',800,800,'jmolWin');return false;"
-           href="[% c.uri_for( "/structure/viewer", { viewer = "jmol", id = pdbId } ) | html %]">Jmol</a>
+           href="[% c.secure_uri_for( "/structure/viewer", { viewer = "jmol", id = pdbId } ) | html %]">Jmol</a>
       </li>
       <li>
         <a onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-           href="[% c.uri_for( "/structure/viewer", { viewer = "av", id = pdbId } ) | html %]">OpenAstexViewer</a>
+           href="[% c.secure_uri_for( "/structure/viewer", { viewer = "av", id = pdbId } ) | html %]">OpenAstexViewer</a>
       </li>
     </ul>
 

@@ -105,7 +105,7 @@ requirements.js.push( "domain_graphics_loader.js" );
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Updater(
         "pdgph",
-        "[% c.uri_for( '/domaingraphics', taxId ) %]",
+        "[% c.secure_uri_for( '/domaingraphics', taxId ) %]",
         {
                method: 'get',
           evalScripts: true,

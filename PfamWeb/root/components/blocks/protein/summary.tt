@@ -94,7 +94,7 @@ END;
               [% END -%]
               <br />
               [%- IF complete_proteome %]
-                <a href="[% c.uri_for( '/proteome', ncbi_taxid ) %]">
+                <a href="[% c.secure_uri_for( '/proteome', ncbi_taxid ) %]">
                   View</a> Pfam proteome data.
               [%- END;
             ELSE;
@@ -112,9 +112,9 @@ END;
           <td class="label">Reference Proteome:</td>
           <td class="data">
             [% IF ( pfamseq.pfamseq_acc ) %]
-              <img src="[% c.uri_for('/static/images/tick_18.png') %]" alt="&#10003;" />
+              <img src="[% c.secure_uri_for('/static/images/tick_18.png') %]" alt="&#10003;" />
             [% ELSE %]
-              <img src="[% c.uri_for('/static/images/cross_18.png') %]" alt="x" />
+              <img src="[% c.secure_uri_for('/static/images/cross_18.png') %]" alt="x" />
             [% END %]
           </td>
         </tr>
@@ -193,7 +193,7 @@ END;
           IF row.pfama_acc %]
             <tr class="[% loop.odd ? 'odd' : 'even' %]">
               <td class="pfama_[% row.pfama_acc.pfama_acc %]">Pfam</td>
-              <td><a href="[% c.uri_for( '/family', row.pfama_acc.pfama_id ) %]">[% row.pfama_acc.pfama_id %]</a></td>
+              <td><a href="[% c.secure_uri_for( '/family', row.pfama_acc.pfama_id ) %]">[% row.pfama_acc.pfama_id %]</a></td>
               <td>[% row.seq_start %]</td>
               <td>[% row.seq_end %]</td>
               <td class="sh" style="display: none">[% row.pfama_acc.sequence_ga %]</td>
@@ -235,14 +235,14 @@ END;
 
       [%-# build the domain graphic %]
       var pg = new PfamGraphic( "pgholder", sequence);
-      pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
+      pg.setBaseUrl( "[% c.secure_uri_for( '/' ) %]" );
       pg.render();
 
       [%-# show the blurb about the image %]
       $("pgdesc").show();
 
       [%-# a base URI for the family links in the table %]
-      var familyUri = "[% c.uri_for( '/family' ) %]";
+      var familyUri = "[% c.secure_uri_for( '/family' ) %]";
 
       [%-# colour the Pfam-A accessions in the key table according to their domain colour
          # in the graphic. If there are no regions, just hide the table instead %]

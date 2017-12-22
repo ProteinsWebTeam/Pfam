@@ -99,10 +99,10 @@ END -%]
   </thead>
   <tbody>
     [%- 
-    familyUri          = c.uri_for( "/family" );
-    proteinUri         = c.uri_for( "/protein" );
-    structureUri       = c.uri_for( "/structure" );
-    structureViewerUri = c.uri_for( "/structure/viewer" );
+    familyUri          = c.secure_uri_for( "/family" );
+    proteinUri         = c.secure_uri_for( "/protein" );
+    structureUri       = c.secure_uri_for( "/structure" );
+    structureViewerUri = c.secure_uri_for( "/structure/viewer" );
     
     USE famKeyIter = iterator( mapping.keys.sort );
     FOREACH famKey IN famKeyIter;

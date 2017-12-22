@@ -23,7 +23,7 @@ pages = [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
           "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
 
 # shortcuts for URIs
-metaseqURI = c.uri_for( "/metaseq" );
+metaseqURI = c.secure_uri_for( "/metaseq" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 
@@ -48,7 +48,7 @@ pageList = PROCESS "components/pageList.tt",
   [% FOREACH source IN browse %]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
-        <a href="[% c.uri_for( '/metadataset', entry => source.get_column('src') ) %]"> 
+        <a href="[% c.secure_uri_for( '/metadataset', entry => source.get_column('src') ) %]"> 
           [% source.get_column('long_src') %]</a>
       </td>
       <td>[% source.get_column('src') %]</td>

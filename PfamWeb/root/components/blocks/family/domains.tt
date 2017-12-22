@@ -101,7 +101,7 @@ requirements.js.push( "domain_graphics_loader.js" );
     Event.observe( window, "load", function() {
       var r = new Ajax.Updater(
         "dgph",
-        "[% c.uri_for( '/domaingraphics', acc ) %]",
+        "[% c.secure_uri_for( '/domaingraphics', acc ) %]",
         {
           method:      'get',
           evalScripts: true,

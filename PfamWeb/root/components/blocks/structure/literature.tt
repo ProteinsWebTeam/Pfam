@@ -34,7 +34,7 @@
     Event.observe( window, "load", function() {
       var r = new Ajax.Updater(
         "biolitRefs",
-        "[% c.uri_for( '/structure/annotations/references' ) %]",
+        "[% c.secure_uri_for( '/structure/annotations/references' ) %]",
         { 
           parameters: { entry: "[% pdbId %]" },
           evalScripts: true,

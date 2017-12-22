@@ -32,7 +32,7 @@ requirements.css.push( "graphicTools.css" );
 </p>
  
 <form method="post" 
-      action="[% c.uri_for( "/renderUniprotGraphic" ) %]">
+      action="[% c.secure_uri_for( "/renderUniprotGraphic" ) %]">
   <div id="form">
     <input type="hidden"
            name="formSubmit"
@@ -70,7 +70,7 @@ requirements.css.push( "graphicTools.css" );
   [% END;
 
   IF c.config.use_image_store;
-    image_uri = c.uri_for( image.file_location );
+    image_uri = c.secure_uri_for( image.file_location );
   ELSE;
     image_uri = image.file_location;
   END; %]

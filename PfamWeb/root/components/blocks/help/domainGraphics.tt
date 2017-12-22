@@ -29,8 +29,8 @@ requirements.js.push( "domain_graphics.js" );
 #-------------------------------------------------------------------------------
 
 # some URI shortcuts
-imgs   = c.uri_for( "/static/images/help" );
-family = c.uri_for( "/family" );
+imgs   = c.secure_uri_for( "/static/images/help" );
+family = c.secure_uri_for( "/family" );
 %]
 
 <!-- start domain graphics block -->
@@ -60,13 +60,13 @@ family = c.uri_for( "/family" );
 
     <p>
 			You can try generating your own graphics using the 
-      <a href="[% c.uri_for( '/generate_graphic' ) %]">domain graphics generator</a>.
+      <a href="[% c.secure_uri_for( '/generate_graphic' ) %]">domain graphics generator</a>.
       The JSON descriptions in this page can be pasted directly into the  
       generator to produce the graphics that you see here.
     </p>
     <p>
       You can also generate the domain graphics for specific sequences, using the 
-      <a href="[% c.uri_for( '/generate_uniprot_graphic' ) %]">
+      <a href="[% c.secure_uri_for( '/generate_uniprot_graphic' ) %]">
         UniProt graphics generator</a>.
     </p>
 
@@ -75,7 +75,7 @@ family = c.uri_for( "/family" );
     <p>
       Finally, if you would like to use the javascript library in your own site,
       we have put together 
-      <a href="[% c.uri_for('/help/domain_graphics_example.html' ) %]">
+      <a href="[% c.secure_uri_for('/help/domain_graphics_example.html' ) %]">
         an example page</a>, showing how to set up the library and its dependencies.
       Look at the source code of the page for an explanation.
     </p>
@@ -114,7 +114,7 @@ family = c.uri_for( "/family" );
     <p>
       The high quality, curated <em>Pfam-A</em> domains are classified into one of six 
       different types: <em>family, domain, coiled-coil, disordered, repeat</em> and <em>motif</em> 
-      (<a href="[% c.uri_for( "/help", { tab = "helpSummaryBlock" } ) %]">more details</a>). 
+      (<a href="[% c.secure_uri_for( "/help", { tab = "helpSummaryBlock" } ) %]">more details</a>). 
       These different classification types are rendered slightly differently.
     </p>
     

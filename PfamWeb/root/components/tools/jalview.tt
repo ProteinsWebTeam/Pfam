@@ -16,9 +16,9 @@ title = "Jalview: $alnType alignment for $acc";
 
 alignmentURI = "";
 IF entryType == "B";
-  alignmentURI = c.uri_for( "/pfamb/$acc/alignment" );
+  alignmentURI = c.secure_uri_for( "/pfamb/$acc/alignment" );
 ELSE;
-  alignmentURI = c.uri_for( "/family/$acc/alignment/$alnType" );
+  alignmentURI = c.secure_uri_for( "/family/$acc/alignment/$alnType" );
 END;
 -%]
 
@@ -30,14 +30,14 @@ END;
   <applet code="jalview.bin.JalviewLite" 
           width="780" 
           height="550"
-          archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
+          archive="[% c.secure_uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
     <param name="permissions" value="sandbox" />
     <param name="file" value="[% alignmentURI | html %]" />
     <param name="defaultColour" value="Clustal" />
     <param name="linkLabel_1" value="UniProt" />
     <param name="linkUrl_1" value="http://www.uniprot.org/uniprot/$SEQUENCE_ID$" />
     <param name="linkLabel_2" value="Pfam sequence page" />
-    <param name="linkUrl_2" value="[% c.uri_for( '/protein/$SEQUENCE_ID$' ) %]" />
+    <param name="linkUrl_2" value="[% c.secure_uri_for( '/protein/$SEQUENCE_ID$' ) %]" />
     <param name="embedded" value="true" /> 
     <param name="nojmol" value="true" />
   </applet>

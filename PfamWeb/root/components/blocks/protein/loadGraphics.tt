@@ -10,7 +10,7 @@
 
 META naked = 1;
 
-graphicsUri = c.uri_for( "/protein/graphics" );
+graphicsUri = c.secure_uri_for( "/protein/graphics" );
 -%]
 
 <!-- start of features map -->
@@ -77,7 +77,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
                   [% row.map %]
                 </map>
                 [% IF c.config.use_image_store;
-                  image_uri = c.uri_for( row.image );
+                  image_uri = c.secure_uri_for( row.image );
                 ELSE;
                   image_uri = row.image;
                 END; %]

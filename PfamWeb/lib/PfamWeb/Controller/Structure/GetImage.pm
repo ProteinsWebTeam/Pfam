@@ -47,7 +47,7 @@ sub get_image : Path {
   my ( $this, $c ) = @_;
 
   unless ( defined $c->stash->{pdb} ) {
-    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+    $c->res->redirect( $c->secure_uri_for( '/shared/images/blank.gif' ) );
     return;
   }
 
@@ -63,7 +63,7 @@ sub get_image : Path {
   }
   else {
     # TODO we shouldn't be hard-coding the location for blank images...
-  	$c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+  	$c->res->redirect( $c->secure_uri_for( '/shared/images/blank.gif' ) );
   }
 }
 

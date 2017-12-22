@@ -19,7 +19,7 @@ requirements.css.push( "graphicTools.css" );
 
 #-------------------------------------------------------------------------------
 
-schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
+schemaUri = c.secure_uri_for( "/static/documents/pfamDomainGraphics.xsd" );
 %]
 
 <h1>Generate domain images</h1>
@@ -50,7 +50,7 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
 [% END %]
 
 <form method="post"
-      action="[% c.uri_for( "/renderXML" ) %]"
+      action="[% c.secure_uri_for( "/renderXML" ) %]"
       enctype="multipart/form-data">
   <div id="form">
     <label for="uploadField">Upload your XML file:</label>
@@ -91,7 +91,7 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
     rendering features of the domain image generator.
   </p>
 
-  <img src="[% c.uri_for( "/static/images/domain_image_example.png" ) %]"
+  <img src="[% c.secure_uri_for( "/static/images/domain_image_example.png" ) %]"
        alt="Example Pfam graphic" />
 
 </div>
@@ -276,7 +276,7 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
 
 <p>
   <strong>Note:</strong> You can also see the domain graphics for a particular
-  UniProt entry <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">here</a>,
+  UniProt entry <a href="[% c.secure_uri_for( "/generateUniprotGraphic" ) %]">here</a>,
   along with the XML file that was used to generate the image.
 </p>
 [%#

@@ -98,7 +98,7 @@ RETURN UNLESS summaryData.numStructures;
                   <tr>
                     [% IF seqKey != prevSeqKey -%]
                       <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
-                        <a href="[% c.uri_for( '/family', seqKey ) %]">[% seqKey %]</a>
+                        <a href="[% c.secure_uri_for( '/family', seqKey ) %]">[% seqKey %]</a>
                       </td>
                     [% END;
                     IF seqKey != prevSeqKey OR resKey != prevResKey -%]
@@ -108,7 +108,7 @@ RETURN UNLESS summaryData.numStructures;
                     [% END;
                     IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
                       <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                        <a href="[% c.uri_for( '/structure', pdbKey ) %]">[% pdbKey %]</a>
+                        <a href="[% c.secure_uri_for( '/structure', pdbKey ) %]">[% pdbKey %]</a>
                     </td>
                     [% END;
                     prevSeqKey = seqKey;
@@ -123,10 +123,10 @@ RETURN UNLESS summaryData.numStructures;
                     </td>
                     <td class="[% oe % 2 ? 'odd' : 'even' %]">[% pdbResKey %]</td>
                     <td class="[% oe % 2 ? 'odd' : 'even' %]">
-                      <a href="[% c.uri_for( '/structure/viewer', { id = pdbKey, viewer = 'jmol' } ) | html %]"
+                      <a href="[% c.secure_uri_for( '/structure/viewer', { id = pdbKey, viewer = 'jmol' } ) | html %]"
                          onclick="popUp(this.href,'console',800,800,'jmolWin');return false;">
                          Jmol</a>  
-                      <a href="[% c.uri_for( '/structure/viewer', { id = pdbKey, viewer = 'av' } ) | html %]"
+                      <a href="[% c.secure_uri_for( '/structure/viewer', { id = pdbKey, viewer = 'av' } ) | html %]"
                          onclick="popUp(this.href,'console',800,800,'avWin');return false;">
                          OpenAstexViewer</a>  
                     </td>

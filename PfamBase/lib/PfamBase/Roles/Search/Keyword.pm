@@ -168,7 +168,7 @@ sub run_searches : Private {
     my ( $acc ) = keys %{$c->stash->{results}};
     $c->log->debug( "Roles::Search::Keyword::run_searches: found a single hit: |$acc|; redirecting" )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/family', { acc => $acc } ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', { acc => $acc } ) );
     return 1;
   }
 

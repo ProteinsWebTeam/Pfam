@@ -146,7 +146,7 @@ sub old_clan : Path( '/clan' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/clan', $c->stash->{param_entry}, $c->req->params ) );
 }
 
 
@@ -286,7 +286,7 @@ sub old_alignment : Path( '/clan/alignment' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, '/alignment', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/clan', $c->stash->{param_entry}, '/alignment', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -328,7 +328,7 @@ sub old_structures : Path( '/clan/structures' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, 'structures', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/clan', $c->stash->{param_entry}, 'structures', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -388,7 +388,7 @@ sub image : Chained('clan')
     $c->res->body( $c->stash->{relationshipImage} );
   } else {
     # TODO this is bad. We should avoid hard-coding a path to an image here
-    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+    $c->res->redirect( $c->secure_uri_for( '/shared/images/blank.gif' ) );
   }
 
 }
@@ -411,7 +411,7 @@ sub old_image : Path( '/clan/relationship/image' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, 'relationship_image', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/clan', $c->stash->{param_entry}, 'relationship_image', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------

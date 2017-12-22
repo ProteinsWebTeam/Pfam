@@ -89,7 +89,7 @@ sub old_logo : Path( '/family/logo' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'logo', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'logo', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ sub old_logo_image : Path( '/family/logo_image' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'logo_image', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'logo_image', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -246,7 +246,7 @@ sub old_hmm : Path( '/family/hmm' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'hmm', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'hmm', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------

@@ -40,9 +40,9 @@ requirements.js.push( "graphic_generator.js" );
   input to the form is a <a class="ext" href="http://en.wikipedia.org/wiki/Json">
     JSON</a> string that provides a description of the graphic. You can see the 
   specification of the domain graphics on the 
-  <a href="[% c.uri_for('/help') %]#tabview=tab9">help pages</a>. You can 
+  <a href="[% c.secure_uri_for('/help') %]#tabview=tab9">help pages</a>. You can 
   also generate the domain graphic for a 
-  <a href="[% c.uri_for('/generate_uniprot_graphic') %]">Uniprot sequence</a>.
+  <a href="[% c.secure_uri_for('/generate_uniprot_graphic') %]">Uniprot sequence</a>.
 </p>
 <p>
   In some browsers you can right-click on the domain graphics image and save it

@@ -91,7 +91,7 @@ sub jump : Path( '/search/jump' ) {
   if ( $action ) {
     $c->log->debug( "PfamBase::Roles::Search::Jump::jump: we've made a guess; redirecting to |$action|" )
       if $c->debug;
-    $c->stash->{url} = $c->uri_for( "/$action", $entry );
+    $c->stash->{url} = $c->secure_uri_for( "/$action", $entry );
   }
   else {
     $c->log->debug( "PfamBase::Roles::Search::Jump::jump: couldn't guess entry type..." )
@@ -126,7 +126,7 @@ sub end : Private {
     if ( $c->req->param('redirect') ) {
       $c->log->debug( 'PfamBase::Roles::Search::Jump::end: jump error; redirecting to home page' )
         if $c->debug;
-      $c->res->redirect( $c->uri_for( '/' ), 301 );
+      $c->res->redirect( $c->secure_uri_for( '/' ), 301 );
     }
     else {
       $c->res->body( $c->stash->{error} );

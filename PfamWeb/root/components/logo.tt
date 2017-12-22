@@ -33,7 +33,7 @@ IF large_logo ;
 </p>
 <p>
   If you would like to 
-  <a href="[% c.uri_for( '/family/' _ acc _ '/logo_image', { dl => 1 } ) %]">
+  <a href="[% c.secure_uri_for( '/family/' _ acc _ '/logo_image', { dl => 1 } ) %]">
     download</a> the image, you can save the image and view it locally. 
 </p>
 
@@ -47,7 +47,7 @@ IF large_logo ;
     var img = new Element( "img", 
                             {
                               alt: "", 
-                              src: "[% c.uri_for( '/family/' _ acc _ '/logo_image' ) %]"
+                              src: "[% c.secure_uri_for( '/family/' _ acc _ '/logo_image' ) %]"
                             } );
     $("logo").update( img );
   } );
@@ -57,7 +57,7 @@ IF large_logo ;
 
 
 [% ELSE -%]
-<img src="[% c.uri_for( '/family/' _ acc _ '/logo_image' ) %]"
+<img src="[% c.secure_uri_for( '/family/' _ acc _ '/logo_image' ) %]"
      alt="HMM logo" />
 [% END -%]     
 [%#

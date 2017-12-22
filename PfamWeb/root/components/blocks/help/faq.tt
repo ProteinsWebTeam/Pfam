@@ -190,7 +190,7 @@
       in the most up-to-date versions of the sequence databases. If your sequence
       isn't in Pfam, you can still find out what domains it contains by pasting it
       into the sequence search box on the 
-      <a href="[% c.uri_for('/search') %]">search page</a>.
+      <a href="[% c.secure_uri_for('/search') %]">search page</a>.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
@@ -247,7 +247,7 @@
   
     <p>
       Of course! Please use  
-      <a href="[% c.uri_for( "/search", { tab = "searchProteinBlock" } ) %]">this</a> 
+      <a href="[% c.secure_uri_for( "/search", { tab = "searchProteinBlock" } ) %]">this</a> 
       search form. 
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>

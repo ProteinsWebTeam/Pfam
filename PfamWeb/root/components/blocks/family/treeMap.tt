@@ -13,7 +13,7 @@ META naked = 1;
 <div id="[% alnType %]_tree"
      class="treemap">
 
-  <img src="[% c.uri_for( '/family', acc, 'tree/image' ) %]" 
+  <img src="[% c.secure_uri_for( '/family', acc, 'tree/image' ) %]" 
        usemap="#nhxmap" />
   
   <map name="nhxmap">
@@ -21,7 +21,7 @@ META naked = 1;
     matches = node.N.match( '^(.*?)\/\d+-\d+$' );
     IF node.area AND matches.0 %]
     <area coords="[% node.area.join( ',' ) %]" 
-          href="[% c.uri_for( "/protein", matches.0 ) %]" />
+          href="[% c.secure_uri_for( "/protein", matches.0 ) %]" />
     [% END; # of "IF node.area"
   END; # of "FOREACH" -%]
   </map>

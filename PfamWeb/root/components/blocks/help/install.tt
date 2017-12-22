@@ -25,7 +25,7 @@
     </p>
     <p>
       You can find instructions on downloading and installing the VM on a
-      set of <a href="[% c.uri_for( '/vm' ) %]">dedicated pages</a>
+      set of <a href="[% c.secure_uri_for( '/vm' ) %]">dedicated pages</a>
     </p>
     <p>
       You can still find the source code for the website and the ancillary

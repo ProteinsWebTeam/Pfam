@@ -309,7 +309,7 @@ sub build_refresh_uri : Private {
     $target = '/';
   }
 
-  return $c->uri_for( $target, $c->stash->{acc} );
+  return $c->secure_uri_for( $target, $c->stash->{acc} );
 }
 
 #-------------------------------------------------------------------------------
@@ -492,7 +492,7 @@ sub build_form : Private {
   $w->subcontainer( 'div' );
 
   # set the action - always the same for the annotation form
-  $w->action( $c->uri_for( 'submit' ) );
+  $w->action( $c->secure_uri_for( 'submit' ) );
 
   #----------------------------------------
   # add the form fields

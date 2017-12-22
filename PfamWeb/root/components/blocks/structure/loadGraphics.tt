@@ -10,7 +10,7 @@ META naked = 1;
 USE String;
 USE Dumper;
 
-baseUrl = c.uri_for( "/" );
+baseUrl = c.secure_uri_for( "/" );
 
 BLOCK graphicRow;
   # param: unpId    - sequence ID
@@ -25,7 +25,7 @@ BLOCK graphicRow;
 
     <span class="graphicLabel">
       Chain[% IF chainLabel.search("\,") %]s[% END %] [% chainIds %]
-      (UniProt entry <a href="[% c.uri_for( "/protein", unpId ) %]">[% unpId %]</a>):
+      (UniProt entry <a href="[% c.secure_uri_for( "/protein", unpId ) %]">[% unpId %]</a>):
     </span>
 
     <div class="pgholder"></div>

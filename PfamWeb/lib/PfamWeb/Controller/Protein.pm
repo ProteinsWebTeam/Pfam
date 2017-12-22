@@ -174,7 +174,7 @@ sub old_protein : Path( '/protein' ) {
     delete $c->req->params->{acc};
     delete $c->req->params->{entry};
 
-    $c->res->redirect( $c->uri_for( '/protein', $c->stash->{param_entry}, $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/protein', $c->stash->{param_entry}, $c->req->params ) );
   }
 }
 

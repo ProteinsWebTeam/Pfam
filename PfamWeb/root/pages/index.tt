@@ -74,8 +74,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   <hr />
 
    [% # URI shortcuts
-   helpBase   = c.uri_for( "/help" );
-   searchBase = c.uri_for( "/search" );
+   helpBase   = c.secure_uri_for( "/help" );
+   searchBase = c.secure_uri_for( "/search" );
    jumpUri    = "${searchBase}/jump";
    %]
 
@@ -199,7 +199,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <div style="display: none"
            class="jumpError"></div>
       <p class="small nlh">
-        You can also <a href="[% c.uri_for( "/family/browse" ) %]">browse</a>
+        You can also <a href="[% c.secure_uri_for( "/family/browse" ) %]">browse</a>
         through the list of all Pfam families.
       </p>
     </form>
@@ -233,7 +233,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <div style="display: none"
            class="jumpError"></div>
       <p class="small nlh">
-        You can also <a href="[% c.uri_for( "/clan/browse" ) %]">browse</a>
+        You can also <a href="[% c.secure_uri_for( "/clan/browse" ) %]">browse</a>
         through a list of clans.
       </p>
     </form>
@@ -268,7 +268,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
            class="jumpError"></div>
       <p class="small nlh">
         You can use <a class="ext" href="http://www.uniprot.org/">UniProt</a>
-        and <a href="[% c.uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
+        and <a href="[% c.secure_uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
           metaseq</a> accessions or identifiers, as well as<br />
         NCBI <a class="ext" href="http://www.ncbi.nlm.nih.gov/Sitemap/sequenceIDs.html">
           &quot;GI&quot; numbers</a>. GI numbers should be in the form
@@ -439,13 +439,13 @@ requirements.cssIeAll.push( "index_all_ie.css" );
         urchinTracker( "/index/shownBlog" );
       } catch( e ) {}
       eraseCookie( "hide_posts" );
-      window.location = "[% c.uri_for('/') %]";
+      window.location = "[% c.secure_uri_for('/') %]";
     }
   } );
 
   // load the latest blog posts
   document.observe( "dom:loaded", function() {
-    var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
+    var r = new Ajax.Request( "[% c.secure_uri_for( '/announcements' ) %]",
       {
         method:     "get",
         parameters: { type: "posts" },

@@ -32,7 +32,7 @@
     // set up the post-load AJAX call
     Event.observe( window, "load", function() {
       var r = new Ajax.Request(
-        "[% c.uri_for( "/structure/structuraldomains" ) %]",
+        "[% c.secure_uri_for( "/structure/structuraldomains" ) %]",
         { parameters: { id:     '[% pdbId %]' },
           onSuccess:  function( oResponse ) {
                         ("getDomph").update( oResponse.responseText );

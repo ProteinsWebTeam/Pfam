@@ -33,29 +33,29 @@
     <dl class="sitesList">
       <dt>Directly, using either accession or ID:</dt>
       <dd>
-        <a href="[% c.uri_for('/family','PF00002') %]">
-          [% c.uri_for('/family','PF00002') %]</a>
+        <a href="[% c.secure_uri_for('/family','PF00002') %]">
+          [% c.secure_uri_for('/family','PF00002') %]</a>
         or<br />
-        <a href="[% c.uri_for('/family','7tm_2') %]">
-          [% c.uri_for('/family','7tm_2') %]</a>
+        <a href="[% c.secure_uri_for('/family','7tm_2') %]">
+          [% c.secure_uri_for('/family','7tm_2') %]</a>
       </dd>
       <dt>Using a parameter, by accession:</dt>
       <dd>
-        <a href="[% c.uri_for('/family', acc='PF00002') %]">
-          [% c.uri_for('/family', acc='PF00002') %]</a>
+        <a href="[% c.secure_uri_for('/family', acc='PF00002') %]">
+          [% c.secure_uri_for('/family', acc='PF00002') %]</a>
       </dd>
       <dt>Using a parameter, by ID:</dt>
       <dd>
-        <a href="[% c.uri_for('/family', id='7tm_2') %]">
-          [% c.uri_for('/family', id='7tm_2') %]</a>
+        <a href="[% c.secure_uri_for('/family', id='7tm_2') %]">
+          [% c.secure_uri_for('/family', id='7tm_2') %]</a>
       </dd>
       <dt>Using the &quot;entry&quot; parameter with either accession or ID:</dt>
       <dd>
-        <a href="[% c.uri_for('/family',entry='PF00002') %]">
-          [% c.uri_for('/family',entry='PF00002') %]</a>
+        <a href="[% c.secure_uri_for('/family',entry='PF00002') %]">
+          [% c.secure_uri_for('/family',entry='PF00002') %]</a>
         or<br />
-        <a href="[% c.uri_for('/family', entry='7tm_2') %]">
-          [% c.uri_for('/family', entry='7tm_2') %]</a>
+        <a href="[% c.secure_uri_for('/family', entry='7tm_2') %]">
+          [% c.secure_uri_for('/family', entry='7tm_2') %]</a>
       </dd>
     </dl>
 
@@ -73,29 +73,29 @@
     <dl class="sitesList">
       <dt>Directly:</dt>
       <dd>
-        <a href="[% c.uri_for('/protein', 'P15498') %]">
-          [% c.uri_for('/protein', 'P15498') %]</a>
+        <a href="[% c.secure_uri_for('/protein', 'P15498') %]">
+          [% c.secure_uri_for('/protein', 'P15498') %]</a>
         or<br />
-        <a href="[% c.uri_for('/protein', 'VAV_HUMAN') %]">
-          [% c.uri_for('/protein', 'VAV_HUMAN') %]</a>
+        <a href="[% c.secure_uri_for('/protein', 'VAV_HUMAN') %]">
+          [% c.secure_uri_for('/protein', 'VAV_HUMAN') %]</a>
       </dd>
       <dt>By accession:</dt>
       <dd>
-        <a href="[% c.uri_for('/protein', acc='P15498') %]">
-          [% c.uri_for('/protein', acc='P15498') %]</a>
+        <a href="[% c.secure_uri_for('/protein', acc='P15498') %]">
+          [% c.secure_uri_for('/protein', acc='P15498') %]</a>
       </dd>
       <dt>By ID:</dt>
       <dd>
-        <a href="[% c.uri_for('/protein', id='VAV_HUMAN') %]">
-          [% c.uri_for('/protein', id='VAV_HUMAN') %]</a>
+        <a href="[% c.secure_uri_for('/protein', id='VAV_HUMAN') %]">
+          [% c.secure_uri_for('/protein', id='VAV_HUMAN') %]</a>
       </dd>
       <dt>Using &quot;entry&quot;:</dt>
       <dd>
-        <a href="[% c.uri_for('/protein', entry='P15498') %]">
-          [% c.uri_for('/protein', entry='P15498') %]</a>
+        <a href="[% c.secure_uri_for('/protein', entry='P15498') %]">
+          [% c.secure_uri_for('/protein', entry='P15498') %]</a>
         or<br />
-        <a href="[% c.uri_for('/protein', entry='VAV_HUMAN') %]">
-          [% c.uri_for('/protein', entry='VAV_HUMAN') %]</a>
+        <a href="[% c.secure_uri_for('/protein', entry='VAV_HUMAN') %]">
+          [% c.secure_uri_for('/protein', entry='VAV_HUMAN') %]</a>
       </dd>
     </dl>
 
@@ -121,13 +121,13 @@
     <dl class="sitesList">
       <dt>Return URL:</dt>
       <dd>
-        <a href="[% c.uri_for('/search/jump', entry='P15498') %]">
-          [% c.uri_for('/search/jump', entry='P15498') %]</a>
+        <a href="[% c.secure_uri_for('/search/jump', entry='P15498') %]">
+          [% c.secure_uri_for('/search/jump', entry='P15498') %]</a>
       </dd>
       <dt>Redirect:</dt>
       <dd>
-        <a href="[% c.uri_for('/search/jump', entry='P15498',redirect=1) %]">
-          [% c.uri_for('/search/jump', entry='P15498',redirect=1) %]</a>
+        <a href="[% c.secure_uri_for('/search/jump', entry='P15498',redirect=1) %]">
+          [% c.secure_uri_for('/search/jump', entry='P15498',redirect=1) %]</a>
       </dd>
     </dl>
     <p>

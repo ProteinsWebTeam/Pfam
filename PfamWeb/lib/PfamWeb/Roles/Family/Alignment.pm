@@ -203,7 +203,7 @@ sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/gzipped", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/gzipped", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -378,7 +378,7 @@ sub old_format : Path( '/family/alignment/download/format' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/format", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/format", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -473,7 +473,7 @@ sub old_html : Path( '/family/alignment/download/html' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/html", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/html", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -560,7 +560,7 @@ sub old_heatmap : Path( '/family/alignment/download/heatmap' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/full/heatmap', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'alignment/full/heatmap', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -609,7 +609,7 @@ sub old_jalview : Path( '/family/alignment/jalview' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/jalview", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/jalview", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -680,7 +680,7 @@ sub old_dasviewer : Path( '/family/alignment/dasviewer' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/dasViewer", $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/dasViewer", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -774,7 +774,7 @@ sub old_build : Path( '/family/alignment/builder' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/build', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'alignment/build', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -841,7 +841,7 @@ sub old_view : Path( '/family/alignment/builder/view' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/view', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'alignment/view', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1121,9 +1121,9 @@ sub queueAlignment : Private {
   # of hashes, each of which gives details of a separate job
   my $jobStatus = [
                     {
-                      checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
-                      doneURI       => $c->uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
+                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
                       jobId         => $jobId,

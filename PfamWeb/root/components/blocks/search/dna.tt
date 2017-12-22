@@ -70,7 +70,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="post" 
             id="dnaSeqSearchForm"
-            action="[% c.uri_for( "/search/dna" ) %]"
+            action="[% c.secure_uri_for( "/search/dna" ) %]"
             enctype="multipart/form-data"
             onsubmit="return checkLength()">
   

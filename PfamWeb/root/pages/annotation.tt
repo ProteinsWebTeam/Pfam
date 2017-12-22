@@ -157,7 +157,7 @@ IF buildForm OR submissionError;
       [% IF intendedRefreshUri %]
         <a href="[% intendedRefreshUri %]">entry page</a> that you came from.
       [% ELSE %]
-        <a href="[% c.uri_for( '/' ) %]">Pfam home page</a>.
+        <a href="[% c.secure_uri_for( '/' ) %]">Pfam home page</a>.
       [% END %]
       Your annotation will be entered into our request tracking system and you 
       will receive a confirmation email at the address that you specify.
@@ -178,7 +178,7 @@ IF buildForm OR submissionError;
       
       $("annotationForm_user").focus();
       
-      var url = "[% c.uri_for( '/annotate/getTs' ) %]";
+      var url = "[% c.secure_uri_for( '/annotate/getTs' ) %]";
       var r = new Ajax.Request( url, {
         onSuccess: function( response ) {
           $('annotationForm_ts').value = response.responseText;
@@ -208,8 +208,8 @@ IF buildForm OR submissionError;
       <a href="[% refreshUri %]">previous entry</a>, or you can click 
       <a href="[% refreshUri %]">here</a> to go there immediately.
     [% ELSE %]
-      In 5 seconds you will be redirected to the <a href="[% c.uri_for( '/' ) %]">Pfam 
-        home page</a>, or you can click <a href="[% c.uri_for( '/' ) %]">here</a> to go
+      In 5 seconds you will be redirected to the <a href="[% c.secure_uri_for( '/' ) %]">Pfam 
+        home page</a>, or you can click <a href="[% c.secure_uri_for( '/' ) %]">here</a> to go
       there immediately.
     [% END %]
   </p>

@@ -8,10 +8,10 @@
 #
 # $Id: head.tt,v 1.39 2009-10-07 13:24:57 jt6 Exp $
 
-# use uri_for to get the root for the static directory
-staticUri = c.uri_for( "/static" );
-sharedUri = c.uri_for( "/shared" );
-rootURI = c.uri_for( "/" ) | remove('/$');
+# use secure_uri_for to get the root for the static directory
+staticUri = c.secure_uri_for( "/static" );
+sharedUri = c.secure_uri_for( "/shared" );
+rootURI = c.secure_uri_for( "/" ) | remove('/$');
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />

@@ -57,15 +57,15 @@ oe = 0;
           <td>[% m.pdb_res_end %]</td>
           <td>
             [% IF m.pfamseq_acc.pfamseq_acc == "" %]
-              <a href="[% c.uri_for( "/protein", m.pfamseq_acc.pfamseq_acc ) %]">[% m.pfamseq_acc.pfamseq_id %]</a>
+              <a href="[% c.secure_uri_for( "/protein", m.pfamseq_acc.pfamseq_acc ) %]">[% m.pfamseq_acc.pfamseq_id %]</a>
             [% ELSE %]
-              <a href="[% c.uri_for( "/protein", m.uniprot_acc.uniprot_acc ) %]">[% m.uniprot_acc.uniprot_acc %]</a>
+              <a href="[% c.secure_uri_for( "/protein", m.uniprot_acc.uniprot_acc ) %]">[% m.uniprot_acc.uniprot_acc %]</a>
             [% END %]
           </td>
 
           <td>[% m.seq_start %]</td>
           <td>[% m.seq_end %]</td>
-          [% familyUri = c.uri_for( "/family", m.pfama_acc.pfama_acc ) -%]
+          [% familyUri = c.secure_uri_for( "/family", m.pfama_acc.pfama_acc ) -%]
           <td><a href="[% familyUri %]">[% m.pfama_acc.pfama_id %]</a>
             (<a href="[% familyUri %]">[% m.pfama_acc.pfama_acc %]</a>)</td>
         </tr>

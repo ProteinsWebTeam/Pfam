@@ -10,7 +10,7 @@
 <div id="siteFooter">
   <p>
     Questions or comments:
-    <img src="[% c.uri_for( '/static/images/pfam-email.png' ) %]" 
+    <img src="[% c.secure_uri_for( '/static/images/pfam-email.png' ) %]" 
          alt="pfam webmaster email"
          id="emailImage"/>
   </p>

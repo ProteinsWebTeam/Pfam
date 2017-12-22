@@ -39,7 +39,7 @@
         // submit the AJAX request that will load the image map and the 
         // associated <img>
         var r = new Ajax.Request(
-          "[% c.uri_for( '/family', acc, 'tree/html' ) %]", 
+          "[% c.secure_uri_for( '/family', acc, 'tree/html' ) %]", 
           { 
             method: "get",
             onSuccess: function( oResponse ) {
@@ -63,7 +63,7 @@
 
     <p>
       <strong>Note:</strong> You can also download the
-      <a href="[% c.uri_for( '/family/' _ acc _ '/tree/download' ) %]">data file</a>
+      <a href="[% c.secure_uri_for( '/family/' _ acc _ '/tree/download' ) %]">data file</a>
       for the tree.
     </p>
 

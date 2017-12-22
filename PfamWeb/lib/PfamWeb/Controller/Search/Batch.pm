@@ -91,7 +91,7 @@ sub search : Path {
   # if we get to here then the job was submitted successfully. Before handing
   # off to the template, set a refresh URI that will be picked up by head.tt
   # and used in a meta refresh element
-  $c->stash->{refreshUri}   = $c->uri_for( '/search' );
+  $c->stash->{refreshUri}   = $c->secure_uri_for( '/search' );
   $c->stash->{refreshDelay} = 30;
 
   $c->log->debug( 'Search::Batch::search: protein batch search submitted' )

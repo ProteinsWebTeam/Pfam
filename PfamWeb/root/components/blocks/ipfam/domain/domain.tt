@@ -20,7 +20,7 @@
   	[% FOREACH domain IN domainInts %]
   	<p>
   	  [% domain.pfamA_id %]
-      <a href="[%" c.uri_for( "/int/domaindomain", acc1=domain.pfamA_acc, acc2=pfam.pfamA_acc ) | uri | html %]">
+      <a href="[%" c.secure_uri_for( "/int/domaindomain", acc1=domain.pfamA_acc, acc2=pfam.pfamA_acc ) | uri | html %]">
         link</a>.
     </p>
   	[% END %]

@@ -38,7 +38,7 @@ requirements.css.push( "graphicTools.css" );
 [% END %]
 
 <form method="post" 
-      action="[% c.uri_for( "/renderUniprotGraphic" ) %]">
+      action="[% c.secure_uri_for( "/renderUniprotGraphic" ) %]">
   <div id="form">
     <input type="hidden"
            name="formSubmit"

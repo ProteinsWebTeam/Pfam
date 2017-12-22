@@ -20,7 +20,7 @@ BLOCK graphicRow; -%]
        class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
     <span class="graphicLabel">
-      <a href="[% c.uri_for( "/protein", id ) %]">[% id %]</a>
+      <a href="[% c.secure_uri_for( "/protein", id ) %]">[% id %]</a>
       [% # capitalise the species name
       info = String.new( seqInfo.$id.species );
       "["; info.replace( '\[\s*', '' ).capital; "]" -%]
@@ -62,8 +62,8 @@ END; # of "FOREACH id" -%]
    
   var layout = [% layout OR "{}" %];
   var assignedColours = [% assignedColours OR "{}" %];
-  var loadUri = "[% c.uri_for( '/domaingraphics', acc ) %]";
-  var baseUri = "[% c.uri_for( '/' ) %]";
+  var loadUri = "[% c.secure_uri_for( '/domaingraphics', acc ) %]";
+  var baseUri = "[% c.secure_uri_for( '/' ) %]";
 
   var dgl = new DomainGraphicsLoader( loadUri, layout, assignedColours, baseUri );
 
@@ -98,7 +98,7 @@ END; # of "FOREACH id" -%]
 
           var r = new Ajax.Updater( 
             "next[% first %]",
-            "[% c.uri_for( '/domaingraphics' ) %]",
+            "[% c.secure_uri_for( '/domaingraphics' ) %]",
             {
               method:      "get",
               evalScripts: true,

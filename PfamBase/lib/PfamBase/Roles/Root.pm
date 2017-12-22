@@ -350,7 +350,7 @@ sub favicon : Path( '/favicon.ico' ) {
   my ( $this, $c ) = @_;
   
   # set the status to 301 "Moved permanently" too.
-  $c->res->redirect( $c->uri_for( '/static/images/favicon.png' ), 301 );
+  $c->res->redirect( $c->secure_uri_for( '/static/images/favicon.png' ), 301 );
 }
 
 #-------------------------------------------------------------------------------

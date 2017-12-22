@@ -38,7 +38,7 @@ RETURN UNLESS summaryData.numStructures;
       Event.observe( window, "load", function() {
         var r = new Ajax.Updater(
           "structureTableDiv",
-          "[% c.uri_for( "/proteome/structures" ) %]",
+          "[% c.secure_uri_for( "/proteome/structures" ) %]",
           {
             evalScripts: true,
             parameters:  { taxId: "[% taxId %]" },

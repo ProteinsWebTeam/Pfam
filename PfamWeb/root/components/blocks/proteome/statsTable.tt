@@ -65,19 +65,19 @@ IF c.req.param('full') OR statsData.size < 500;
     [% FOREACH row IN data -%]
     <tr class="[% oe % 2 ? 'odd' :'even'; oe=oe+1 %]">
       <td>
-        <a href="[% c.uri_for( '/family', row.get_column('pfama_acc') ) %]">
+        <a href="[% c.secure_uri_for( '/family', row.get_column('pfama_acc') ) %]">
           [% row.get_column('pfama_id') %]</a>
       </td>
       <td>[% row.get_column('description') %]</td>
       <td>[% row.get_column('numberSeqs')  %]</td>
       <td>[% row.get_column('numberRegs')  %]</td>
       <td class="showSwitch">
-        <a href="[% c.uri_for( '/proteome/graphics', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]"
+        <a href="[% c.secure_uri_for( '/proteome/graphics', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]"
            class="btn showHide">
           <span class="btn-inner">Show</span></a>
       </td>
       <td class="showSwitch">
-        <a href="[% c.uri_for( '/proteome/alignment/builder', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]"
+        <a href="[% c.secure_uri_for( '/proteome/alignment/builder', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]"
            class="btn showHide">
           <span class="btn-inner">Show</span></a>
       </td>
@@ -115,7 +115,7 @@ IF c.req.param('full') OR statsData.size < 500;
         // and finally make the AJAX call
         var r = new Ajax.Updater(
           "statsTableDiv",
-          "[% c.uri_for( '/proteome/stats' ) %]",
+          "[% c.secure_uri_for( '/proteome/stats' ) %]",
           {
             method:     "get",
             parameters: { taxId: "[% taxId %]",

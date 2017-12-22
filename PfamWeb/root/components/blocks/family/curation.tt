@@ -8,7 +8,7 @@
 # $Id: curation.tt,v 1.27 2009-10-07 13:37:44 jt6 Exp $
 
 # URI shortcuts
-rootUri = c.uri_for( "/" );
+rootUri = c.secure_uri_for( "/" );
 infoGIF = "${rootUri}shared/images/info.gif";
 help    = "${rootUri}help";
 %]
@@ -174,7 +174,7 @@ help    = "${rootUri}help";
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Download:</td>
           <td class="data">
-             <a href="[% c.uri_for( '/family/' _ acc _ '/hmm' ) %]">
+             <a href="[% c.secure_uri_for( '/family/' _ acc _ '/hmm' ) %]">
                download</a> the raw HMM for this family
           </td>
         </tr>

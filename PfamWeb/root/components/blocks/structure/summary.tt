@@ -57,16 +57,16 @@ oe    = 0;
 
     [% IF pdb.pdb_images %]
       <div class="pdbImageFragment">
-        <a href="[% c.uri_for( '/structure/getimage', { id = pdbId } ) %]" 
+        <a href="[% c.secure_uri_for( '/structure/getimage', { id = pdbId } ) %]" 
            rel="lightbox" 
            title="PDB entry [% pdbId %]">
           <img class="pdbImage" 
-               src="[% c.uri_for( '/structure/getimage', { id = pdbId, size = 's' } ) | html %]"
+               src="[% c.secure_uri_for( '/structure/getimage', { id = pdbId, size = 's' } ) | html %]"
                alt="[% pdbId %]" /></a>
         <br />
         <span class="pdbTitle">PDB entry [% pdbId %]</span>: [% title %]
         <br />
-        <a href="[% c.uri_for( '/structure/getimage', { id = pdbId } ) %]" 
+        <a href="[% c.secure_uri_for( '/structure/getimage', { id = pdbId } ) %]" 
            rel="lightbox" 
            title="PDB entry [% pdbId %]"
            class="small">Enlarge</a> image.
@@ -239,7 +239,7 @@ oe    = 0;
       // topsan annotation
       var r = new Ajax.Updater(
         "topsan",
-        "[% c.uri_for( '/structure/annotations/topsan', pdbId ) %]"
+        "[% c.secure_uri_for( '/structure/annotations/topsan', pdbId ) %]"
       );
 
       // PDBprints (http://www.ebi.ac.uk/pdbe-apps/widgets/pdbprints)

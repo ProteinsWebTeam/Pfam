@@ -7,7 +7,7 @@
 # $Id: align.tt,v 1.33 2009-10-28 11:58:43 jt6 Exp $
 
 # shortcut to the alignment tools
-alignmentUri = c.uri_for( "/family", acc, "alignment" );
+alignmentUri = c.secure_uri_for( "/family", acc, "alignment" );
 %]
 
 <!-- start align block -->
@@ -271,8 +271,8 @@ footnotes = [ [ ],
     
     <p id="viewAlignOptsKey">
       <strong>Key:</strong>
-      <img src="[% c.uri_for('/static/images/tick_18.png') %]" alt="&#10003;" /> available,
-      <img src="[% c.uri_for('/static/images/cross_18.png') %]" alt="x" /> not generated,
+      <img src="[% c.secure_uri_for('/static/images/tick_18.png') %]" alt="&#10003;" /> available,
+      <img src="[% c.secure_uri_for('/static/images/cross_18.png') %]" alt="x" /> not generated,
       <strong>&mdash;</strong> not available.
     </p>
 
@@ -346,7 +346,7 @@ footnotes = [ [ ],
     [%- # we'll stick to the "legacy" URL for this form, since it's not
         # processed by any javascript that can convert the form parameters
         # into URL arguments -%]
-    <form action="[% c.uri_for( '/family/alignment/download/format' ) %]" 
+    <form action="[% c.secure_uri_for( '/family/alignment/download/format' ) %]" 
           id="formatForm">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -378,7 +378,7 @@ footnotes = [ [ ],
               [%- av_len = pfam.average_length;
               USE colIter = iterator(optCols);
               FOREACH type IN colIter;
-                url = c.uri_for( "/family", acc, "alignment", type );
+                url = c.secure_uri_for( "/family", acc, "alignment", type );
                 numSeq = optCounts.$type;
                 scale  = numSeq * av_len %]
                 <td class="radio [% ( numSeq AND numSeq != 0 ) ? 'available' : 'unavailable' %]">
@@ -497,7 +497,7 @@ footnotes = [ [ ],
           <td class="label">Raw Stockholm</td>
           [%- USE colIter = iterator(optCols);
           FOREACH type IN colIter;
-            url = c.uri_for( "/family", acc, "alignment", type );
+            url = c.secure_uri_for( "/family", acc, "alignment", type );
             numSeq = optCounts.$type;
             scale  = numSeq * av_len;
             IF numSeq > 0 AND scale < raw_sequence_scale %]
@@ -516,7 +516,7 @@ footnotes = [ [ ],
           <td class="label">Gzipped</td>
           [%- USE colIter = iterator(optCols);
           FOREACH type IN colIter;
-            url = c.uri_for( "/family", acc, "alignment", type, "gzipped" );
+            url = c.secure_uri_for( "/family", acc, "alignment", type, "gzipped" );
             numSeq = optCounts.$type;
             scale  = numSeq * av_len;
             IF numSeq > 0 AND scale < raw_sequence_scale %]

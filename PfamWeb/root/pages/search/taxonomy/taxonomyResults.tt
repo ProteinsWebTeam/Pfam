@@ -50,13 +50,13 @@ META fullPage = 1;
       </p>
       <img class="loadingBar"
            alt="Searching..."
-           src="[% c.uri_for( "/shared/images/blank.gif" ) %]" />
+           src="[% c.secure_uri_for( "/shared/images/blank.gif" ) %]" />
     </div>
 
     <div id="returnDiv" style="display: none">
       <p>
         You can return to the 
-        <a href="[% c.uri_for( "/search", { tab = "searchTaxBlock" } ) %]">
+        <a href="[% c.secure_uri_for( "/search", { tab = "searchTaxBlock" } ) %]">
           taxonomy search</a> page to try a different query.
       </p>
     </div>
@@ -72,7 +72,7 @@ META fullPage = 1;
 
   var r = new Ajax.Updater( 
     "results",
-    "[% c.uri_for( '/search/taxonomy/results' ) %]",
+    "[% c.secure_uri_for( '/search/taxonomy/results' ) %]",
     {
       method:      "get",
       evalScripts: true,

@@ -66,12 +66,12 @@ END;
             <tr class="[% aIter.index % 2 ? "odd" : "even" %]">
               [% IF loop.first %]
               <td class="fixed" rowspan="[% loop.size %]">
-                <a href="[% c.uri_for( "/family", { id = a } ) %]">
+                <a href="[% c.secure_uri_for( "/family", { id = a } ) %]">
                   [% a %]</a>
               </td>
               [% END %]
               <td class="fixed">
-                <a href="[% c.uri_for( "/family", { id = b } ) %]">
+                <a href="[% c.secure_uri_for( "/family", { id = b } ) %]">
                   [% b %]</a>
               </td>
             </tr>

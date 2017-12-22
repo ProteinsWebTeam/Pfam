@@ -58,7 +58,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       [% END %]
   
       <form id="funshiftSearchForm"
-            action="[% c.uri_for( "/search/funshift" ) %]">
+            action="[% c.secure_uri_for( "/search/funshift" ) %]">
 
         <div class="row">
           <label for="fs">Pfam ID or accession</label>

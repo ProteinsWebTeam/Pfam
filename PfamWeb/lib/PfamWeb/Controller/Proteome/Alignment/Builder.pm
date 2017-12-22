@@ -223,9 +223,9 @@ sub queue_alignment : Private {
   # of hashes, each of which gives details of a separate job
   my $jobStatus = [
                     {
-                      checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
-                      doneURI       => $c->uri_for( '/proteome/alignment/builder/view',
+                      doneURI       => $c->secure_uri_for( '/proteome/alignment/builder/view',
                                                     { pfamAcc => $c->stash->{pfam}->pfama_acc,
                                                       taxId   => $c->stash->{taxId} } )
                                          ->as_string,

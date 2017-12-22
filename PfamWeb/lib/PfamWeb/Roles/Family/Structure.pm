@@ -112,7 +112,7 @@ sub old_structures : Path( '/family/structures' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'structures', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'structures', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ sub old_mapping : Path( '/family/structures/mapping' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'mapping', $c->req->params ) );
+  $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, 'mapping', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------

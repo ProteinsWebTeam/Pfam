@@ -53,7 +53,7 @@ title = "View selected sequences"
   <p>
     [% i = 0;
     WHILE i < 10 %]
-      <a href="[% c.uri_for( '/protein', selectedSeqAccs.$i ) %]">
+      <a href="[% c.secure_uri_for( '/protein', selectedSeqAccs.$i ) %]">
         [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -64,7 +64,7 @@ title = "View selected sequences"
   <div id="extraAccs" style="display: none">
     [% i = 10;
     WHILE i < selectedSeqAccs.size %]
-    <a href="[% c.uri_for( '/protein', selectedSeqAccs.$i ) %]">
+    <a href="[% c.secure_uri_for( '/protein', selectedSeqAccs.$i ) %]">
       [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -73,7 +73,7 @@ title = "View selected sequences"
 [% ELSE %]
   <p>
   [% FOREACH seqAcc IN selectedSeqAccs %]
-    <a href="[% c.uri_for( '/protein', seqAcc ) %]">[% seqAcc %]</a>
+    <a href="[% c.secure_uri_for( '/protein', seqAcc ) %]">[% seqAcc %]</a>
   [% END %]
   </p>
 [% END %]  
@@ -90,7 +90,7 @@ title = "View selected sequences"
   document.observe( "dom:loaded", function() {
     var r = new Ajax.Updater(
       "stdgph",
-      "[% c.uri_for( '/domaingraphics' ) %]",
+      "[% c.secure_uri_for( '/domaingraphics' ) %]",
       { evalScripts: true,
         parameters: { jobId:   "[% jobId %]",
                       subTree: 1 },

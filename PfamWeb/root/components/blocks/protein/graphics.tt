@@ -24,7 +24,7 @@ requirements.js.push( 'domain_graphics.js');
 
 #-------------------------------------------------------------------------------
 
-graphicsUri = c.uri_for( "/protein/graphics" );
+graphicsUri = c.secure_uri_for( "/protein/graphics" );
 -%]
 
 <!-- start protein graphics block -->
@@ -276,7 +276,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
 
       pg.setImageParams( {yOffset : 0 } );
       pg.setSequence( sequence );
-      pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
+      pg.setBaseUrl( "[% c.secure_uri_for( '/' ) %]" );
 
       pg.render();
       

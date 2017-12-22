@@ -62,7 +62,7 @@ USE String
     </h3>
 
     <span class="graphicLabel">
-	  <a href="[% c.uri_for( "/protein", id=image.image_name ) %]">
+	  <a href="[% c.secure_uri_for( "/protein", id=image.image_name ) %]">
         [% image.image_name %]</a>
       [% image.image_info %]
       ([% image.length / image.scale_x %] residues)

@@ -73,7 +73,7 @@ BLOCK graphicRow;
     [% END %]
 
     <span class="graphicLabel">
-      <a href="[% c.uri_for( "/protein", id ) %]">[% id %]</a>
+      <a href="[% c.secure_uri_for( "/protein", id ) %]">[% id %]</a>
       [% # capitalise the species name
       info = String.new( seqInfo.$id.species );
       "["; info.replace( '\[\s*', '' ).capital; "]" -%]
@@ -101,7 +101,7 @@ BLOCK graphicRow;
         IF taxId != "";
           loadParams.taxId = taxId;
         END;
-        loadUri = c.uri_for( "/domaingraphics", loadParams );
+        loadUri = c.secure_uri_for( "/domaingraphics", loadParams );
          -%]
         <span>
           <span class="link loadLink">Show</span> all sequences with this architecture.
@@ -170,13 +170,13 @@ END -%]
   var layout = [% layout OR "{}" %];
   var assignedColours = [% assignedColours OR "{}" %];
   [% IF acc %]
-  var loadUri = "[% c.uri_for( '/domaingraphics', acc ) %]";
+  var loadUri = "[% c.secure_uri_for( '/domaingraphics', acc ) %]";
   [% ELSIF taxId %]
-  var loadUri = "[% c.uri_for( '/domaingraphics', taxId ) %]";
+  var loadUri = "[% c.secure_uri_for( '/domaingraphics', taxId ) %]";
   [% ELSE %]
-  var loadUri = "[% c.uri_for( '/domaingraphics' ) %]";
+  var loadUri = "[% c.secure_uri_for( '/domaingraphics' ) %]";
   [% END %]
-  var baseUri = "[% c.uri_for( '/' ) %]";
+  var baseUri = "[% c.secure_uri_for( '/' ) %]";
 
   var dgl = new DomainGraphicsLoader( loadUri, layout, assignedColours, baseUri );
 
@@ -190,7 +190,7 @@ END -%]
       // console.debug( "assignedColours: " + assignedColours );
       var r = new Ajax.Updater( 
         "next[% first %]",
-        "[% c.uri_for( '/domaingraphics', taxId ) %]",
+        "[% c.secure_uri_for( '/domaingraphics', taxId ) %]",
         {
           method:      "post",
           evalScripts: true,

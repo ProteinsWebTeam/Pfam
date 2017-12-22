@@ -52,7 +52,7 @@
       traditional, curator-produced family annotations, replacing them with
       Wikipedia articles. Starting from Pfam release 25.0, you will see that
       some family pages in the Pfam website show 
-      <a href="[% c.uri_for( '/static/images/help/piwi_page.png' ) %]" 
+      <a href="[% c.secure_uri_for( '/static/images/help/piwi_page.png' ) %]" 
          rel="lightbox" 
          title="A Pfam family page with Wikipedia content">
         Wikipedia content</a> rather than our own annotations. Ultimately 
@@ -66,7 +66,7 @@
     <h2><a name="wikiContent">Wikipedia content in the Pfam website</a></h2>
 
     <img class="jumpTo" 
-         src="[% c.uri_for( '/static/images/help/wikipedia_tab_small.png' ) %]" 
+         src="[% c.secure_uri_for( '/static/images/help/wikipedia_tab_small.png' ) %]" 
          alt="wikipedia tab..." />
     <p>
       When we build a new Pfam family, we try to find a Wikipedia article that
@@ -87,7 +87,7 @@
       improvements and corrections themselves.
     </p>
     <img class="jumpTo" 
-         src="[% c.uri_for( '/static/images/help/pfam_tab_small.png' ) %]" 
+         src="[% c.secure_uri_for( '/static/images/help/pfam_tab_small.png' ) %]" 
          alt="pfam tab..." />
     <p>
       Unfortunately, while new Pfam families will have Wikipedia articles

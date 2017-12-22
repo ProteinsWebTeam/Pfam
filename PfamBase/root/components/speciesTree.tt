@@ -166,7 +166,7 @@ ELSE;
         CASE "R"; "family";
       END %] has [% numSpecies %] species, which means that displaying the 
       interactive tree is not feasible, but you can still 
-      <a href="[% c.uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">download</a>
+      <a href="[% c.secure_uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">download</a>
       a text representation of the tree. Please note that, due to the 
       volume of data involved, this can still be slow.
     </p>
@@ -186,7 +186,7 @@ ELSE;
       END %] has [% numSpecies %] species, which means that generating and
       displaying the interactive tree could take up to a minute or more, 
       depending on your browser and the speed of your computer. You can 
-      <a href="[% c.uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">download</a>
+      <a href="[% c.secure_uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">download</a>
       a text representation of the tree, which should be quicker, but if you
       want to see the interactive tree, please use the button below.
     </p>

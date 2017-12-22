@@ -34,7 +34,7 @@ oe = 0;
           member.pfama_id;
         ELSE %]
           <a title="[% member.pfama_acc %]"
-             href="[% c.uri_for( '/family', member.pfama_acc ) %]">
+             href="[% c.secure_uri_for( '/family', member.pfama_acc ) %]">
             [% member.pfama_id %]</a>
         [% END %]
         </span>
@@ -44,8 +44,8 @@ oe = 0;
 
     <p>
       This family is a member of clan <strong>
-      <a href="[% c.uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
-      (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>), 
+      <a href="[% c.secure_uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
+      (<a href="[% c.secure_uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>), 
       which has the following description:
     </p>
     <p class="quote">

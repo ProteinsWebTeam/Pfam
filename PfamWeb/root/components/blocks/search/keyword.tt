@@ -49,7 +49,7 @@
       [% END %]
   
       <form id="keywordSearchForm"
-            action="[% c.uri_for( "/search/keyword" ) %]">
+            action="[% c.secure_uri_for( "/search/keyword" ) %]">
 
     	    <div class="row">
           <label for="kwQuery">Keyword(s)</label>

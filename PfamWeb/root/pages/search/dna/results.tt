@@ -245,7 +245,7 @@ END; # of "IF seqSearchError"
   <div id="loading">
     <img class="loadingBar"
          alt="Searching..."
-         src="[% c.uri_for( '/shared/images/blank.gif' ) %]" />
+         src="[% c.secure_uri_for( '/shared/images/blank.gif' ) %]" />
          <br />
     Waiting for the results of 
     <span id="numJobs">6</span>
@@ -277,7 +277,7 @@ END; # of "IF seqSearchError"
     </div>
     <div class="cleaner"><!-- empty --></div>
 
-    [% redirectUri = c.uri_for( '/search/dna/results', jobId ) %]
+    [% redirectUri = c.secure_uri_for( '/search/dna/results', jobId ) %]
     <p>
       You can bookmark
       <a href="[% redirectUri | html %]">
@@ -293,7 +293,7 @@ END; # of "IF seqSearchError"
   <div id="errors" style="display: none"></div>
 
   <p id="searchFormLink" style="display: none">
-    <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a>
+    <a href="[% c.secure_uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a>
     to the search form to look for Pfam domains on a new sequence.
   </p>
 
@@ -420,9 +420,9 @@ END; # of "IF seqSearchError"
 
   var resultsConfig = {
     options:      [% json_options || "{}" %],
-    pollUrl:      "[% c.uri_for( '/search/dna/resultset', jobId ) %]",
-    loadTableUrl: "[% c.uri_for( '/search/dna/resulttable', jobId ) %]",
-    baseUrl:      "[% c.uri_for( '/' ) %]",
+    pollUrl:      "[% c.secure_uri_for( '/search/dna/resultset', jobId ) %]",
+    loadTableUrl: "[% c.secure_uri_for( '/search/dna/resulttable', jobId ) %]",
+    baseUrl:      "[% c.secure_uri_for( '/' ) %]",
     dnaSeq:       "[% sequences.0 %]",
     proteinSeqs:  [
       [% FOREACH sequence IN sequences.slice(1);

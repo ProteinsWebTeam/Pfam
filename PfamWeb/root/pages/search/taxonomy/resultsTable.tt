@@ -22,7 +22,7 @@ META naked = 1;
   </thead>
   <tbody>
   [% FOREACH family IN families.keys.sort;
-  familyUri = c.uri_for( "/family", family ) -%]
+  familyUri = c.secure_uri_for( "/family", family ) -%]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
         <a href="[% familyUri %]">[% family %]</a>

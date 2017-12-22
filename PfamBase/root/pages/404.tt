@@ -69,9 +69,9 @@ META title = "Page not found"
     </dt>
     <dd>
       you could try 
-      <a href="[% c.uri_for( '/family/browse', browse='new' ) %]">browsing</a> 
+      <a href="[% c.secure_uri_for( '/family/browse', browse='new' ) %]">browsing</a> 
       the families in the database, or you could look around the website, 
-      starting at our <a href="[% c.uri_for( "/" ) %]">home page</a>
+      starting at our <a href="[% c.secure_uri_for( "/" ) %]">home page</a>
     </dd>  
   </dl>
  

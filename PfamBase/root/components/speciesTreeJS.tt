@@ -8,7 +8,7 @@
 #
 # $Id: speciesTreeJS.tt,v 1.5 2010-01-19 10:00:08 jt6 Exp $
 
-stUri = c.uri_for( "/speciestree" );
+stUri = c.secure_uri_for( "/speciestree" );
 %]
 
 <script type="text/javascript">

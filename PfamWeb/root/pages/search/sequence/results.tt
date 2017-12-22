@@ -81,7 +81,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
     <div id="loadingMessage">
       <img class="loadingBar"
            alt="Searching..."
-           src="[% c.uri_for( "/shared/images/blank.gif" ) %]" />
+           src="[% c.secure_uri_for( "/shared/images/blank.gif" ) %]" />
            <br />
       Waiting for the results of 
       <span id="numJobs">[% numJobs %]</span>
@@ -243,7 +243,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
       </div>
       <div class="cleaner"><!-- empty --></div>
 
-      [%- redirectUri = c.uri_for( '/search/sequence/results', jobId ); -%]
+      [%- redirectUri = c.secure_uri_for( '/search/sequence/results', jobId ); -%]
       <p>
         You can bookmark
         <a href="[% redirectUri | html %]">
@@ -259,7 +259,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
     <div id="errors" style="display: none"></div>
 
     <p>
-      <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a>
+      <a href="[% c.secure_uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a>
       to the search form to look for Pfam domains on a new sequence.
     </p>
 
@@ -297,8 +297,8 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
 
   var resultsConfig = {
     options:    [% json_options || "{}" %],
-    pollUrl:    "[% c.uri_for( '/search/sequence/resultset', jobId ) %]",
-    baseUrl:    "[% c.uri_for( '/' ) %]",
+    pollUrl:    "[% c.secure_uri_for( '/search/sequence/resultset', jobId ) %]",
+    baseUrl:    "[% c.secure_uri_for( '/' ) %]",
     elements: {
       errors:      $("errors"),
       update:      $("results"),

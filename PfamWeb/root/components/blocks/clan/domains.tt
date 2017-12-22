@@ -81,7 +81,7 @@
 
     Event.observe( window, "load", function() {
       var r = new Ajax.Request(
-        "[% c.uri_for( '/domaingraphics' ) %]",
+        "[% c.secure_uri_for( '/domaingraphics' ) %]",
         { 
           method:     "get",
           parameters: { acc: "[% clan.clan_acc %]" },

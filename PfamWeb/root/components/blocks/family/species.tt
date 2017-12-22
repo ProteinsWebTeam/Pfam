@@ -77,7 +77,7 @@ requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
   </div>
 
-  [% stUri = c.uri_for( "/speciestree" ); -%]
+  [% stUri = c.secure_uri_for( "/speciestree" ); -%]
 
   <script type="text/javascript">
     // <![CDATA[
@@ -100,7 +100,7 @@ requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
     // the URL to visit when the user selects nodes and wants to view the 
     // selected sequences as an alignment - Pfam specific
-    var selectPfamAlignmentURI = "[% c.uri_for( '/family/' _ acc _ '/alignment/build' ) %]";
+    var selectPfamAlignmentURI = "[% c.secure_uri_for( '/family/' _ acc _ '/alignment/build' ) %]";
 
     // the URL to visit when the user selects nodes and wants to download the 
     // selected sequences as an alignment - Rfam specific

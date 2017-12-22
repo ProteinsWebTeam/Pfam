@@ -264,10 +264,10 @@ sub family_page : Chained( 'family' )
 
     if ( $c->stash->{pfam}->forward_to ) {
       $c->stash->{refreshUri} =
-        $c->uri_for( '/family', $c->stash->{pfam}->forward_to );
+        $c->secure_uri_for( '/family', $c->stash->{pfam}->forward_to );
     }
     else {
-      $c->stash->{refreshUri} = $c->uri_for( '/' );
+      $c->stash->{refreshUri} = $c->secure_uri_for( '/' );
 
       # the default delay for redirecting is 5 seconds, but that's maybe
       # too short to allow the user to read the message telling them that
@@ -292,7 +292,7 @@ sub family_page : Chained( 'family' )
       if $c->debug;
 
     $c->stash->{refreshUri} =
-      $c->uri_for( '/family', $c->stash->{acc} );
+      $c->secure_uri_for( '/family', $c->stash->{acc} );
 
     # set the template for the intermediate page
     $c->stash->{template} = 'pages/moved.tt';
@@ -431,7 +431,7 @@ sub old_family : Path( '/family' ) {
   delete $c->req->params->{entry};
 
   if ( $c->stash->{param_entry} ) {
-    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
+    $c->res->redirect( $c->secure_uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
   }
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';

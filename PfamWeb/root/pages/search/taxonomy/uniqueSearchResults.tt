@@ -8,7 +8,7 @@
 
 META naked = 1;
 
-searchUri = c.uri_for( "/search", { tab = "searchTaxBlock" } );
+searchUri = c.secure_uri_for( "/search", { tab = "searchTaxBlock" } );
 
 # first, check for error messages
 IF uniqueSearchError %]

@@ -85,13 +85,13 @@ sharedRequirements.css.push( "prettify.css" );
       would visit the following URL in your browser:
     </p>
     <pre class="url">
-[% c.uri_for( '/family/Piwi' ) %]</pre>
+[% c.secure_uri_for( '/family/Piwi' ) %]</pre>
     <p>
       To retrieve the data in XML format, just add an extra parameter,
       <code>output=xml</code>, to the URL:
     </p>
     <pre class="url">
-[% c.uri_for( '/family/Piwi', output => 'xml' ) %] </pre>
+[% c.secure_uri_for( '/family/Piwi', output => 'xml' ) %] </pre>
     <p>
       The response from the server will now be an XML document, rather than an
       HTML page.
@@ -112,7 +112,7 @@ sharedRequirements.css.push( "prettify.css" );
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( "/family/Piwi" ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.secure_uri_for( "/family/Piwi" ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -125,7 +125,7 @@ sharedRequirements.css.push( "prettify.css" );
     ...</pre>
       </div>
     </fieldset>
-    
+
     <p>
       <strong>Note:</strong> we have recently changed the web server that we use
       for serving the Pfam site. Due to a bug in the server itself, requests that
@@ -156,7 +156,7 @@ use LWP::UserAgent;
 my $ua = LWP::UserAgent-&gt;new;
 $ua-&gt;env_proxy;
 
-my $res = $ua-&gt;get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+my $res = $ua-&gt;get( '[% c.secure_uri_for( "/family/Piwi", output => "xml" ) | html %]' );
 
 if ( $res-&gt;is_success ) {
   print $res-&gt;content;
@@ -192,7 +192,7 @@ use XML::LibXML;
 my $ua = LWP::UserAgent-&gt;new;
 $ua-&gt;env_proxy;
 
-my $res = $ua-&gt;get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+my $res = $ua-&gt;get( '[% c.secure_uri_for( "/family/Piwi", output => "xml" ) | html %]' );
 
 die "error: failed to retrieve XML: " . $res-&gt;status_line . "\n"
   unless $res-&gt;is_success;
@@ -211,7 +211,7 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
 
     <p>
       This script now prints out the accession for the family &quot;Piwi&quot;
-      (<a href="[% c.uri_for( '/family/piwi' ) %]">PF02171</a>).
+      (<a href="[% c.secure_uri_for( '/family/piwi' ) %]">PF02171</a>).
     </p>
     <p><a class="link" rel="restTop">back to top</a></p>
 
@@ -233,16 +233,16 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
     </p>
 
     <pre class="url">
-[% c.uri_for( '/family/acc', id => 'Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family/Piwi/acc', output => 'xml' ) | html %]
-[% c.uri_for( '/family/id', acc => 'PF02171', output => 'xml' ) | html %]
-[% c.uri_for( '/family/Piwi/id', output => 'xml' ) | html %]
-[% c.uri_for( '/family', entry => 'Piwi', output => 'xml' ) | html %]</pre>
+[% c.secure_uri_for( '/family/acc', id => 'Piwi', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/family/Piwi/acc', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/family/id', acc => 'PF02171', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/family/Piwi/id', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/family', entry => 'Piwi', output => 'xml' ) | html %]</pre>
 
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/family/Piwi/acc' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.secure_uri_for( '/family/Piwi/acc' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:37:09 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -258,7 +258,7 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
 
     <p>
       You can see the XML schema for this XML document
-      <a href="[% c.uri_for('/static/documents/schemas/pfam_family.xsd' ) %]">here</a>.
+      <a href="[% c.secure_uri_for('/static/documents/schemas/pfam_family.xsd' ) %]">here</a>.
     </p>
 
     <p>
@@ -270,9 +270,9 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' '[% c.uri_for( '/family/Piwi/acc' ) | html %]'
+        <pre>shell% curl -LH 'Expect:' '[% c.secure_uri_for( '/family/Piwi/acc' ) | html %]'
 PF02171
-shell% curl -LH 'Expect:' '[% c.uri_for( '/family/PF02171/id' ) | html %]'
+shell% curl -LH 'Expect:' '[% c.secure_uri_for( '/family/PF02171/id' ) | html %]'
 Piwi</pre>
       </div>
     </fieldset>
@@ -287,10 +287,10 @@ Piwi</pre>
     </p>
 
     <pre class="url">
-[% c.uri_for( '/family', id    => 'Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family', acc   => 'PF02171', output => 'xml' ) | html %]
-[% c.uri_for( '/family', entry => 'Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family/Piwi', output => 'xml' ) | html %]</pre>
+[% c.secure_uri_for( '/family', id    => 'Piwi', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/family', acc   => 'PF02171', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/family', entry => 'Piwi', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/family/Piwi', output => 'xml' ) | html %]</pre>
 
     <p>
       The last two styles, using the <code>entry</code> parameter or
@@ -301,7 +301,7 @@ Piwi</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/family/Piwi' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.secure_uri_for( '/family/Piwi' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -373,7 +373,7 @@ for example mRNA, guided by double stranded siRNA.
       You can see the
       <a class="ext" href="http://en.wikipedia.org/wiki/Xml_schema">XML schema</a>
       for this XML document
-      <a href="[% c.uri_for('/static/documents/schemas/pfam_family.xsd' ) %]">here</a>.
+      <a href="[% c.secure_uri_for('/static/documents/schemas/pfam_family.xsd' ) %]">here</a>.
     </p>
 
     <p>
@@ -386,7 +386,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.secure_uri_for( '/family/PF06700' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 16:34:44 26-Oct-2009 --&gt;
 &lt;dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -407,7 +407,7 @@ for example mRNA, guided by double stranded siRNA.
 
     <p>
       You can see the XML schema for this XML document
-      <a href="[% c.uri_for('/static/documents/schemas/dead_family.xsd' ) %]">
+      <a href="[% c.secure_uri_for('/static/documents/schemas/dead_family.xsd' ) %]">
         here</a>.
     </p>
     <p><a class="link" rel="restTop">back to top</a></p>
@@ -421,8 +421,8 @@ for example mRNA, guided by double stranded siRNA.
     </p>
 
     <pre class="url">
-[% c.uri_for( '/families', output => 'xml' ) | html %]
-[% c.uri_for( '/families', output => 'text' ) | html %]</pre>
+[% c.secure_uri_for( '/families', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/families', output => 'text' ) | html %]</pre>
 
     <p>
       You can also view the list in a web browser by removing the
@@ -432,7 +432,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.secure_uri_for( '/families' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- all Pfam-A families, generated: 16:12:54 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -454,7 +454,7 @@ for example mRNA, guided by double stranded siRNA.
 
     <p>
       You can see the XML schema for this XML document
-      <a href="[% c.uri_for('/static/documents/schemas/pfam_families.xsd' ) %]">
+      <a href="[% c.secure_uri_for('/static/documents/schemas/pfam_families.xsd' ) %]">
         here</a>.
     </p>
     <p><a class="link" rel="restTop">back to top</a></p>
@@ -467,10 +467,10 @@ for example mRNA, guided by double stranded siRNA.
     </p>
 
     <pre class="url">
-[% c.uri_for( '/protein', id    => 'CANX_CHICK', output => 'xml' ) | html %]
-[% c.uri_for( '/protein', acc   => 'P00789', output => 'xml' ) | html %]
-[% c.uri_for( '/protein', entry => 'P00789', output => 'xml' ) | html %]
-[% c.uri_for( '/protein/P00789', output => 'xml' ) | html %]</pre>
+[% c.secure_uri_for( '/protein', id    => 'CANX_CHICK', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/protein', acc   => 'P00789', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/protein', entry => 'P00789', output => 'xml' ) | html %]
+[% c.secure_uri_for( '/protein/P00789', output => 'xml' ) | html %]</pre>
 
     <p>
       As for Pfam-A families, arguments are all case-insensitive and the
@@ -480,7 +480,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( "/protein/P00789" ) %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.secure_uri_for( "/protein/P00789" ) %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on UniProt entry P00789 (CANX_CHICK), generated: 16:28:26 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -527,7 +527,7 @@ Calpain-1 catalytic subunit EC=3.4.22.52
 
     <p>
       You can see the XML schema for this XML document
-      <a href="[% c.uri_for('/static/documents/schemas/protein.xsd' ) %]">here</a>.
+      <a href="[% c.secure_uri_for('/static/documents/schemas/protein.xsd' ) %]">here</a>.
     </p>
     <p><a class="link" rel="restTop">back to top</a></p>
 
@@ -535,7 +535,7 @@ Calpain-1 catalytic subunit EC=3.4.22.52
 
     <p>
       The Pfam website includes a
-      <a href="[% c.uri_for( '/search' ) %]">form</a> that allows users to
+      <a href="[% c.secure_uri_for( '/search' ) %]">form</a> that allows users to
       upload a protein sequence and see a list of the Pfam domains that are
       found on their search sequence. We&#39;ve now implemented a RESTful
       interface to this search tool, making it possible to run single-sequence
@@ -619,7 +619,7 @@ ITFQNGTIRQVNGRIEESR</pre>
 
     <p>
       You can see the XML schema for this XML document
-      <a href="[% c.uri_for('/static/documents/schemas/submission.xsd' ) %]">here</a>.
+      <a href="[% c.secure_uri_for('/static/documents/schemas/submission.xsd' ) %]">here</a>.
     </p>
 
     <p>
@@ -631,7 +631,7 @@ ITFQNGTIRQVNGRIEESR</pre>
     <p>
       The search service accepts the following parameters (you can see a more
       complete description of these settings
-      <a href="[% c.uri_for('/search' ) %]">here</a>):
+      <a href="[% c.secure_uri_for('/search' ) %]">here</a>):
     </p>
 
     <table class="details" summary="Accepted sequence search parameters">
@@ -807,7 +807,7 @@ ITFQNGTIRQVNGRIEESR</pre>
 
     <p>
       You can see the XML schema for this XML document
-      <a href="[% c.uri_for('/static/documents/schemas/results.xsd' ) %]">here</a>.
+      <a href="[% c.secure_uri_for('/static/documents/schemas/results.xsd' ) %]">here</a>.
     </p>
 
     <p>
@@ -817,7 +817,7 @@ ITFQNGTIRQVNGRIEESR</pre>
     </p>
 
     <pre class="url">
-[% c.uri_for( "/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb" ) %]</pre>
+[% c.secure_uri_for( "/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb" ) %]</pre>
 
     <p>
       Note that old search results are generally cleared out after some time, so
@@ -839,10 +839,10 @@ ITFQNGTIRQVNGRIEESR</pre>
     </p>
 
     <pre class="url">
-[% c.uri_for( "/search/sequence/graphic/adabec68-703f-48c4-bec7-07f1ab965fbb" ) %]</pre>
+[% c.secure_uri_for( "/search/sequence/graphic/adabec68-703f-48c4-bec7-07f1ab965fbb" ) %]</pre>
 
     <p>
-      Check the <a href="[% c.uri_for('/help#tabview=tab9') %]">
+      Check the <a href="[% c.secure_uri_for('/help#tabview=tab9') %]">
         domain graphics documentation</a> for details on how you can use the JSON
       string locally.
     </p>

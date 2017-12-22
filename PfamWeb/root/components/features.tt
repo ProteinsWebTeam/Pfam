@@ -17,7 +17,7 @@ META naked = 1;
   The following new features have been added to the Pfam website.
   For a full list of recent changes to the 
   Pfam database and website, please check the
-  <a href="[% c.uri_for( "/help", { tab = "helpChangesBlock" } ) %]">help</a>
+  <a href="[% c.secure_uri_for( "/help", { tab = "helpChangesBlock" } ) %]">help</a>
   pages. 
   <span id="showFeaturesSwitch"
         onclick="showOldFeatures();"

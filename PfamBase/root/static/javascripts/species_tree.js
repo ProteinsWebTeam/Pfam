@@ -12,7 +12,7 @@ var SpeciesTree = Class.create( {
 
   // the URL to visit when the user selects nodes and wants to view the 
   // selected sequences as an alignment
-  var selectAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
+  var selectAlignmentURI = "[% c.secure_uri_for( '/family/alignment/builder' ) %]";
 
   // the URL to visit when the user selects nodes and wants to download the 
   // selected sequence accessions
