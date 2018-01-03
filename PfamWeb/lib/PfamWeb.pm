@@ -70,7 +70,7 @@ __PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config
 sub secure_uri_for {
   my ($c, @args) = @_;
   my $uri = $c->uri_for(@args);
-  #$c->log->error("URI request scheme ".$c->request->uri->scheme);
+  $c->log->error("URI request scheme ".$c->request->uri->scheme);
   $uri->scheme($c->request->uri->scheme); #re-enable after testing
   return $uri;
 }
