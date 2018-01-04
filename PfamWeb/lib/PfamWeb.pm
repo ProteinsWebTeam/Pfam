@@ -70,9 +70,13 @@ __PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config
 sub secure_uri_for {
   my ($c, @args) = @_;
   my $uri = $c->uri_for(@args);
-  $c->log->debug("URI request scheme [".$c->request->uri->scheme."] @args => $uri\n");
+  my $base = $c->req->base;
+  my $relative_uri = $uri;
+  $relative_uri =~ s/$base/\//g;
+  $c->log->debug("URI request base:(".$c->req->base.") scheme:[".$c->request->uri->scheme."] args=@args => $uri");
+  $c->log->debug("FIX $uri => $relative_uri");
   #$uri->scheme($c->request->uri->scheme); #re-enable after testing
-  return $uri;
+  return $relative_uri;
 }
 
 #-------------------------------------------------------------------------------
