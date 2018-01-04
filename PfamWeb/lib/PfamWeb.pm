@@ -73,9 +73,6 @@ sub secure_uri_for {
   my $base = $c->req->base;
   my $relative_uri = $uri;
   $relative_uri =~ s/$base/\//g;
-  $c->log->debug("URI request base:(".$c->req->base.") scheme:[".$c->request->uri->scheme."] args=@args => $uri");
-  $c->log->debug("FIX $uri => $relative_uri");
-  #$uri->scheme($c->request->uri->scheme); #re-enable after testing
   return $relative_uri;
 }
 
