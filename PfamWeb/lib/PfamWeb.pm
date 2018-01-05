@@ -70,10 +70,17 @@ __PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config
 sub secure_uri_for {
   my ($c, @args) = @_;
   my $uri = $c->uri_for(@args);
+  return $c->relativised_uri($uri);
+}
+
+sub relativised_uri {
+  my ($c, $uri) = @_;
   my $base = $c->req->base;
   my $relative_uri = $uri;
-  $relative_uri =~ s/$base/\//g;
-  return $relative_uri;
+  #$c->log->warn("PRE URL $relative_uri");
+  $relative_uri =~ s|$base|/|g;
+  $c->log->warn("FIXED URL $relative_uri");
+  return $relative_uri
 }
 
 #-------------------------------------------------------------------------------

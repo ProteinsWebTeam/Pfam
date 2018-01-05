@@ -304,7 +304,7 @@
             );
           } else {
             sunburstController = new SunburstController(
-              "[% c.secure_uri_for(c.req.uri) %]",
+              "[% c.relativised_uri(c.req.uri) %]",
               treeData,
               "pfam"
             );
