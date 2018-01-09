@@ -79,7 +79,7 @@ sub relativised_uri {
   my $relative_uri = $uri;
   #$c->log->warn("PRE URL $relative_uri");
   $relative_uri =~ s|$base|/|g;
-  $c->log->warn("FIXED URL $relative_uri");
+  #$c->log->warn("FIXED URL $relative_uri");
   return $relative_uri
 }
 
