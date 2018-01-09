@@ -30,7 +30,7 @@ use Bio::Pfam::AlignPfam;
 use JSON;
 use Data::UUID;
 use Bio::Pfam::ColourAlign;
-use Data::Dump qw( dump );
+use Data::Dump qw( dump pp);
 
 #-------------------------------------------------------------------------------
 
@@ -1121,9 +1121,8 @@ sub queueAlignment : Private {
   # of hashes, each of which gives details of a separate job
   my $jobStatus = [
                     {
-                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
-                                         ->as_string,
-                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' ),
+                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' ),
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
                       jobId         => $jobId,

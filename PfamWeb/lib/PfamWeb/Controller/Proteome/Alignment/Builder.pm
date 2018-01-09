@@ -223,12 +223,10 @@ sub queue_alignment : Private {
   # of hashes, each of which gives details of a separate job
   my $jobStatus = [
                     {
-                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
-                                         ->as_string,
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' ),
                       doneURI       => $c->secure_uri_for( '/proteome/alignment/builder/view',
                                                     { pfamAcc => $c->stash->{pfam}->pfama_acc,
-                                                      taxId   => $c->stash->{taxId} } )
-                                         ->as_string,
+                                                      taxId   => $c->stash->{taxId} } ),
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
                       jobId         => $jobId,

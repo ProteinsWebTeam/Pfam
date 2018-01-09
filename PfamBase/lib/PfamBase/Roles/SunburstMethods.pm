@@ -97,11 +97,11 @@ list contained invalid accessions, a "400 Bad request" response is returned.
 sub accessions_POST {
   my ( $this, $c ) = @_;
 
-  # the client POSTs the list of accessions as a JSON string in the request 
+  # the client POSTs the list of accessions as a JSON string in the request
   # body. That list is deserialised and stuffed into the request by the
   # "Deserialize" ActionClass
   my $accessions_list = $c->req->data;
-  
+
   if ( my $job_id = $c->forward( 'store_accessions', [ $accessions_list ] ) ) {
 
     $c->log->debug( 'SunburstMethods::accessions_POST: successfully stored accessions; job ID '
@@ -113,8 +113,8 @@ sub accessions_POST {
       entity   => { jobId => $job_id,
                     acc   => $c->stash->{acc} }
     );
-   
-  } 
+
+  }
   else {
     $c->log->debug( 'SunburstMethods::accessions_POST: failed to store accessions' )
       if $c->debug;
@@ -136,11 +136,11 @@ a valid ID as "job_id". That slot is empty if the ID was invalid.
 
 =cut
 
-before [ qw( accessions_GET_html 
+before [ qw( accessions_GET_html
              accessions_GET ) ] => sub {
   my ( $this, $c, $job_id ) = @_;
 
-  # the job ID is going to the template and the client side shortly, so we'll 
+  # the job ID is going to the template and the client side shortly, so we'll
   # call it "jobId" rather than the more comfortable "job_id"... just to add
   # to the confusion...
 
@@ -156,7 +156,7 @@ before [ qw( accessions_GET_html
 
 =head2 accessions_GET_html
 
-Generates a tool window for showing the alignment. If there's no valid job ID, an 
+Generates a tool window for showing the alignment. If there's no valid job ID, an
 error message will be shown in that window.
 
 =cut
@@ -199,7 +199,7 @@ sub accessions_GET {
 
     return;
   }
-   
+
   my $accessions = $c->forward( 'retrieve_accessions', [ $job_id ] );
 
   if ( $c->stash->{errorMsg} ) {
@@ -215,7 +215,7 @@ sub accessions_GET {
     entity => $accessions
   );
 }
-  
+
 #-------------------------------------------------------------------------------
 
 sub fasta : Chained( 'sunburst' )
@@ -236,7 +236,7 @@ sub fasta : Chained( 'sunburst' )
     return;
   }
 
-  $c->log->debug( "SunburstMethods::fasta: got a valid job ID $jobId" ) 
+  $c->log->debug( "SunburstMethods::fasta: got a valid job ID $jobId" )
     if $c->debug;
 
   # see if we can recover the accessions...
@@ -301,7 +301,7 @@ sub align_POST {
     return;
   }
 
-  $c->log->debug( "SunburstMethods::align_POST: got a valid job ID $jobId" ) 
+  $c->log->debug( "SunburstMethods::align_POST: got a valid job ID $jobId" )
     if $c->debug;
 
   # see if we can recover the accessions...
@@ -317,7 +317,7 @@ sub align_POST {
     return;
   }
 
-  $c->log->debug( 'SunburstMethods::align_POST: got ' . scalar @$accessions 
+  $c->log->debug( 'SunburstMethods::align_POST: got ' . scalar @$accessions
                   . ' accessions for job ID ' . $c->stash->{jobId} )
     if $c->debug;
 
@@ -358,14 +358,14 @@ sub align_GET {
     return;
   }
 
-  $c->log->debug( 'SunburstMethods::align_GET: got a valid job ID ' . $jobId ) 
+  $c->log->debug( 'SunburstMethods::align_GET: got a valid job ID ' . $jobId )
     if $c->debug;
 
   my $job = $c->model( 'WebUser::JobHistory' )
               ->search( { job_id => $jobId },
                         { prefetch => [ 'job_stream' ] } )
               ->first;
-  
+
   $c->log->debug( 'SunburstMethods::align_GET: method: ' . $c->req->method )
     if $c->debug;
 
@@ -404,7 +404,7 @@ sub align_GET {
     return;
   }
 
-  if ( $job->status eq 'PEND' or 
+  if ( $job->status eq 'PEND' or
        $job->status eq 'RUN' ) {
     $c->log->debug( 'SunburstMethods::align_GET: job is pending or running; returning 204' )
       if $c->debug;
@@ -435,7 +435,7 @@ table and returns the UUID that identifies that particular set.
 
 sub store_accessions : Private {
   my ( $this, $c, $accessions_list ) = @_;
-  
+
   unless ( scalar @$accessions_list ) {
     $c->log->debug( 'SunburstMethods::store_accessions: not a valid accessions list' )
       if $c->debug;
@@ -458,7 +458,7 @@ sub store_accessions : Private {
     return 0;
   }
   my $accessions = join ',', @$accessions_list;
-  
+
   # join the accessions into a string and validate that string
   # my $accessions = join ',', @$accessions_list;
   # unless ( $accessions =~ m/^((\w+,\s*)+)?\w+$/ ) {
@@ -469,18 +469,18 @@ sub store_accessions : Private {
 
   #   return 0;
   # }
-  
-  $c->log->debug( 'SunburstMethods::store_accessions: got some valid accessions' ) 
+
+  $c->log->debug( 'SunburstMethods::store_accessions: got some valid accessions' )
     if $c->debug;
-  
+
   # build an ID for this set of IDs
   my $job_id = Data::UUID->new()->create_str();
-  
+
   # add it to the DB
   my $row;
   eval {
-    # we use "update_or_create" because we don't really care if this ID has 
-    # been used before; it's not important enough to spend time making sure 
+    # we use "update_or_create" because we don't really care if this ID has
+    # been used before; it's not important enough to spend time making sure
     # it's unique
     $row = $c->model('WebUser::Species_collection')
              ->update_or_create( { job_id  => $job_id,
@@ -544,47 +544,47 @@ sub retrieve_accessions : Private {
 
 =head2 queue_alignment_job : Private
 
-Checks that the queue isn't full and, if not, submits the set of sequences 
+Checks that the queue isn't full and, if not, submits the set of sequences
 for alignment.
 
 =cut
 
 sub queue_alignment_job : Private {
   my ( $this, $c ) = @_;
-  
+
   # first, check there's room on the queue
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->find( { status   => 'PEND',
                        job_type => $c->stash->{alignment_job_type} },
                      { select => [ { count => 'status' } ],
                        as     => [ 'number_pending' ] } );
-  
+
   $c->stash->{number_pending} = $rs->get_column( 'number_pending' );
 
-  $c->log->debug( 'SunburstMethods::queue_alignment_job: |' . 
+  $c->log->debug( 'SunburstMethods::queue_alignment_job: |' .
                   $c->stash->{number_pending} . '| jobs pending' ) if $c->debug;
-  
+
   if ( $c->stash->{number_pending} >= ( $this->{pendingLimit} || 100 ) ) {
     $c->log->debug( 'SunburstMethods::queue_alignment_job: too many jobs in queue ('
                     . $c->stash->{number_pending} . ')' ) if $c->debug;
 
     $c->res->status( 503 ); # Service unavailable
-    $c->res->body( 'There are currently too many alignment jobs in the queue. ' 
+    $c->res->body( 'There are currently too many alignment jobs in the queue. '
                    . 'Please try again in a little while' );
 
     return 0;
   }
-  
+
   #----------------------------------------
 
   # ok. There's room on the queue. Check if we've seen this job ID recently. If
-  # we have, the user probably hit "reload" in the submission page. Don't queue 
+  # we have, the user probably hit "reload" in the submission page. Don't queue
   # the same query again, just point to it
   my $exists = $c->model( 'WebUser::JobHistory' )
                  ->search( { job_id => $c->stash->{jobId},
                              opened => { '>', \'DATE_SUB( NOW(), INTERVAL 1 DAY )' } } );
   if ( defined $exists and
-       $exists > 0 ) { 
+       $exists > 0 ) {
     $c->log->debug( 'SunburstMethods::queue_alignment_job: query '
                     . $c->stash->{jobId} . ' has already been submitted within the last day; skipping submission' )
       if $c->debug;
@@ -600,9 +600,9 @@ sub queue_alignment_job : Private {
       $c->log->debug( 'SunburstMethods::queue_alignment_job: problem submitting alignment job '
                       . $c->stash->{jobId} )
         if $c->debug;
-      
+
       $c->res->status( 500 ); # Internal server error
-      $c->res->body( $c->stash->{errorMsg} 
+      $c->res->body( $c->stash->{errorMsg}
                      || 'There was a problem queuing your job' );
 
       return 0;
@@ -634,9 +634,9 @@ to submit a set of sequences for alignment.
 =cut
 
 sub enqueue_alignment : Private {
-  my ( $this, $c ) = @_; 
+  my ( $this, $c ) = @_;
 
-  # set the options. For the alignment job we need to pass in the family 
+  # set the options. For the alignment job we need to pass in the family
   # accession, so that the dequeuer can find the family CM.
   my $opts = to_json( { acc => $c->stash->{acc}, fasta => $c->stash->{generate_fasta} } );
 
@@ -660,7 +660,7 @@ sub enqueue_alignment : Private {
     # check the submission time with a separate query
     my $history_row = $c->model( 'WebUser::JobHistory' )
                         ->find( { id => $job_history->id } );
-    
+
     return $history_row;
   };
 
@@ -681,7 +681,7 @@ sub enqueue_alignment : Private {
     if $c->debug;
 
   return 1;
-} 
+}
 
 #-------------------------------------------------------------------------------
 
@@ -692,7 +692,7 @@ Queues the job that will actually generate the sequence alignment.
 =cut
 
 sub queue_alignment : Private {
-  my ( $this, $c ) = @_; 
+  my ( $this, $c ) = @_;
 
   # generate a job ID
   my $job_id = Data::UUID->new()->create_str();
@@ -720,9 +720,8 @@ sub queue_alignment : Private {
   # of hashes, each of which gives details of a separate job
   my $job_status = [
                     {
-                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
-                                         ->as_string,
-                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' ),
+                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' ),
                       estimatedTime => 0,
                       interval      => $this->{pollingInterval},
                       jobId         => $job_id,
@@ -738,9 +737,9 @@ sub queue_alignment : Private {
     $c->log->debug( 'SunburstMethods::queue_alignment: submitted job '
                     . "|$job_id| at |" . $history_row->opened . '|' );
   }
-                  
+
   return 0;
-} 
+}
 
 #-------------------------------------------------------------------------------
 
@@ -756,7 +755,7 @@ Jennifer Daub, C<jd7@sanger.ac.uk>
 
 Copyright (c) 2012: Genome Research Ltd.
 
-Authors: John Tate (jt6@sanger.ac.uk), Sarah Burge (sb30@sanger.ac.uk), 
+Authors: John Tate (jt6@sanger.ac.uk), Sarah Burge (sb30@sanger.ac.uk),
          Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
@@ -775,4 +774,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-

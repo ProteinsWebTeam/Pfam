@@ -94,21 +94,21 @@ sub begin : Private {
   if ( defined $c->req->param('output') ) {
     if ( $c->req->param('output') eq 'xml' ) {
       $c->stash->{output_xml} = 1;
-      $c->res->content_type('text/xml');    
+      $c->res->content_type('text/xml');
     }
     elsif ( $c->req->param( 'output' ) eq 'pfamalyzer' ) {
       $c->stash->{output_pfamalyzer} = 1;
-      $c->res->content_type('text/plain');    
+      $c->res->content_type('text/plain');
     }
   }
-  
+
   # see if the entry is specified as a parameter
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
                       $c->req->query_keywords || # accept getacc-style params
                       '';
-  
+
   if ( $tainted_entry ) {
     $c->log->debug( 'Family::begin: got a tainted entry' )
       if $c->debug;
@@ -135,25 +135,25 @@ sub family : Chained( '/' )
   my $tainted_entry = $c->stash->{param_entry} ||
                       $entry_arg               ||
                       '';
-  
+
   $c->log->debug( "Family::family: tainted_entry: |$tainted_entry|" )
     if $c->debug;
 
   # although these next checks might fail and end up putting an error message
-  # into the stash, we don't "return", because we might want to process the 
+  # into the stash, we don't "return", because we might want to process the
   # error message using a template that returns XML rather than simply HTML
-  
+
   my $entry;
   if ( $tainted_entry ) {
     # strip off family version numbers, if present
     ( $entry ) = $tainted_entry =~ m/^([\w-]+)(\.\d+)?$/;
-    $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
+    $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID'
       unless defined $entry;
   }
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
   }
-  
+
   # retrieve data for the family
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
 }
@@ -172,8 +172,8 @@ sub family_page : Chained( 'family' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # if we don't have an entry to work with by now, we're done
   return unless $c->stash->{pfam};
 
@@ -183,12 +183,12 @@ sub family_page : Chained( 'family' )
   $c->stash->{is_duf} = ( $c->stash->{pfam}->pfama_id =~ m/^DUF\d+$/ );
 
   #----------------------------------------
-  
+
   # dead families are a special case...
   if ( defined $c->stash->{entryType} and
        $c->stash->{entryType} eq 'D' ) {
-    
-    $c->log->debug( 'Family::family_page: got a dead family; setting a refresh URI' ) 
+
+    $c->log->debug( 'Family::family_page: got a dead family; setting a refresh URI' )
       if $c->debug;
 
     if ( $c->stash->{pfam}->forward_to ) {
@@ -204,7 +204,7 @@ sub family_page : Chained( 'family' )
       # longer in this case
       $c->stash->{refreshDelay} = 20;
     }
-    
+
     # set the template. This will be overridden below if we're emitting XML
     $c->stash->{template} = 'pages/dead.tt';
 
@@ -212,17 +212,17 @@ sub family_page : Chained( 'family' )
   }
 
   #----------------------------------------
-  
-  # use a redirect page if the ID of the family has changed 
+
+  # use a redirect page if the ID of the family has changed
   if ( defined $c->stash->{entryType} and
        $c->stash->{entryType} eq 'R' ) {
-    
-    $c->log->debug( 'Family::family_page: arrived at a family using a previous ID; setting a refresh URI' ) 
+
+    $c->log->debug( 'Family::family_page: arrived at a family using a previous ID; setting a refresh URI' )
       if $c->debug;
 
     $c->stash->{refreshUri} =
       $c->secure_uri_for( '/family', $c->stash->{acc} );
-    
+
     # set the template for the intermediate page
     $c->stash->{template} = 'pages/moved.tt';
 
@@ -230,7 +230,7 @@ sub family_page : Chained( 'family' )
   }
 
   #----------------------------------------
-  
+
   # output is specific to PfamAlyzer
   if ( $c->stash->{output_pfamalyzer} ) {
 
@@ -253,11 +253,11 @@ sub family_page : Chained( 'family' )
       $c->stash->{template} = 'rest/family/error_xml.tt';
       return;
     }
-    
+
     # decide on the output template, based on the type of family that we have
     if ( $c->stash->{entryType} eq 'A' or
          $c->stash->{entryType} eq 'R' ) {
-      # we'll use the same XML template to handle familes that were arrived at 
+      # we'll use the same XML template to handle familes that were arrived at
       # using a "previous ID"
       $c->log->debug( 'Family::family_page: got data for a Pfam-A' ) if $c->debug;
       $c->stash->{template} = 'rest/family/pfama_xml.tt';
@@ -290,12 +290,12 @@ sub family_page : Chained( 'family' )
                           ->search( { 'pfama_acc' => $c->stash->{pfam}->pfama_acc },
                                     { join     => [ qw(clan_acc) ],
                                       prefetch => [ qw(clan_acc) ] } )->first;
-    
+
     if ( $clans and defined $clans->clan_acc->clan_acc ) {
       $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
       $c->stash->{clan} = $clans->clan_acc->clan_acc;
     }
-    
+
     $c->forward( 'get_summary_data' );
     $c->forward( 'get_db_xrefs' );
     $c->forward( 'get_interactions' );
@@ -342,9 +342,9 @@ sub old_family : Path( '/family' ) {
 
 =head2 logo : Chained
 
-Returns the HMM logo image for this family. This is subject to a check on the 
+Returns the HMM logo image for this family. This is subject to a check on the
 size of the image and the type of browser that is requesting it. Since there
-are known problems with firefox and large PNGs, we don't return the image 
+are known problems with firefox and large PNGs, we don't return the image
 immediately in that case. The template takes care of showing a bit of text
 and providing a link to load the image anyway.
 
@@ -354,25 +354,25 @@ sub logo : Chained( 'family' )
            PathPart( 'logo' )
            Args( 0 ) {
   my ( $this, $c ) = @_;
-  
-  my $logo = $c->forward( 'get_logo' );    
+
+  my $logo = $c->forward( 'get_logo' );
   return if $c->stash->{errorMsg};
-  
+
   my ( $logo_x, $logo_y ) = imgsize( \$logo );
 
-  if ( defined $logo_x and defined $logo_y and  
+  if ( defined $logo_x and defined $logo_y and
        ( $logo_x > $this->{image_size_limit} or
          $logo_y > $this->{image_size_limit} ) and
            $c->req->user_agent =~ m/Gecko/ and
        not $c->req->user_agent =~ m/WebKit/ ) {
-  
+
     $c->log->debug( 'Family::FamilyActions::logo: browser is Gecko-based and image is large'
                     . " ($logo_x x $logo_y)" )
       if $c->debug;
 
     $c->stash->{logo_x} = $logo_x;
     $c->stash->{logo_y} = $logo_y;
-    
+
     $c->stash->{large_logo} = 1;
   }
 
@@ -409,29 +409,29 @@ Returns the HMM logo image for this family.
 =cut
 
 sub logo_image : Chained( 'family' )
-                 PathPart( 'logo_image' ) 
+                 PathPart( 'logo_image' )
                  Args( 0 ) {
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->log->debug( 'Family::FamilyActions::logo_image: returning raw image' )
     if $c->debug;
-  
+
   my $logo = $c->forward( 'get_logo' );
-    
+
   return if $c->stash->{errorMsg};
-  
+
   if ( $c->req->param('dl') ) {
     my $filename = $c->stash->{acc} . '_logo.png';
 
     $c->log->debug( 'Family::FamilyActions::logo_image: forcing download of logo as '
                     . $filename ) if $c->debug;
-    
+
     $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   }
-  
+
   $c->res->content_type( 'image/png' );
   $c->res->body( $logo );
 }
@@ -465,21 +465,21 @@ sub old_logo_image : Path( '/family/logo_image' ) {
 
 =head2 hmm : Chained
 
-Serve the contents of the HMM for a Pfam-A entry from the database. Requires 
+Serve the contents of the HMM for a Pfam-A entry from the database. Requires
 the "mode" parameter to be set either to "ls" or "fs".
 
 =cut
 
 sub hmm : Chained( 'family' )
-          PathPart( 'hmm' ) 
+          PathPart( 'hmm' )
           Args( 0 ) {
   my ( $this, $c ) = @_;
 
   return unless defined $c->stash->{pfam};
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   my $cacheKey = 'hmm' . $c->stash->{acc};
   my $hmm      = $c->cache->get( $cacheKey );
 
@@ -490,7 +490,7 @@ sub hmm : Chained( 'family' )
   else {
     $c->log->debug( 'Family::gethmm: failed to extract HMM from cache; going to DB' )
       if $c->debug;
-     
+
     my $rs = $c->model('PfamDB::PfamaHmm')
                ->find( $c->stash->{pfam}->pfama_acc );
 
@@ -498,21 +498,21 @@ sub hmm : Chained( 'family' )
       $c->log->warn( 'Family::FamilyActions::hmm: failed to find row' )
         if $c->debug;
 
-      $c->stash->{errorMsg} = 'We could not find the HMM for ' 
+      $c->stash->{errorMsg} = 'We could not find the HMM for '
                               . $c->stash->{acc};
       $c->res->status( 500 );
       return;
     }
 
     $hmm = $rs->hmm;
-    
+
     unless ( $hmm ) {
       $c->log->warn( 'Family::FamilyActions::hmm: failed to retrieve HMM from row' )
         if $c->debug;
-        
-      $c->stash->{errorMsg} = 'We could not retrieve the HMM for ' 
+
+      $c->stash->{errorMsg} = 'We could not retrieve the HMM for '
                               . $c->stash->{acc};
-                              
+
       $c->res->status( 500 );
       return;
     }
@@ -528,7 +528,7 @@ sub hmm : Chained( 'family' )
   $c->res->content_type( 'text/plain' );
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
 
-  # at this point we should have the HMM in hand, so spit it out to the 
+  # at this point we should have the HMM in hand, so spit it out to the
   # response and we're done
   $c->res->body( $hmm );
 
@@ -570,11 +570,11 @@ sub id : Chained( 'family' )
          PathPart( 'id' )
          Args( 0 ) {
   my ( $this, $c ) = @_;
-  
+
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
-  if ( defined $c->stash->{pfam} ) {    
+  $c->cache_page( 604800 );
+
+  if ( defined $c->stash->{pfam} ) {
     if ( $c->stash->{output_xml} ) {
       $c->stash->{template} = 'rest/family/entry_xml.tt';
     }
@@ -583,7 +583,7 @@ sub id : Chained( 'family' )
       $c->res->body( $c->stash->{pfam}->pfama_id );
     }
   }
-  else { 
+  else {
     $c->res->status( 404 );
     $c->res->body( 'No such family' );
   }
@@ -599,7 +599,7 @@ Deprecated. Stub to redirect to chained action.
 
 sub old_id : Path( '/family/id' ) {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Family:FamilyActions::old_id: redirecting to "id"' )
     if $c->debug;
 
@@ -614,7 +614,7 @@ sub old_id : Path( '/family/id' ) {
 
 =head2 acc : Chained
 
-Returns the accession for this family as a single, plain text string. Returns 
+Returns the accession for this family as a single, plain text string. Returns
 404 if there's no family to work on.
 
 =cut
@@ -623,11 +623,11 @@ sub acc : Chained( 'family' )
           PathPart( 'acc' )
           Args( 0 ) {
   my ( $this, $c ) = @_;
-  
+
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
-  if ( defined $c->stash->{pfam} ) {    
+  $c->cache_page( 604800 );
+
+  if ( defined $c->stash->{pfam} ) {
     if ( $c->stash->{output_xml} ) {
       $c->stash->{template} = 'rest/family/entry_xml.tt';
     }
@@ -636,7 +636,7 @@ sub acc : Chained( 'family' )
       $c->res->body( $c->stash->{pfam}->pfama_acc );
     }
   }
-  else { 
+  else {
     $c->res->status( 404 );
     $c->res->body( 'No such family' );
   }
@@ -652,7 +652,7 @@ Deprecated. Stub to redirect to chained action.
 
 sub old_acc : Path( '/family/acc' ) {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Family:FamilyActions::old_acc: redirecting to "acc"' )
     if $c->debug;
 
@@ -678,8 +678,8 @@ sub desc : Chained( 'family' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   if ( defined $c->stash->{pfam} ) {
 
     $c->res->content_type( 'text/plain' );
@@ -724,8 +724,8 @@ sub structures : Chained( 'family' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # see if we were handed a valid PDB ID and, if so, just stash it
   if ( defined $c->req->param('pdbId') and
        $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
@@ -744,7 +744,7 @@ sub structures : Chained( 'family' )
     @regions = $c->model('PfamDB::PdbPfamaReg')
                  ->search( { 'me.pfama_acc' => $c->stash->{pfam}->pfama_acc },
                            { prefetch => [ qw( pdb_id pdb_image pfama_acc ) ] } );
-    $c->log->debug( 'Family::structures: got ' 
+    $c->log->debug( 'Family::structures: got '
                     . scalar @regions . ' regions' ) if $c->debug;
   }
 
@@ -787,7 +787,7 @@ Deprecated. Stub to redirect to chained action.
 
 sub old_structures : Path( '/family/structures' ) {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Family::old_structures: redirecting to "structures"' )
     if $c->debug;
 
@@ -813,8 +813,8 @@ sub mapping : Chained( 'family' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->log->debug( 'Family::FamilyActions::mapping: acc: |'
                   . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|' )
     if $c->debug;
@@ -837,12 +837,12 @@ sub mapping : Chained( 'family' )
   unless ( scalar @mapping ) {
     $c->log->debug( 'Family::FamilyActions::mapping: no rows; returning 204' )
       if $c->debug;
-      
+
     $c->res->status( 204 );
-    
+
     return;
   }
-  
+
   if ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Family::FamilyActions::mapping: emitting XML' ) if $c->debug;
     $c->stash->{template} = 'rest/family/structures_xml.tt';
@@ -866,7 +866,7 @@ Deprecated. Stub to redirect to chained action.
 
 sub old_mapping : Path( '/family/structures/mapping' ) {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Family::FamilyActions::old_mapping: redirecting to "mapping"' )
     if $c->debug;
 
@@ -895,8 +895,8 @@ sub tree : Chained( 'family' )
   my ( $this, $c, $aln_type ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->stash->{alnType} = 'seed';
 
   if ( defined $aln_type and
@@ -921,7 +921,7 @@ sub tree_html : Chained( 'tree' )
 
   # stash the tree object
   $c->forward( 'get_tree' );
-  
+
   # bail unless we actually got a tree
   unless ( defined $c->stash->{tree} ) {
     $c->res->status( 204 );
@@ -992,8 +992,8 @@ sub image : Chained( 'tree' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # stash the tree object
   $c->forward( 'get_tree' );
 
@@ -1022,8 +1022,8 @@ sub download : Chained( 'tree' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->log->debug( 'Family::Tree::download: dumping tree data to the response' )
     if $c->debug;
 
@@ -1061,8 +1061,8 @@ sub alignment : Chained( 'family' )
   my ( $this, $c, $aln_type ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->stash->{alnType} = 'seed';
 
   if ( defined $aln_type and
@@ -1079,7 +1079,7 @@ sub alignment : Chained( 'family' )
 =head2 alignment_link : Chained
 
 An endpoint for the /family/ACC/alignment chain that doesn't need the alignment
-type specified. 
+type specified.
 
 =cut
 
@@ -1101,8 +1101,8 @@ sub raw_alignment : Chained( 'alignment' )
 	my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # retrieve the alignment
   $c->forward( 'get_alignment_from_db' );
 
@@ -1115,7 +1115,7 @@ sub raw_alignment : Chained( 'alignment' )
 =head2 gzipped : Local
 
 Returns a gzip-compressed file with the full or seed alignment for the specified
-family. 
+family.
 
 =cut
 
@@ -1125,8 +1125,8 @@ sub gzipped : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   my ( $alignment, $filename );
 
   if ( $c->stash->{alnType} eq 'long' ) {
@@ -1138,7 +1138,7 @@ sub gzipped : Chained( 'alignment' )
                ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
                            in_full    => 1 },
                          { prefetch => [ qw( pfamseq_acc ) ],
-                           columns  => [ qw( pfamseq_acc.pfamseq_id 
+                           columns  => [ qw( pfamseq_acc.pfamseq_id
                                              pfamseq_acc.pfamseq_acc
                                              pfamseq_acc.sequence ) ] } );
     my $sequences = '';
@@ -1169,16 +1169,16 @@ sub gzipped : Chained( 'alignment' )
   unless ( defined $alignment ) {
     $c->log->warn( 'Family::gzipped: failed to retrieve alignment for '
                     . $c->stash->{acc} ) if $c->debug;
-      
-    $c->res->status( 204 ); # "no content"
-    
-    return;
-  } 
 
-  # set the filename on the HTTP headers, so that the browser will offer to 
+    $c->res->status( 204 ); # "no content"
+
+    return;
+  }
+
+  # set the filename on the HTTP headers, so that the browser will offer to
   # download and save it
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
-  
+
   # ... and dump it straight to the response
   $c->res->content_type( 'application/x-gzip' );
   $c->res->body( $alignment );
@@ -1188,9 +1188,9 @@ sub gzipped : Chained( 'alignment' )
 
 =head2 old_gzipped : Path
 
-This is used by the form in the Pfam family page. The form is currently 
+This is used by the form in the Pfam family page. The form is currently
 submitted by the browser directly, so there's no javascript to intervene
-and convert the parameters into URL arguments. This action will accept 
+and convert the parameters into URL arguments. This action will accept
 the parameters and redirect to the Chained action above.
 
 =cut
@@ -1256,8 +1256,8 @@ sub format : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # retrieve the alignment
   $c->forward( 'get_alignment_from_db' );
 
@@ -1287,7 +1287,7 @@ sub format : Chained( 'alignment' )
   if ( $c->req->param('gaps') ) {
     $c->log->debug( 'Family::format: handling gaps parameter' )
       if $c->debug;
-      
+
     if ( $c->req->param('gaps') =~ m/^n\w*/ ) {
       $pfamaln->map_chars('-', '');
       $pfamaln->map_chars('\.', '');
@@ -1343,7 +1343,7 @@ sub format : Chained( 'alignment' )
       if $c->debug;
 
     my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType}. '.txt';
-  
+
     $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   }
 
@@ -1355,9 +1355,9 @@ sub format : Chained( 'alignment' )
 
 =head2 old_format : Path
 
-This is used by the form in the Pfam family page. The form is currently 
+This is used by the form in the Pfam family page. The form is currently
 submitted by the browser directly, so there's no javascript to intervene
-and convert the parameters into URL arguments. This action will accept 
+and convert the parameters into URL arguments. This action will accept
 the parameters and redirect to the Chained action above.
 
 =cut
@@ -1385,7 +1385,7 @@ sub old_format : Path( '/family/alignment/download/format' ) {
 
 =head2 html : Chained
 
-Retrieves the HTML alignment and dumps it to the response. We first try to 
+Retrieves the HTML alignment and dumps it to the response. We first try to
 extract the HTML from the cache or, if that fails, we retrieve it from the DB.
 
 =cut
@@ -1396,13 +1396,13 @@ sub html : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
-  
+
   my $cacheKey = 'jtml' . $c->stash->{acc} . $c->stash->{alnType};
-  
+
   my $jtml = $c->cache->get( $cacheKey );
   if ( defined $jtml ) {
     $c->log->debug( 'Family::html: extracted HTML from cache' )
@@ -1410,7 +1410,7 @@ sub html : Chained( 'alignment' )
   }
   else {
     $c->log->debug( 'Family::html: failed to extract HTML from cache; going to DB' )
-      if $c->debug;  
+      if $c->debug;
 
     # retrieve the HTML from the DB
     my $row = $c->model('PfamDB::AlignmentAndTree')
@@ -1418,11 +1418,11 @@ sub html : Chained( 'alignment' )
                             type       => $c->stash->{alnType} },
                            { columns    => [ qw( jtml ) ] } )
                 ->single;
-  
+
     # final check...
     unless ( defined $row->jtml ) {
       $c->log->debug( 'Family::html: failed to retrieve JTML' )
-        if $c->debug;  
+        if $c->debug;
 
       $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                               . $c->stash->{acc};
@@ -1444,7 +1444,7 @@ sub html : Chained( 'alignment' )
 
   # stash the HTML
   $c->stash->{html_alignment} = $jtml;
-  
+
 }
 
 #---------------------------------------
@@ -1479,8 +1479,8 @@ sub old_html : Path( '/family/alignment/download/html' ) {
 
 =head2 heatmap : Chained
 
-Retrieves the HTML "heatmap" coloured alignment and dumps it to the response. 
-We first try to extract the HTML from the cache or, if that fails, we retrieve 
+Retrieves the HTML "heatmap" coloured alignment and dumps it to the response.
+We first try to extract the HTML from the cache or, if that fails, we retrieve
 it from the DB.
 
 =cut
@@ -1491,8 +1491,8 @@ sub heatmap : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # heatmaps are only available for full alignments
   if ( $c->stash->{alnType} ne 'full' ) {
     $c->stash->{errorMsg} = 'Heatmaps are only available for full alignments';
@@ -1502,9 +1502,9 @@ sub heatmap : Chained( 'alignment' )
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
   $c->stash->{alnType}  = 'heatmap';
-  
+
   my $cacheKey = 'heatmap' . $c->stash->{acc};
-  
+
   my $hm = $c->cache->get( $cacheKey );
   if ( defined $hm ) {
     $c->log->debug( 'Family::heatmap: extracted HTML from cache' )
@@ -1512,15 +1512,15 @@ sub heatmap : Chained( 'alignment' )
   }
   else {
     $c->log->debug( 'Family::heatmap: failed to extract HTML from cache; going to DB' )
-      if $c->debug;  
+      if $c->debug;
 
     # retrieve the HTML from the DB
     my $row = $c->model('PfamDB::AlignmentAndTree')
                 ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
-                            type       => 'full' }, 
+                            type       => 'full' },
                           { columns    => [ qw( post ) ] } )
                 ->single;
-  
+
     # final check...
     unless ( defined $row->post ) {
       $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
@@ -1542,7 +1542,7 @@ sub heatmap : Chained( 'alignment' )
   }
 
   # stash the HTML
-  $c->stash->{html_alignment} = $hm;  
+  $c->stash->{html_alignment} = $hm;
 }
 
 #---------------------------------------
@@ -1572,7 +1572,7 @@ sub old_heatmap : Path( '/family/alignment/download/heatmap' ) {
 
 This is the way into the JalView alignment viewer applet.
 
-Hands straight off to a template that generates a "tool" page containing the 
+Hands straight off to a template that generates a "tool" page containing the
 JalView applet.
 
 =cut
@@ -1583,8 +1583,8 @@ sub jalview : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->stash->{template} = 'components/tools/jalview.tt';
 }
 
@@ -1627,8 +1627,8 @@ sub dasviewer : Chained( 'alignment' )
   my ( $self, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # build a "title" string, which will be used as the heading for the
   # alignment tool window
   my $title = 'Pfam ' . $c->stash->{alnType} . ' alignment for '
@@ -1639,8 +1639,8 @@ sub dasviewer : Chained( 'alignment' )
                  ? $c->stash->{pfam}->num_seed
                  : $c->stash->{pfam}->num_full;
 
-  my $das_source = $c->stash->{ alnType } eq 'seed' 
-                 ? 'Pfam_Seed_Alignments' 
+  my $das_source = $c->stash->{ alnType } eq 'seed'
+                 ? 'Pfam_Seed_Alignments'
                  : 'Pfam_Full_Alignments' ;
 
   $c->log->debug( 'Family::dasviewer: setting up for get_das_alignment' )
@@ -1700,10 +1700,10 @@ sub build : Chained( 'alignment_link' )
             PathPart( 'build' )
             Args( 0 ) {
   my ( $this, $c ) = @_;
-  
+
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->log->debug( 'Family::build: checking for sequences' )
     if $c->debug;
 
@@ -1726,9 +1726,9 @@ sub build : Chained( 'alignment_link' )
   }
 
   # retrieve the sequences
-  $c->stash->{fasta} = $c->forward( '/utils/get_sequences', 
+  $c->stash->{fasta} = $c->forward( '/utils/get_sequences',
                                     [ $collection_id, $c->stash->{pfam} ] );
-  
+
   # make sure we got something...
   unless ( length $c->stash->{fasta} ) {
     $c->log->debug( 'Family::build: failed to get a FASTA sequence' )
@@ -1744,13 +1744,13 @@ sub build : Chained( 'alignment_link' )
   # and see if we managed it...
   if ( $submissionStatus < 0 ) {
     $c->log->debug( 'Family::build: problem with submission; returning error page' )
-      if $c->debug; 
+      if $c->debug;
     $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
   }
   else {
     $c->log->debug( 'Family::build: alignment job submitted; polling' )
-      if $c->debug; 
+      if $c->debug;
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
   }
 }
@@ -1790,21 +1790,21 @@ sub view : Chained( 'alignment_link' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # retrieve the job results
   my ( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
-  
+
   unless ( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Family::view: no results found' )
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
-  }   
+  }
 
-  # count the number of rows in the alignment. The raw alignment includes 
+  # count the number of rows in the alignment. The raw alignment includes
   # the consensus string as the last line
   my @rows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
   my $numRowsInAlignment = scalar @rows - 1;
@@ -1858,13 +1858,13 @@ for the relevant row into the stash.
 
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   # check for a Pfam-A
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $entry },
                          { pfama_id  => $entry } ],
                        { join     => [ { clan_memberships => 'clan_acc' },
-                                       "interpros", 
+                                       "interpros",
                                        "pfama_species_trees" ], } );
                           prefetch => [ qw( interpros pfama_species_trees ) ] } );
 
@@ -1875,7 +1875,7 @@ sub get_data : Private {
     $c->stash->{pfam}      = $pfam;
     $c->stash->{acc}       = $pfam->pfama_acc;
     $c->stash->{entryType} = 'A';
-    
+
     # GO data are used by both the XML and HTML outputs, so always get those
     $c->forward( 'get_go_data' );
 
@@ -1885,13 +1885,13 @@ sub get_data : Private {
 
   #----------------------------------------
   # check for a dead Pfam-A
-  
+
   if ( not $pfam ) {
     $pfam = $c->model('PfamDB::DeadFamily')
               ->search( [ { pfama_acc => $entry },
                           { pfama_id  => $entry } ] )
               ->single;
-    
+
     if ( $pfam ) {
       $c->log->debug( 'Family::get_data: got a dead family' ) if $c->debug;
       $c->stash->{pfam}      = $pfam;
@@ -1903,13 +1903,13 @@ sub get_data : Private {
 
   #----------------------------------------
   # check for a previous ID
-  
+
   if ( not $pfam ) {
     $pfam = $c->model('PfamDB::Pfama')
               ->find( { previous_id => { like => "%$entry;%" } } );
-    
+
     # make sure the entry matches a whole ID, rather than just part of one
-    # i.e. make sure that "6" doesn't match "DUF456" 
+    # i.e. make sure that "6" doesn't match "DUF456"
     if ( $pfam ) {
       my $previous_id = $pfam->previous_id;
       if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/ ) { # same pattern used in Jump.pm
@@ -1926,7 +1926,7 @@ sub get_data : Private {
   #----------------------------------------
   # there's a problem... by this point we really should have retrieved a
   # row and returned
-  
+
   $c->stash->{errorMsg} = 'No valid Pfam family accession or ID';
 }
 
@@ -2002,7 +2002,7 @@ sub get_db_xrefs : Private {
                    ->search( { pfama_acc_1 => $c->stash->{pfam}->pfama_acc,
                                score       => { '>', 10.0 } },
                              { join        => [ qw( pfamA1 pfamA2 ) ],
-                               select      => [ qw( pfamA1.pfama_id 
+                               select      => [ qw( pfamA1.pfama_id
                                                     pfamA2.pfama_id
                                                     pfamA1.pfama_acc
                                                     pfamA2.pfama_acc
@@ -2013,14 +2013,14 @@ sub get_db_xrefs : Private {
                                                     r_pfama_acc
                                                     score ) ]
                              } );
- 
+
 
 
   my @ataSCOOP2 = $c->model('PfamDB::Pfama2pfamaScoopResults')
                    ->search( { pfama_acc_2 => $c->stash->{pfam}->pfama_acc,
-                               score       => { '>', 10.0 } }, 
+                               score       => { '>', 10.0 } },
                              { join        => [ qw( pfamA2 pfamA1 ) ],
-                               select      => [ qw( pfamA2.pfama_id 
+                               select      => [ qw( pfamA2.pfama_id
                                                     pfamA1.pfama_id
                                                     pfamA2.pfama_acc
                                                     pfamA1.pfama_acc
@@ -2030,7 +2030,7 @@ sub get_db_xrefs : Private {
                                                     l_pfama_acc
                                                     r_pfama_acc
                                                     score ) ]
-                             } ); 
+                             } );
 
 
 
@@ -2055,25 +2055,25 @@ sub get_db_xrefs : Private {
   my @atoaHH = $c->model('PfamDB::Pfama2pfamaHhsearchResults')
                  ->search( { 'pfama_acc_1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
                            { join     => [ qw( pfama_acc_1 pfama_acc_2 ) ],
-                             select   => [ qw( pfama_acc_1.pfama_id 
+                             select   => [ qw( pfama_acc_1.pfama_id
                                                pfama_acc_1.pfama_acc
-                                               pfama_acc_2.pfama_id 
-                                               pfama_acc_2.pfama_acc 
+                                               pfama_acc_2.pfama_id
+                                               pfama_acc_2.pfama_acc
                                                evalue ) ],
-                             as       => [ qw( l_pfama_id 
-                                               l_pfama_acc 
-                                               r_pfama_id 
-                                               r_pfama_acc 
+                             as       => [ qw( l_pfama_id
+                                               l_pfama_acc
+                                               r_pfama_id
+                                               r_pfama_acc
                                                evalue ) ],
                              order_by => 'pfama_acc_2.pfam_acc_2 ASC'
                            } );
-                           
+
   $xRefs->{atoaHH} = [];
   foreach ( @atoaHH ) {
     if ( $_->get_column( 'evalue' ) <= 0.001 and
          $_->get_column( 'l_pfama_id' ) ne $_->get_column( 'r_pfama_id' ) ) {
       push @{ $xRefs->{atoaHH} }, $_;
-    } 
+    }
   }
 
   $c->stash->{xrefs} = $xRefs;
@@ -2106,7 +2106,7 @@ Retrieves details of the interactions between this family and others.
 
 sub get_interactions : Private {
   my ( $this, $c ) = @_;
-  
+
   my @interactions = $c->model('PfamDB::PfamaInteractions')
                        ->search( { pfama_acc_a => $c->stash->{pfam}->pfama_acc },
                                  { join     => [ qw( pfama_acc_b ) ],
@@ -2125,7 +2125,7 @@ Retrieves details of the interactions between this family and others.
 
 sub get_pseudofam : Private {
   my ( $this, $c ) = @_;
- 
+
   my $cache_key = 'pseudofam_families';
   $c->stash->{pseudofam_accessions} = $c->cache->get( $cache_key );
 
@@ -2141,7 +2141,7 @@ sub get_pseudofam : Private {
     $c->forward( 'get_pseudofam_accessions' );
 
     if ( defined $c->stash->{pseudofam_accessions} ) {
-      $c->log->debug( 'Family::get_pseudofam: got pseudofam_accessions' ) 
+      $c->log->debug( 'Family::get_pseudofam: got pseudofam_accessions' )
         if $c->debug;
       $c->cache->set( $cache_key, $c->stash->{pseudofam_accessions} ) unless $ENV{NO_CACHE};
     }
@@ -2156,8 +2156,8 @@ sub get_pseudofam : Private {
   # it individually
   $c->stash->{pseudofam_prefix_url} = $c->stash->{pseudofam_accessions}->{_prefix};
 
-  $c->log->debug( 'Family::get_pseudofam: got a hash of ' 
-                  . scalar( keys %{$c->stash->{pseudofam_accessions} } ) 
+  $c->log->debug( 'Family::get_pseudofam: got a hash of '
+                  . scalar( keys %{$c->stash->{pseudofam_accessions} } )
                   . ' accessions' )
     if $c->debug;
 }
@@ -2172,7 +2172,7 @@ Parses the XML containing the list of pseudofam accessions.
 
 sub get_pseudofam_accessions : Private {
   my ( $this, $c ) = @_;
- 
+
   # go to the web service and retrieve the XML
   $c->forward( 'retrieve_pseudofam_xml' );
 
@@ -2182,7 +2182,7 @@ sub get_pseudofam_accessions : Private {
                    . $c->stash->{error} ) if $c->debug;
     return;
   }
-  
+
   # now parse the XML to extract the list of families, which we then store
   # as hash keys
   my $xml_parser = XML::LibXML->new();
@@ -2200,7 +2200,7 @@ sub get_pseudofam_accessions : Private {
 
   # get the family accessions
   my @accession_nodes = $xml_root->findnodes( '/pseudofam/families/accession' );
-  $c->log->debug( 'Family::get_pseudofam_accessions: found ' 
+  $c->log->debug( 'Family::get_pseudofam_accessions: found '
                   . scalar @accession_nodes . ' accessions in file' )
     if $c->debug;
 
@@ -2226,27 +2226,27 @@ service.
 
 sub retrieve_pseudofam_xml : Private {
   my ( $this, $c ) = @_;
- 
+
   if ( not defined $this->{_ua} ) {
-    $c->log->debug( 'Family::retrieve_pseudofam_xml: building a new user agent' ) 
+    $c->log->debug( 'Family::retrieve_pseudofam_xml: building a new user agent' )
       if $c->debug;
     $this->{_ua} = LWP::UserAgent->new;
     $this->{_ua}->timeout(10);
     $this->{_ua}->env_proxy;
   }
-  
+
   my $response = $this->{_ua}->get( $this->{pseudofam_ws_url} );
 
   if ( $response->is_success ) {
-    $c->log->debug( 'Family::retrieve_pseudofam_xml: successful response from web service' ) 
+    $c->log->debug( 'Family::retrieve_pseudofam_xml: successful response from web service' )
       if $c->debug;
     $c->stash->{pseudofam_xml} = $response->decoded_content;
   }
   else {
-    $c->log->debug( 'Family::retrieve_pseudofam_xml: got an error from web service' ) 
+    $c->log->debug( 'Family::retrieve_pseudofam_xml: got an error from web service' )
       if $c->debug;
     $c->stash->{error} = $response->status_line;
-  }  
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -2259,7 +2259,7 @@ Retrieves the wikipedia content, if any, for this family.
 
 sub get_wikipedia : Private {
   my ( $this, $c ) = @_;
-  
+
   my @articles = $c->model('WebUser::ArticleMapping')
                    ->search( { accession => $c->stash->{acc} },
                              { join     => [ 'wikitext' ],
@@ -2284,10 +2284,10 @@ the logo, if found.
 
 sub get_logo : Private {
   my ( $this, $c ) = @_;
-  
+
   my $cache_key = 'logo' . $c->stash->{acc};
   my $logo = $c->cache->get( $cache_key );
-  
+
   if ( defined $logo ) {
     $c->log->debug( 'Family::FamilyActions::logo: extracted logo from cache' )
       if $c->debug;
@@ -2295,7 +2295,7 @@ sub get_logo : Private {
   else {
     $c->log->debug( 'Family::FamilyActions::logo: failed to extract logo from cache; going to DB' )
       if $c->debug;
-    
+
     my $rs = $c->model('PfamDB::PfamaHmm')
                ->find( $c->stash->{pfam}->pfama_acc );
     $logo = $rs->logo;
@@ -2308,12 +2308,12 @@ sub get_logo : Private {
 
       return;
     }
-  
+
     # cache the LOGO
     $c->cache->set( $cache_key, $logo ) unless $ENV{NO_CACHE};
   }
 
-  return $logo;  
+  return $logo;
 }
 
 #-------------------------------------------------------------------------------
@@ -2322,8 +2322,8 @@ sub get_logo : Private {
 
 =head2 get_tree : Private
 
-Builds the TreeFam tree object for the specified family and alignment type 
-(seed or full). We first check the cache for the pre-built tree object and 
+Builds the TreeFam tree object for the specified family and alignment type
+(seed or full). We first check the cache for the pre-built tree object and
 then fall back to the database if it's not already available in the cache.
 
 =cut
@@ -2334,14 +2334,14 @@ sub get_tree : Private {
   # see if we can extract the pre-built tree object from cache
   my $cacheKey = 'tree' . $c->stash->{acc} . $c->stash->{alnType};
   my $tree     = $c->cache->get( $cacheKey );
-  
+
   if ( defined $tree ) {
     $c->log->debug( 'Family::Tree::get_tree: extracted tree from cache' )
-      if $c->debug;  
+      if $c->debug;
   }
   else {
     $c->log->debug( 'Family::Tree::get_tree: failed to extract tree from cache; going to DB' )
-      if $c->debug;  
+      if $c->debug;
 
     # get a new tree object...
     $tree = treefam::nhx_plot->new( -width => 600,
@@ -2350,14 +2350,14 @@ sub get_tree : Private {
     # retrieve the tree from the DB
     $c->forward( 'get_tree_data' );
     return unless defined $c->stash->{treeData};
-  
+
     # parse the data
     eval {
       $tree->parse( $c->stash->{treeData} );
     };
     if( $@ ) {
-      $c->log->error( 'Family::Tree::get_tree: ERROR: failed to parse ' 
-                      . $c->stash->{alnType} . ' tree for ' 
+      $c->log->error( 'Family::Tree::get_tree: ERROR: failed to parse '
+                      . $c->stash->{alnType} . ' tree for '
                       . $c->stash->{acc} . ": $@" );
       return;
     }
@@ -2365,7 +2365,7 @@ sub get_tree : Private {
     # and now cache the populated tree object
     $c->cache->set( $cacheKey, $tree ) unless $ENV{NO_CACHE};
   }
-  
+
   $c->stash->{tree} = $tree;
 }
 
@@ -2373,7 +2373,7 @@ sub get_tree : Private {
 
 =head2 get_tree_data : Private
 
-Retrieves the raw tree data. We first check the cache and then fall back to the 
+Retrieves the raw tree data. We first check the cache and then fall back to the
 database.
 
 =cut
@@ -2384,13 +2384,13 @@ sub get_tree_data : Private {
   # see if we can extract the pre-built tree object from cache
   my $cacheKey = 'treeData' . $c->stash->{acc} . $c->stash->{alnType};
   my $treeData = $c->cache->get( $cacheKey );
-  
+
   if( defined $treeData ) {
     $c->log->debug( 'Family::Tree::get_tree_data: extracted tree data from cache' )
-      if $c->debug;  
+      if $c->debug;
   } else {
     $c->log->debug( 'Family::Tree::get_tree_data: failed to extract tree data from cache; going to DB' )
-      if $c->debug;  
+      if $c->debug;
 
     # retrieve the tree from the DB
     my $rs = $c->model('PfamDB::AlignmentAndTree')
@@ -2398,18 +2398,18 @@ sub get_tree_data : Private {
                            type       => $c->stash->{alnType} } );
 
     return unless defined $rs;
-    
+
     my $row = $rs->first;
     return unless defined $row;
-    
+
     my $tree = $row->tree;
     return unless defined $tree;
 
     # make sure we can uncompress it
     $treeData = Compress::Zlib::memGunzip( $tree );
     unless ( defined $treeData ) {
-      $c->log->error( 'Family::Tree::get_tree_data: ERROR: failed to uncompress ' 
-                      . $c->stash->{alnType} . ' tree data for ' 
+      $c->log->error( 'Family::Tree::get_tree_data: ERROR: failed to uncompress '
+                      . $c->stash->{alnType} . ' tree data for '
                       . $c->stash->{acc} );
       return;
     }
@@ -2417,7 +2417,7 @@ sub get_tree_data : Private {
     # and now cache the populated tree data
     $c->cache->set( $cacheKey, $treeData ) unless $ENV{NO_CACHE};
   }
-  
+
   # stash the uncompressed tree
   $c->stash->{treeData} = $treeData;
 }
@@ -2442,9 +2442,9 @@ sub get_das_alignment : Private {
             : $this->{urls}->{full};
 
   if ( $c->debug ) {
-    $c->log->debug( 'Family::get_das_alignment: dsn:  |' . $dsn . '|' ); 
-    $c->log->debug( 'Family::get_das_alignment: acc:  |' . $c->stash->{acc} . '|' ); 
-    $c->log->debug( 'Family::get_das_alignment: rows: |' . $c->stash->{rows} . '|' ); 
+    $c->log->debug( 'Family::get_das_alignment: dsn:  |' . $dsn . '|' );
+    $c->log->debug( 'Family::get_das_alignment: acc:  |' . $c->stash->{acc} . '|' );
+    $c->log->debug( 'Family::get_das_alignment: rows: |' . $c->stash->{rows} . '|' );
   }
 
   # retrieve the DasLite client from the base model class and hand it the DSN
@@ -2454,8 +2454,8 @@ sub get_das_alignment : Private {
   # put the rows specification into the right format for DAS
   my $rows = $c->stash->{rows}->[0] . '-' . $c->stash->{rows}->[1];
 
-  # retrieve the raw alignment fragment and associated features via DAS and 
-  # generate the consensus sequence 
+  # retrieve the raw alignment fragment and associated features via DAS and
+  # generate the consensus sequence
 
   # retrieve the raw alignment from the DAS source
   my $raw_alignment  = $dl->alignment( { query => $c->stash->{acc},
@@ -2464,16 +2464,16 @@ sub get_das_alignment : Private {
   # build the marked-up alignment
   my ( $alignment, $alignment_lengths ) = reconstruct_alignment( $raw_alignment );
 
-  # retrieve the features  
+  # retrieve the features
   my $features_hash = $dl->features( $c->stash->{acc} );
 
   my ( $source, $features ) = each %$features_hash;
-  my $label = $features->[0]->{feature_label};  
- 
+  my $label = $features->[0]->{feature_label};
+
   # build the consensus string
   my $consensus = [ Bio::Pfam::ColourAlign::parseConsensus( $label ) ];
-  
-  # stash the arrays of alignments, alignment lengths and consensus strings  
+
+  # stash the arrays of alignments, alignment lengths and consensus strings
   $c->stash->{alignments}->{rawAlignments} = $alignment;
   $c->stash->{alignments}->{lengths}       = $alignment_lengths;
   $c->stash->{alignments}->{consensus}     = $consensus;
@@ -2532,7 +2532,7 @@ sub get_alignment_from_db : Private {
                               . $c->stash->{acc};
       return;
     }
-  
+
     # cache the raw alignment
     $c->cache->set( $cacheKey, $alignment ) unless $ENV{NO_CACHE};
   }
@@ -2543,7 +2543,7 @@ sub get_alignment_from_db : Private {
   # we need the alignment as an array ref, so...
   my @alignment = split /\n/, $alignment;
   $c->stash->{alignment_rows} = \@alignment;
-  
+
   $c->log->debug( 'Family::get_alignment_from_db: got '
                   . scalar @alignment . ' rows in alignment' ) if $c->debug;
 }
@@ -2573,7 +2573,7 @@ sub getAlignment : Private {
       if $c->debug;
     $c->stash->{errorMsg} = 'No job ID found for the sequence alignment job.';
     return;
-  }   
+  }
 
   # retrieve the job results
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
@@ -2582,25 +2582,25 @@ sub getAlignment : Private {
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     return;
-  }   
+  }
 
 #  $c->log->debug( 'Family::etAlignment: job results: |'
 #                  . $c->stash->{results}->{$jobId}->{rawData} . '|' );
 
   # the rawData is just a string containing the alignment lines
   my @alignmentRows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
-  
+
   # the consensus string is the last row of the alignment
   my $consensusString = pop @alignmentRows;
   $consensusString =~ s/^ConSeq\s+(\S+)$/$1/;
-  
+
   # take a slice of that array, based on the "rows" setting from PfamViewer.
   # Rows are numbered from 1, not zero, so we need to offset the row values
   my $from = $c->stash->{rows}->[0] - 1;
   my $to   = $c->stash->{rows}->[1] - 1;
   #$c->log->debug( 'Family::getAlignment: showing rows |'
   #                . "$from| to |$to|" );
-  
+
   my %alignment;
   my $length;
   foreach ( @alignmentRows[ $from .. $to ] ) {
@@ -2608,10 +2608,10 @@ sub getAlignment : Private {
     $alignment{$1} = $2;
     $length++;
   }
-  
+
   # parse the consensus string
   my $consensus = Bio::Pfam::ColourAlign::parseConsensus( $consensusString );
- 
+
   # stash everything
   $c->stash->{alignments}->{rawAlignments} = [ \%alignment ];
   $c->stash->{alignments}->{lengths}       = [ $length ];
@@ -2627,16 +2627,16 @@ Queues the job that will actually generate the sequence alignment.
 =cut
 
 sub queueAlignment : Private {
-  my($this, $c) = @_; 
+  my($this, $c) = @_;
 
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
 
   # set the options
-  my $opts = '-acc ' . $c->stash->{acc} . '.' . $c->stash->{pfam}->version; 
+  my $opts = '-acc ' . $c->stash->{acc} . '.' . $c->stash->{pfam}->version;
 
   # guesstimate the time it will take to build the alignment
-  my $estimatedTime = int( 1 + ( $c->stash->{numRows} / 100 ) ); 
+  my $estimatedTime = int( 1 + ( $c->stash->{numRows} / 100 ) );
 
   # add this job to the tracking tables
   my $jobHistory = $c->model('WebUser::JobHistory')
@@ -2661,9 +2661,8 @@ sub queueAlignment : Private {
   # of hashes, each of which gives details of a separate job
   my $jobStatus = [
                     {
-                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' )
-                                         ->as_string,
-                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
+                      checkURI      => $c->secure_uri_for( '/jobmanager/checkStatus' ),
+                      doneURI       => $c->secure_uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' ),
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
                       jobId         => $jobId,
@@ -2678,9 +2677,9 @@ sub queueAlignment : Private {
                   dump( $jobStatus ) ) if $c->debug;
   $c->log->debug( 'Family::queueAlignment: submitted job '
                   . "|$jobId| at |" . $historyRow->opened . '|' ) if $c->debug;
-                  
+
   return 0;
-} 
+}
 
 #-------------------------------------------------------------------------------
 #- regular perl methods (not actions) ------------------------------------------
@@ -2701,20 +2700,20 @@ sub reconstruct_alignment {
   my ( @alignments, @alignmentLengths );
 
   for ( my $i = 0; $i < scalar( @$aliData ); $i++ ) {
-    my %aliObjects = 
+    my %aliObjects =
       map{ $_->{alignobject_intObjectId} => $_ } @{ $aliData->[$i]->{alignobject} };
-  
+
     push @alignmentLengths, $aliData->[$i]->{alignment_max};
-  
+
     foreach my $block ( sort { $a->{block_blockOrder} <=> $b->{block_blockOrder} }
                              @{$aliData->[$i]->{block} } ) {
       my %ali;
       foreach my $bseqRef (@{ $block->{segment} } ) {
-  
-        my $key = $bseqRef->{segment_intObjectId} . '/' . 
-                  $bseqRef->{segment_start}       . '-' . 
+
+        my $key = $bseqRef->{segment_intObjectId} . '/' .
+                  $bseqRef->{segment_start}       . '-' .
                   $bseqRef->{segment_end};
-    
+
         $ali{$key} = get_alignment_string($bseqRef, \%aliObjects);
       }
       push @alignments, \%ali;
@@ -2801,4 +2800,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-
