@@ -167,9 +167,6 @@ sub results : Local {
     $c->log->debug( 'Search::Sequence::results: returning polling page as XML' )
       if $c->debug;
     $c->stash->{template} = 'rest/search/poll_xml.tt';
-
-    # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
-    $c->res->header( 'Access-Control-Allow-Origin' => '*' );
   }
 
   # output just the job ID, for use by PfamAlyzer
@@ -359,9 +356,6 @@ sub resultset : Local {
     $c->log->debug( 'Search::Sequence::results: returning result set as XML' )
       if $c->debug;
     $c->stash->{template} = 'rest/search/results_xml.tt';
-
-    # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
-    $c->res->header( 'Access-Control-Allow-Origin' => '*' );
   }
   elsif ( $c->stash->{data}->{altoutput} || 0 ) {
     $c->log->debug( 'Search::Sequence::results: returning result set for PfamAlyzer' )
