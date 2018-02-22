@@ -102,6 +102,7 @@ if ( $number and scalar(@families) < $number ) {
     next if ( $family->num_full > 10000 );
     if ( !exists( $addedFamilies{ $family->pfama_acc } ) ) {
       push( @families, $family->pfama_acc );
+      $addedFamilies{ $family->pfama_acc } = 1;
     }
   }
 }
