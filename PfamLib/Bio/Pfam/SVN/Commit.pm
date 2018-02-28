@@ -110,6 +110,7 @@ sub commitFamily {
     $famObj->seedcheck('ignore'); #Set to ignore so this field doesn't get updated
     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
      $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
+     $familyIO->create_or_update_author($pfamDB, $famObj);
   }else{
     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
 
@@ -119,9 +120,9 @@ sub commitFamily {
     $familyIO->updatePfamARegions($famObj, $pfamDB);
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+    $familyIO->create_or_update_author($pfamDB, $famObj);
 
   }
-  $familyIO->create_or_update_author($famObj);
   $guard->commit;
   
   #If this family is part of a clan, we need to compete it
