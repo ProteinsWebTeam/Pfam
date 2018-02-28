@@ -249,7 +249,7 @@ sub parseDESC {
         }
     }
     elsif ($file[$i] =~ m{^AU\s{3}(.*)$}) {
-        my $order = 0;
+        my $order = 1;
         $params{AU} = [];
         my $au_line = $1;
         if ($file[$i] =~ m{,} && $file[$i + 1] !~ m{^AU}) {
@@ -663,23 +663,29 @@ sub writeDESC {
 
 
 sub create_or_update_author {
-  my ($self, $familyObj) = @_;
+  my ($self, $pfamdb, $familyObj) = @_;
   
-  if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family')) {
-    croak('Either the Bio::Rfam::Family object was undefined or not an object of that type.');
+  if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family::PfamA')) {
+    croak('Either the Bio::Pfam::Family::PfamA object was undefined or not an object of that type.');
   }
 
+  my $rank = 1;
   if (defined($familyObj->{DESC}->{AU})) {
     foreach my $author (@{$familyObj->DESC->AU}) { 
       # search for an author by name
-      my $author_entry = $self->find({name => $author->{name}});
+      my $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}});
       if (defined $author_entry) {
         $author_entry->update({orcid => $author->{orcid}}) if defined $author->{orcid};
-        return;
-      }
+      } else {
       # create a new entry
-      $self->create({name => $author->{name}, orcid => $author->{orcid}});
+      # $self->create({name => $author->{name}, orcid => $author->{orcid}});
+        $author_entry = $pfamdb->getSchema->resultset('Author')->create({author => $author->{name}, orcid => $author->{orcid}});
+      }
+      my $au = $pfamdb->getSchema->resultset('PfamAAuthor')->find({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC});
+      $au ||= $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC});
+      $au->update({author_rank => $rank}) if $au->author_rank != $rank;
     }
+    $rank++;
   }
 }
 
