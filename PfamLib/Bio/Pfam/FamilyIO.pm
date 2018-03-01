@@ -674,24 +674,29 @@ sub create_or_update_author {
   if (defined($familyObj->{DESC}->{AU})) {
     foreach my $author (@{$familyObj->DESC->AU}) { 
       # search for an author by name
-      my $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}});
-      if (defined $author_entry) {
-        $author_entry->update({orcid => $author->{orcid}}) if defined $author->{orcid};
+      my $author_entry;
+      if ($author->{orcid}) {
+        $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}, orcid => $author->{orcid}});
       } else {
-      # create a new entry
-      # $self->create({name => $author->{name}, orcid => $author->{orcid}});
+        $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}});
+      }
+      if (defined $author_entry) {
+        $author_entry->update({orcid => $author->{orcid}}) if $author->{orcid};
+      } else {
+        # create a new entry
         $author_entry = $pfamdb->getSchema->resultset('Author')->create({author => $author->{name}, orcid => $author->{orcid}});
       }
       $author_ids{$author_entry->author_id} = 1;
-      my $au = $pfamdb->getSchema->resultset('PfamAAuthor')->find({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC});
-      $au ||= $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});
-      $au->update({author_rank => $rank}) if $au->author_rank != $rank;
+      # Add/update pfama_author
+      my $pf_au = $pfamdb->getSchema->resultset('PfamAAuthor')->find({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC});
+      $pf_au ||= $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});
+      $pf_au->update({author_rank => $rank}) if $pf_au->author_rank != $rank;
       $rank++;
     }
   }
-# foreach my $au ($pfamdb->getSchema->resultset('PfamAAuthor')->search({pfama_acc => $familyObj->DESC->AC})) {
-#   $au->delete unless $author_ids{$au->author_id};
-# }
+  foreach my $au ($pfamdb->getSchema->resultset('PfamAAuthor')->search({pfama_acc => $familyObj->DESC->AC})) {
+    $au->delete unless $author_ids{$au->author_id};
+  }
 }
 
 
