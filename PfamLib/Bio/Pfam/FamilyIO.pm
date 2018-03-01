@@ -670,8 +670,9 @@ sub create_or_update_author {
   }
 
   my $rank = 1;
-  my %author_ids;
   if (defined($familyObj->{DESC}->{AU})) {
+    # Clear existing pfamA-author entries
+    $pfamdb->getSchema->resultset('PfamAAuthor')->search({pfama_acc => $familyObj->DESC->AC})->delete;
     foreach my $author (@{$familyObj->DESC->AU}) { 
       # search for an author by name
       my $author_entry;
@@ -686,16 +687,10 @@ sub create_or_update_author {
         # create a new entry
         $author_entry = $pfamdb->getSchema->resultset('Author')->create({author => $author->{name}, orcid => $author->{orcid}});
       }
-      $author_ids{$author_entry->author_id} = 1;
-      # Add/update pfama_author
-      my $pf_au = $pfamdb->getSchema->resultset('PfamAAuthor')->find({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC});
-      $pf_au ||= $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});
-      $pf_au->update({author_rank => $rank}) if $pf_au->author_rank != $rank;
+      # Add pfama_author
+      my $pf_au = $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});
       $rank++;
     }
-  }
-  foreach my $au ($pfamdb->getSchema->resultset('PfamAAuthor')->search({pfama_acc => $familyObj->DESC->AC})) {
-    $au->delete unless $author_ids{$au->author_id};
   }
 }
 
