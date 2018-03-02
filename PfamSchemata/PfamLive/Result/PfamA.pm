@@ -46,11 +46,6 @@ __PACKAGE__->table("pfamA");
   is_nullable: 0
   size: 100
 
-=head2 author
-
-  data_type: 'tinytext'
-  is_nullable: 0
-
 =head2 deposited_by
 
   data_type: 'varchar'
@@ -292,8 +287,6 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 100 },
-  "author",
-  { data_type => "tinytext", is_nullable => 0 },
   "deposited_by",
   {
     data_type => "varchar",
