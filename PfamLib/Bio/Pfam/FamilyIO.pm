@@ -677,7 +677,10 @@ sub create_or_update_author {
       # search for an author by name
       my $author_entry;
       if ($author->{orcid}) {
-        $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}, orcid => $author->{orcid}});
+        $author_entry = $pfamdb->getSchema->resultset('Author')->find({orcid => $author->{orcid}});
+        if ($author_entry && $author_entry->author ne $author->{name}) {
+          croak(qq(Author ") . $author_entry->author . qq(" for ORCID ") . $author_entry->orcid . qq(" does not match DESC file [") . $author->{name} . "]'");
+        }
       } else {
         $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}});
       }
@@ -688,7 +691,7 @@ sub create_or_update_author {
         $author_entry = $pfamdb->getSchema->resultset('Author')->create({author => $author->{name}, orcid => $author->{orcid}});
       }
       # Add pfama_author
-      my $pf_au = $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});
+      $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});
       $rank++;
     }
   }
