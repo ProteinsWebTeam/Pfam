@@ -78,6 +78,7 @@ __PACKAGE__->set_primary_key("author_id");
 =cut
 
 __PACKAGE__->add_unique_constraint("au_id_orcid", ["author_id", "orcid"]);
+__PACKAGE__->add_unique_constraint("orcid", ["orcid"]);
 
 =head1 RELATIONS
 
