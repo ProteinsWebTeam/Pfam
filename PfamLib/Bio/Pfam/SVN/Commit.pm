@@ -150,6 +150,7 @@ sub commitNewFamily {
   my $acc = $self->_assignAccession($pfamDB);
   
   $famObj->DESC->AC($acc);
+  $familyIO->create_or_update_author($pfamDB, $famObj);
 
   #Now perform the QC steps.....
   $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, "", 1);
