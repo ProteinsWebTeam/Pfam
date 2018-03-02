@@ -525,6 +525,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 authors
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamAAuthor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "authors",
+  "PfamLive::Result::PfamAAuthor",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 interpros
 
 Type: has_many
