@@ -223,7 +223,7 @@ sub parseDESC {
           . "\n" );
     }
 
-    if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|TP|SQ|BM|SM|CL)\s{3}(.*)$/ ) {
+    if ( $file[$i] =~ /^(AC|ID|DE|PI|SE|TP|SQ|BM|SM|CL)\s{3}(.*)$/ ) {
       if(exists($params{$1})){
         confess("\nFound more than one line containing the $1 tag\n\n"
          . "-" x 80
@@ -246,6 +246,34 @@ sub parseDESC {
         }
         else {
           $params{"WIKI"} = { $page => 1 };
+        }
+    }
+    elsif ($file[$i] =~ m{^AU\s{3}(.*)$}) {
+        my $order = 1;
+        $params{AU} = [];
+        my $au_line = $1;
+        if ($file[$i] =~ m{,} && $file[$i + 1] !~ m{^AU}) {
+            chomp $au_line;
+            foreach my $au (split m{, }, $au_line) {
+                push @{$params{AU}}, { name => $au, orcid => undef, rank => $order };
+                $order++;
+            }
+        } else {
+            do {
+                $au_line = $1;
+                chomp $au_line;
+                my ($author, $orcid) = split ';', $au_line;
+                if ($orcid && $orcid !~ m{\d{4}-\d{4}-\d{4}-\d{3}[\d|X]}) {
+                    croak(qq(Invalid ORCID $orcid));
+                }
+                unless ($author =~ m{^\S+}) {
+                    croak(qq(Invalid Author $author));
+                }
+                push @{$params{AU}}, { name => $author, orcid => $orcid, rank => $order };
+                $order++;
+                $i++;
+            } while ($file[$i] =~ m{^AU\s{3}(.*)$});
+            $i--;
         }
     }
     elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
@@ -525,7 +553,13 @@ sub writeDESC {
   $Text::Wrap::unexpand = 0;
   $Text::Wrap::columns = 75;
   foreach my $tagOrder ( @{ $desc->order } ) {
-    if ( length($tagOrder) == 2 ) {
+    if ($tagOrder eq 'AU') {
+      foreach my $author (@{$desc->AU}) {
+         print D "AU   $author->{name}";
+         print D ";$author->{orcid}" if $author->{orcid};
+         print D "\n";
+      }
+    } elsif ( length($tagOrder) == 2 ) {
       if ( $desc->$tagOrder and $desc->$tagOrder =~ /\S+/ ) {
         print D wrap( "$tagOrder   ", "$tagOrder   ", $desc->$tagOrder );
         print D "\n";
@@ -626,6 +660,43 @@ sub writeDESC {
   }
   close(D);
 }
+
+
+sub create_or_update_author {
+  my ($self, $pfamdb, $familyObj) = @_;
+  
+  if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family::PfamA')) {
+    croak('Either the Bio::Pfam::Family::PfamA object was undefined or not an object of that type.');
+  }
+
+  my $rank = 1;
+  if (defined($familyObj->{DESC}->{AU})) {
+    # Clear existing pfamA-author entries
+    $pfamdb->getSchema->resultset('PfamAAuthor')->search({pfama_acc => $familyObj->DESC->AC})->delete;
+    foreach my $author (@{$familyObj->DESC->AU}) { 
+      # search for an author by name
+      my $author_entry;
+      if ($author->{orcid}) {
+        $author_entry = $pfamdb->getSchema->resultset('Author')->find({orcid => $author->{orcid}});
+        if ($author_entry && $author_entry->author ne $author->{name}) {
+          croak(qq(Author ") . $author_entry->author . qq(" for ORCID ") . $author_entry->orcid . qq(" does not match DESC file [") . $author->{name} . "]'");
+        }
+      } else {
+        $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}});
+      }
+      if (defined $author_entry) {
+        $author_entry->update({orcid => $author->{orcid}}) if $author->{orcid};
+      } else {
+        # create a new entry
+        $author_entry = $pfamdb->getSchema->resultset('Author')->create({author => $author->{name}, orcid => $author->{orcid}});
+      }
+      # Add pfama_author
+      $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});
+      $rank++;
+    }
+  }
+}
+
 
 sub updatePfamAInRDB {
   my ( $self, $famObj, $pfamDB, $isNew, $depositor ) = @_;
