@@ -46,11 +46,6 @@ __PACKAGE__->table("pfamA");
   is_nullable: 0
   size: 100
 
-=head2 author
-
-  data_type: 'tinytext'
-  is_nullable: 0
-
 =head2 deposited_by
 
   data_type: 'varchar'
@@ -292,8 +287,6 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 100 },
-  "author",
-  { data_type => "tinytext", is_nullable => 0 },
   "deposited_by",
   {
     data_type => "varchar",
@@ -521,6 +514,21 @@ Related object: L<PfamLive::Result::GeneOntology>
 __PACKAGE__->has_many(
   "gene_ontologies",
   "PfamLive::Result::GeneOntology",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 authors
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamAAuthor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "authors",
+  "PfamLive::Result::PfamAAuthor",
   { "foreign.pfama_acc" => "self.pfama_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
