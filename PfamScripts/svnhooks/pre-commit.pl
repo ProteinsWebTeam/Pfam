@@ -136,7 +136,7 @@ elsif ( $msg =~ /PFCIRMC:(CL\d{4})\:(PF\d{5})/ ) {
 elsif ( $msg =~ /^PFNEW:/ ) {
   $txnlook->commitNewFamily($pfamDB);
 }elsif( $msg =~ /PFCIDESC:/){
-  $txnlook->commitFamilyDESC($pfamDB);   
+  $txnlook->commitFamily($pfamDB);   
 }elsif ( $msg =~ /^CLCI:/ ) {
   $txnlook->commitClan($pfamDB);
 }
