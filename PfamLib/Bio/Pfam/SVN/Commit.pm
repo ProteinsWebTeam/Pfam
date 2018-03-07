@@ -110,6 +110,7 @@ sub commitFamily {
     $famObj->seedcheck('ignore'); #Set to ignore so this field doesn't get updated
     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
      $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
+     $familyIO->create_or_update_author($pfamDB, $famObj);
   }else{
     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
 
@@ -119,6 +120,7 @@ sub commitFamily {
     $familyIO->updatePfamARegions($famObj, $pfamDB);
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+    $familyIO->create_or_update_author($pfamDB, $famObj);
 
   }
   $guard->commit;
@@ -132,6 +134,7 @@ sub commitFamily {
   }
 
 }
+
 
 sub commitNewFamily {
   my ( $self, $pfamDB ) = @_;
@@ -147,6 +150,7 @@ sub commitNewFamily {
   my $acc = $self->_assignAccession($pfamDB);
   
   $famObj->DESC->AC($acc);
+  $familyIO->create_or_update_author($pfamDB, $famObj);
 
   #Now perform the QC steps.....
   $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, "", 1);

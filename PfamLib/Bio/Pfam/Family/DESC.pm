@@ -62,9 +62,14 @@ use Bio::Pfam::HMM::HMM;
 #  => where { $_ =~ m/^[\w_]{1,15}$/ }
 #  => message { 'Not a valid Pfam-A accession' };
 
+#subtype 'PfamAuthor'
+#  => as Str
+#  => where { $_ =~ /^((\S+\s{1}\S{1,3}|SMART|LOAD)(\,\s{1})?)*$/ }
+#  => message { 'Not a vailid Pfam author' };
+
 subtype 'PfamAuthor'
-  => as Str
-  => where { $_ =~ /^((\S+\s{1}\S{1,3}|SMART|LOAD)(\,\s{1})?)*$/ }
+  => as ArrayRef
+  => where{ scalar(@{$_}) >= 1; }
   => message { 'Not a vailid Pfam author' };
 
 subtype 'PfamDesc'
@@ -125,7 +130,7 @@ has 'PI' => (
 
 has 'AU' => (
   is        => 'ro',
-  isa       => 'PfamAuthor',
+  isa       => 'ArrayRef[ HashRef ]',
   required  => 1
 );
 

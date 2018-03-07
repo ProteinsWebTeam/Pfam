@@ -223,7 +223,6 @@ sub updatePfamA {
   $pfamA->pfama_acc( $famObj->DESC->AC );
   $pfamA->pfama_id( $famObj->DESC->ID );
   $pfamA->description( $famObj->DESC->DE );
-  $pfamA->author( $famObj->DESC->AU );
   $pfamA->seed_source( $famObj->DESC->SE );
   $pfamA->type( $famObj->DESC->TP );
   $pfamA->sequence_tc( $famObj->DESC->CUTTC->{seq} );
@@ -274,7 +273,6 @@ sub createPfamA {
       pfama_acc      => $famObj->DESC->AC,
       pfama_id       => $famObj->DESC->ID,
       description    => $famObj->DESC->DE,
-      author         => $famObj->DESC->AU,
       deposited_by   => $depositor,
       seed_source    => $famObj->DESC->SE,
       type           => $famObj->DESC->TP,
