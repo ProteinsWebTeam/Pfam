@@ -94,7 +94,7 @@ has 'DE' => (
 
 has 'AU' => (
   is        => 'ro',
-  isa       => 'PfamAuthor',
+  isa       => 'Str',
   required  => 1
 );
 
