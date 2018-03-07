@@ -492,7 +492,7 @@ sub writeEmptyDESC {
   my %desc = (
     ID    => 'ShortName',
     DE    => 'Family description',
-    AU    => 'Who RU',
+    AU    => [ { name => 'Who RU' } ],
     SE    => 'Where did the seed come from',
     CUTGA => { seq => '27.00', dom => '27.00' },
     CUTNC => { seq => '27.00', dom => '27.00' },
