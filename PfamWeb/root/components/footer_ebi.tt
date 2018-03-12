@@ -8,6 +8,31 @@
 <!-- footer start -->
 
 <div id="siteFooter">
+
+  <div style="display:block">
+    <div style="margin:auto; width:60%">
+
+      <div style="display:inline-block">
+        <a href="https://www.elixir-europe.org/about-us/why-needed">
+          <img src="//ebi.emblstatic.net/web_guidelines/EBI-Framework/v1.2/images/logos/assorted/elixir_kitemark-60px.png">
+        </a>
+      </div>
+
+      <div style="width:29%; display:inline-block; vertical-align:top; text-align:left">
+        <h5 style="font-size:1.5em">
+          <a href="https://www.elixir-europe.org/about-us/why-needed">
+            <span>Pfam</span> is part of the ELIXIR infrastructure
+          </a>
+        </h5>
+        <small>
+          <span >Pfam is an Elixir service</span>
+          <span><a href="https://www.elixir-europe.org/about-us/why-needed">Read more</a></span>
+        </small>
+      </div>
+
+    </div>
+  </div>
+
   <p>
     Comments or questions on the site? Send a mail to <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;">&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;</a>.&nbsp;
   </p>
