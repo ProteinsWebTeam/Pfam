@@ -354,6 +354,31 @@ sub results {
   return \@search_results;
 }
 
+
+=head2 graphic_results
+
+Returns the search results for use with domain graphics 
+
+=cut
+
+sub graphic_results {
+  my ( $self, $e_value ) = @_; 
+
+  unless ( defined $self->{_all_results} ) { 
+    carp "WARNING: call search() before trying to retrieve results";
+    return;
+  }
+
+  my @search_results = (); 
+
+  foreach my $hmm_result ( @{ $self->{_all_results} } ) { 
+    push @search_results, @{ $hmm_result->graphicsResults( $self, $e_value ) };
+  }
+
+  return \@search_results;
+}
+
+
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -443,6 +468,7 @@ sub _process_args {
   $self->{_sequence}     = $args->{-sequence};
   $self->{_cpu}          = $args->{-cpu};
   $self->{_translate}    = $args->{-translate};
+  $self->{_color_file}   = $args->{-color_file};
 
   $self->{_hmmlib} = [];
   if ( $args->{-hmmlib} ) {
@@ -498,6 +524,10 @@ sub _process_args {
 
   if ( $self->{_translate} ) {
     $self->_translate_fasta;
+  }
+
+  if( $self->{_color_file} ) { 
+    $self->_parse_color_file;
   }
 
   # see if a version number was specified
@@ -815,6 +845,34 @@ sub _parse_act_site_data {
   }
   close AS;
   $self->{_read_read_act_site_data} = 1;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _parse_color_file
+
+This method is used to read the Pfam domain color file and create a hash where
+key is pfam accession and value is color
+
+=cut
+
+sub _parse_color_file {
+  my $self = shift;
+
+  $self->{_color_data} = {};
+
+  my $color_file=$self->{_color_file};
+  open(FH, $color_file) or croak qq(FATAL: Couldn\'t open $color_file data file: $!);
+  while(<FH>) {
+    if(/^(PF\d{5}\.\d+)\s+(\S+)/) {
+      $self->{_color_data}->{$1}=$2;
+    } 
+    else {
+      warn "Ignoring line\n[$_] in $color_file";
+    }
+  }
+  close FH;
+
 }
 
 #-------------------------------------------------------------------------------
