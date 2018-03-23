@@ -15,7 +15,7 @@ my $VERSION = "1.6";
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
      $clan_overlap, $fasta, $align, $help, $as, $pfamB, 
-     $json, $only_pfamB, $cpu, $translate );
+     $json, $json_gfx, $only_pfamB, $cpu, $translate, $color_file );
 GetOptions( 'help'         => \$help,
             'outfile=s'    => \$outfile,
             'e_seq=f'      => \$e_seq,
@@ -31,6 +31,8 @@ GetOptions( 'help'         => \$help,
             'pfamB'        => \$pfamB,
             'only_pfamB'   => \$only_pfamB,
             'json:s'       => \$json,
+            'json_gfx:s'   => \$json_gfx,
+            'domain_color=s' => \$color_file,      
             'cpu=i'        => \$cpu,
             'translate:s'  => \$translate
 );
@@ -93,6 +95,19 @@ if ( $as ) {
     unless -s "$dir/active_site.dat";
 }
 
+if(defined $json and defined $json_gfx) {
+  die qq(FATAL: can't use -json and json_gfx options together);
+}
+
+if($color_file) {
+  unless(defined $json_gfx) {
+    die qq(FATAL: can only use domain_color option with either the -json_gfx option);
+  }
+  unless(-s $color_file) {
+    die qq(FATAL: domain_color file [$color_file] does not exist);
+  }
+}
+
 if ( defined $translate ) {
   if ( $translate eq "" ) {
     # no argument to "-translate" was given, so make "orf" the default
@@ -122,14 +137,15 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
   -hmmlib       => \@hmmlib,
   -version      => $VERSION,
   -cpu          => $cpu,
-  -translate    => $translate
+  -translate    => $translate,
+  -color_file   => $color_file
 );
 
 # run the search
 $ps->search;
 
 # print the results
-if ( defined $json ) {
+if ( defined $json or defined $json_gfx) {
 
   my $json_object;
   eval {
@@ -140,10 +156,14 @@ if ( defined $json ) {
     die qq(FATAL: can't load JSON module; can't write JSON-format output);
   }
 
-  if ( $json eq 'pretty' ) {
-    $json_object->pretty( 1 ) ;
+  if(defined $json) {
+    $json_object->pretty(1)if ($json eq 'pretty');
+    print $json_object->encode( $ps->results );
   }
-  print $json_object->encode( $ps->results );
+  else {
+    $json_object->pretty(1)if ($json_gfx eq 'pretty');
+    print $json_object->encode( $ps->graphic_results );
+  }
 
 }
 else {
@@ -175,6 +195,11 @@ Additonal options:
   -json [pretty]    : write results in JSON format. If the optional value "pretty" is given,
                       the JSON output will be formatted using the "pretty" option in the JSON
                       module
+  -json_gfx [pretty]: write reults in JSON format for use with Pfam domain graphics package. If the 
+                      optional value "pretty" is given, the JSON output will be formatted using the 
+                      "pretty" option in the JSON module
+  -domain_color     : specify a file of domain colors. This option is for use with the -json_gfx
+                      option.
   -cpu <n>          : number of parallel CPU workers to use for multithreads (default all)
   -translate [mode] : treat sequence as DNA and perform six-frame translation before searching. If the
                       optional value "mode" is given it must be either "all", to translate everything 
@@ -248,6 +273,15 @@ Search for active sites on Pfam-A matches [default: false]
 =item B<-json> [I<pretty>]
 
 Write the results in JSON format [default: false]
+
+=item B<-json_gfx> [I<pretty>]
+
+Write the results in JSON format for use with the Pfam domain graphics package [default: false]
+
+=item B<-domain_color>
+
+Supply a domain color file specifying the color for each Pfam domain. This option is for use with the
+-json_gfx option [default: false]
 
 =item B<-cpu>
 
