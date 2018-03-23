@@ -579,4 +579,80 @@ sub results {
   return \@results;
 }
 
+sub graphicsResults {
+  my ( $self, $pfamScanData, $e_value ) = @_; 
+
+  my @results = (); 
+  
+  foreach my $unit ( sort { $a->seqFrom <=> $b->seqFrom } @{ $self->units } ) {    
+    
+    my $pfamB = $unit->name =~ /^Pfam-B/;
+
+    #Filter results based on thresholds
+    if ( $unit->name =~ /^Pfam-B/ ) { 
+      next unless ( $self->seqs->{$unit->name}->evalue <= 0.001 and $unit->evalue <= 0.001 );
+      $pfamB = 1;
+    }   
+    else {    
+      if ( $e_value ) { 
+        next unless ( $self->seqs->{$unit->name}->evalue <= $e_value and $unit->evalue <= $e_value ) ; 
+      }   
+      else {
+       next unless $unit->sig;
+      }   
+    }   
+
+    my $n_edge = "curved";
+    my $c_edge = "curved";
+
+    #Edge is jagged if it doesn't start/end at first/last match state
+    #Allow 10 match state leeway
+    $n_edge = "jagged" if($unit->hmmFrom > 10); 
+    $c_edge = "jagged" if($unit->hmmTo < ($pfamScanData->{_model_len}->{ $unit->name } - 9) ); 
+
+
+    my $pfamA_acc=$pfamScanData->{_accmap}->{ $unit->name };
+
+    push @results, {
+      modelLength => $pfamScanData->{_model_len}->{ $unit->name },
+      start       => $unit->envFrom,
+      end         => $unit->envTo,
+      aliStart    => $unit->seqFrom,
+      aliEnd      => $unit->seqTo,
+      modelStart  => $unit->hmmFrom,
+      modelEnd    => $unit->hmmTo,
+      startStyle  => $n_edge,
+      endStyle    => $c_edge,
+      color       => $pfamScanData->{_color_data}->{$pfamA_acc} ? $pfamScanData->{_color_data}->{$pfamA_acc} : "5b5bff", #if no color file, hard code to blue 
+      display     => "true",
+      text        => $unit->name,
+      href        => "/family/".$pfamScanData->{_accmap}->{ $unit->name },
+      type        => $pfamB ? "pfamb" : "pfama",
+      metadata    => { scoreName   => "e-value",
+                       score       => $unit->evalue,
+                       bits        => $unit->bits,
+                       description => $pfamScanData->{_desc}->{ $unit->name },
+                       accession   => $pfamA_acc,
+                       start       => $unit->envFrom,
+                       end         => $unit->envTo,
+                       database    => "pfam",
+                       aliStart    => $unit->seqFrom,
+                       aliEnd      => $unit->seqTo,
+                       identifier  => $unit->name,
+                       type        => $pfamB ? undef : $pfamScanData->{_type}->{ $unit->name },
+                       clan        => $pfamB ? undef : $pfamScanData->{_clanmap}->{ $unit->name } || 'No_clan',
+
+                     }
+    };  
+  }
+  
+  my @seqResults;
+  if(@results) {
+    my $seq_length = length($pfamScanData->{_seq_hash}->{$self->seqName}) ;
+    push(@seqResults, {length => $seq_length, regions => \@results} );
+  }
+
+  return(\@seqResults);
+}
+
 1;
