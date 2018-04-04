@@ -150,7 +150,6 @@ sub commitNewFamily {
   my $acc = $self->_assignAccession($pfamDB);
   
   $famObj->DESC->AC($acc);
-  $familyIO->create_or_update_author($pfamDB, $famObj);
 
   #Now perform the QC steps.....
   $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, "", 1);
@@ -162,6 +161,7 @@ sub commitNewFamily {
   $familyIO->updatePfamARegions($famObj, $pfamDB);
   $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
   $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
+  $familyIO->create_or_update_author($pfamDB, $famObj);
 
   $guard->commit;
   #If this family is part of a clan, we need to compete it
