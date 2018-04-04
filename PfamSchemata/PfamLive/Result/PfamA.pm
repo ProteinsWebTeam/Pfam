@@ -518,21 +518,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 authors
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamAAuthor>
-
-=cut
-
-__PACKAGE__->has_many(
-  "authors",
-  "PfamLive::Result::PfamAAuthor",
-  { "foreign.pfama_acc" => "self.pfama_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 interpros
 
 Type: has_many
@@ -679,6 +664,21 @@ Related object: L<PfamLive::Result::PfamAArchitecture>
 __PACKAGE__->has_many(
   "pfam_a_architectures",
   "PfamLive::Result::PfamAArchitecture",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 pfam_a_authors
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamAAuthor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfam_a_authors",
+  "PfamLive::Result::PfamAAuthor",
   { "foreign.pfama_acc" => "self.pfama_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -954,8 +954,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:49:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:a4fgVZJiIovJcsyvjaGdSQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-04-04 11:46:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:st2i0naZxl2wFS8L4C+2dg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

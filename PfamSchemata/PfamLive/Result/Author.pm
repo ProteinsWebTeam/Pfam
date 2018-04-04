@@ -78,6 +78,17 @@ __PACKAGE__->set_primary_key("author_id");
 =cut
 
 __PACKAGE__->add_unique_constraint("au_id_orcid", ["author_id", "orcid"]);
+
+=head2 C<orcid>
+
+=over 4
+
+=item * L</orcid>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("orcid", ["orcid"]);
 
 =head1 RELATIONS
@@ -98,8 +109,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-11-30 14:55:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iIM2kjYpGbTVa0zx9y07NA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-04-04 11:46:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iAoZFOSibypz1/zT+1jlMw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
