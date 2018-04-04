@@ -53,7 +53,7 @@ __PACKAGE__->table("pfamseq_markup");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 8
+  size: 7
 
 =cut
 
@@ -77,7 +77,7 @@ __PACKAGE__->add_columns(
   "annotation",
   { data_type => "text", is_nullable => 1 },
   "pfama_acc",
-  { data_type => "varchar", is_nullable => 1, size => 8 },
+  { data_type => "varchar", is_nullable => 1, size => 7 },
 );
 
 =head1 RELATIONS
@@ -113,8 +113,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-07-13 13:29:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WG72pRHzxhs/2iqQS/9mlA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-04-04 12:01:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cxcmSECLfAQ/54tNn+cqwA
 
 __PACKAGE__->has_one( "markup" => 'PfamLive::Result::MarkupKey',
  	{ 'foreign.auto_markup' => 'self.auto_markup' },
