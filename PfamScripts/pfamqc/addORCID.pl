@@ -214,7 +214,7 @@ sub author2orcid {
 
   my @orcids;
   foreach my $row (@rows) {
-    push(@orcids, $row->orcid);
+    push(@orcids, $row->orcid) if($row->orcid); #Add non-null values to array
   }
 
   return(\@orcids);
