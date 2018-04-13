@@ -237,7 +237,7 @@ sub updatePfamA {
   $pfamA->previous_id( $famObj->DESC->PI ? $famObj->DESC->PI : '' );
 
   #Update rp_seed (whether seed is on reference proteomes)
-  $pfamA->rp_seed($famObj->seedcheck eq 'pfamseq' ? 1 : 0);
+  $pfamA->rp_seed($famObj->seedcheck eq 'pfamseq' ? 1 : 0) unless($famObj->seedcheck eq 'ignore');
 
   #Now update the HMM stuff;
   $pfamA->msv_mu( $famObj->HMM->msvStats->{mu} );
