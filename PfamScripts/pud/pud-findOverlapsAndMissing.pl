@@ -581,7 +581,7 @@ sub filterOverlaps {
   open( OFS, ">$statusdir/$filePrefix.familyOverlaps.filtered" );
   printf( OFS "%-7s\t%-20s\t%-8s\t%-8s\t%-8s\t%s\n", "acc", "id", "NoSeed", "NoFull", "NoOverlaps", "OverlapFams" );
 
-  foreach my $family ( keys %overlapsPerFamily ) {
+  foreach my $family ( sort { $overlapsPerFamily{$b} <=> $overlapsPerFamily{$a} } keys %overlapsPerFamily ) {
     undef @temp;
     undef $temp_string;
     @temp = split( /;/, $familiesPerFamily{$family} );
