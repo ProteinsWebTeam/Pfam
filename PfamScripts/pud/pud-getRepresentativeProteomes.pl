@@ -42,9 +42,8 @@ unless ( -d $store_dir ) {
     or die "Could not make the directory '$store_dir' because: [$!]\n";
 }
 
-#Move to the RP local database directory;
-my $pwd = getcwd;
-chdir($store_dir) or $logger->logdie("Failed to change into $store_dir");
+#Get cwd
+my $cwd = getcwd;
 
 
 #These are the different RP levels that are made available via PIR by default.
@@ -54,18 +53,15 @@ my @levels = qw(15 35 55 75);
 #Copy pir data across
 foreach my $level (@levels) {
   my $file = "rp-seqs-".$level.".fasta.gz";
-  if(-s "$statusdir/copiedRP".$level) {
+  if(-e "$statusdir/copiedRP".$level) {
     $logger->debug("Already copied $file.gz");
   }
   else {
     $logger->debug("Copying $file from ".$config->uniprotPrivateLoc."/internal/rps_fromPIR/");
     copy($config->uniprotPrivateLoc."/internal/rps_fromPIR/$file", "$store_dir/$file") or $logger->logdie("Could not copy ".$config->uniprotPrivateLoc."/internal/rps_fromPIR/$file to $store_dir [$!]");
-    chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!"); 
     touch("$statusdir/copiedRP$level");
-    chdir($store_dir) or $logger->logdie("Couldn't chdir into $store_dir, $!");
   }
 }
-
 
 #The following update statements.  Note, that when a sequences appears in RP15, the
 #most redundant version, then according to the RP definitions, it is in the
@@ -82,19 +78,16 @@ if(-e "$statusdir/resetUniprotRP"){
 }else{
   $logger->info("Resetting uniprot RP flag.");
   $dbh->do("UPDATE uniprot SET rp15=0, rp35=0, rp55=0, rp75=0");
-  chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!"); 
   touch("$statusdir/resetUniProtRP");
-  chdir($store_dir) or $logger->logdie("Couldn't chdir into $store_dir, $!");
 }
 
 my %seen;
 foreach my $l (@levels){
   #Have we already processed this level?
-  chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!");
   if( -e "$statusdir/setUniprotRP$l"){
     $logger->info("Already set uniprot RP flags for $l.");
   }else{
-    chdir($store_dir) or $logger->logdie("Couldn't chdir into $pwd, $!");
+    chdir($store_dir) or $logger->logdie("Couldn't chdir into $store_dir, $!");
     $logger->info("Going to set uniprot RP flags for $l.");
     #Prepare the appropriate update statement.
     my $sth = $dbh->prepare($updateStatements{$l});
@@ -125,9 +118,8 @@ foreach my $l (@levels){
     }
     close(F);
     $dbh->commit;
-    chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!");
+    chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
     touch("$statusdir/setUniprotRP$l");
-    chdir($store_dir) or $logger->logdie("Couldn't chdir into $pwd, $!");
   }
 }
 
