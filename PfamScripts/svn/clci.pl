@@ -32,6 +32,10 @@ unless ($clan) {
 }
 chomp($clan);
 
+if($clan =~ /(\S+)\/$/) { #Remove trailing '/' if present
+  $clan = $1; 
+}
+
 if (@ARGV) {
   warn "\n***** $0 no longer supports multiple family check-ins *****\n\n";
   help();

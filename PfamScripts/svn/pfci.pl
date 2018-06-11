@@ -274,11 +274,11 @@ if ($onlydesc) {
     }
   }
 
-  if ( $oldFamObj->DESC->EDITS ) {
-    for ( my $i = 0 ; $i < scalar( $oldFamObj->DESC->EDITS ) ; $i++ ) {
-
-    }
-  }
+  #if ( $oldFamObj->DESC->EDITS ) {
+  #  for ( my $i = 0 ; $i < scalar( $oldFamObj->DESC->EDITS ) ; $i++ ) {
+  #
+  #  }
+  #}
 
   #ID, AC, PI, SE, BM, SM
   foreach my $tag (qw(ID AC PI SE BM SM)) {

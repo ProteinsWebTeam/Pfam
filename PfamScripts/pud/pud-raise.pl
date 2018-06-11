@@ -429,8 +429,8 @@ Addional options:
                         less that 'bits_threshold' (default 30)
   -num_overlaps <n>   : Work on families with less than 'num_overlaps' 
                         overlaps (default 20)
-  -perc_thresh <n>    : Allow a maximum of 'perc_thresh' % of members to 
-                        be lost (default 90%)
+  -perc_thresh <n>    : Keep 'perc_thresh' % of members in family 
+                        (default 90%)
 
 EOF
   exit;
