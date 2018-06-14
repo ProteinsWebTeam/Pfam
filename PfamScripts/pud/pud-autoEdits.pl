@@ -1,5 +1,4 @@
 #!/usr/local/bin/perl
-#
 
 use strict;
 use warnings;
@@ -10,20 +9,22 @@ use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::FamilyIO;
 use Getopt::Long;
 
-my ($file, $famDir, $threshold, $percentage, $help, $maxOverlaps); 
+my ($file, $famDir, $threshold, $percentage, $help, $maxOverlaps, $maxBits); 
 GetOptions( "aa=i"         => \$threshold,
-            "file=s"       => \$file,
-            "famDir=s"     => \$famDir,
-            "h|help"       => \$help,
-            "percentage=s" => \$percentage, 
-	    "maxOverlaps=i" => \$maxOverlaps)            
-or die "Failed to get options";
+  "file=s"       => \$file,
+  "famDir=s"     => \$famDir,
+  "h|help"       => \$help,
+  "percentage=s" => \$percentage, 
+  "maxOverlaps=i" => \$maxOverlaps,
+  "maxBits=i"    => \$maxBits)
+  or die "Failed to get options";
 
 if($help){
   &help;
 }
 
-my $maxBits = 30;
+$maxBits = 30 unless($maxBits);
+
 if(!$percentage or $percentage <= 0 or $percentage > 1){
   warn "Percantage overlap needs to be between 0 and 1\n";
   &help;
@@ -81,7 +82,7 @@ while(<O>){
     $s2 = $11;
     $e2 = $12;
     $index = $1;
- 
+
     $family_overlaps{$fam1}++;
     $family_overlaps{$fam2}++;
   }else{
@@ -92,8 +93,8 @@ while(<O>){
   next if($ali1 eq 'ALIGN' and $ali2 eq 'ALIGN'); 
 
   if(defined($ali2) and  $ali2 eq 'SEED'){
-   #This sequence has to stay with this family
-   $seedOverlaps{$seq2} = $fam2;
+    #This sequence has to stay with this family
+    $seedOverlaps{$seq2} = $fam2;
   }elsif(defined($ali1) and $ali1 eq 'SEED'){
     #This sequence has to stay with this family
     $seedOverlaps{$seq1} = $fam1;
@@ -126,7 +127,7 @@ while(<O>){
     die "Bad line: $_";
     next;
   }
- 
+
   next if($maxBits and $bits1 > $maxBits and $bits2 > $maxBits);
   next if( ($family_overlaps{$fam1} > $maxOverlaps) or ($family_overlaps{$fam2} > $maxOverlaps) );
 
@@ -142,62 +143,62 @@ while(<O>){
       print "$seq1, $s1, $e1, $seq2, $s2, $e2, overlap is: $o\n";
 
       if($o < $threshold and ($o/$l1 <= $percentage) and $o/$l2  <= $percentage){
-	
-	if($seedOverlaps{$seq1} and $seedOverlaps{$seq1} eq $fam1){
-	  print NOT $_;
-	  print NOT "Can't resolve (seed overlap), skipping\n";
-	}else{
-	  print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
-    $canResolve++;
-	  push(@{ $fixes{$fam1} }, { seq   => $seq1,
-				     from  => $s1,
-				     to    => $e1,
-				     eFrom => "",
-				     eTo   => "" });
-	  print "$fam1 ($bits1 bits), $seq1/$s1-$e1 => remove\n";
-	  
-	}
+
+        if($seedOverlaps{$seq1} and $seedOverlaps{$seq1} eq $fam1){
+          print NOT $_;
+          print NOT "Can't resolve (seed overlap), skipping\n";
+        }else{
+          print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+          $canResolve++;
+          push(@{ $fixes{$fam1} }, { seq   => $seq1,
+              from  => $s1,
+              to    => $e1,
+              eFrom => "",
+              eTo   => "" });
+          print "$fam1 ($bits1 bits), $seq1/$s1-$e1 => remove\n";
+
+        }
       }
       else {
-	print NOT $_;
-	print NOT "Can't resolve (big overlap:1), skipping (overlap = $o, domain 1 = $l1,  domain 2 = $l2)\n";
+        print NOT $_;
+        print NOT "Can't resolve (big overlap:1), skipping (overlap = $o, domain 1 = $l1,  domain 2 = $l2)\n";
       }
     }
     else { #Need to remove part of domain1
-      my $o = $e2 - $s1; +1;
+      my $o = $e2 - $s1; +1; 
       print "$seq1, $s1, $e1, $seq2, $s2, $e2, overlap is: $o\n";
-      
+
       if($o < $threshold and ($o/$l1 <= $percentage) and $o/$l2  <= $percentage){
-	
-	if($seedOverlaps{$seq1} and $seedOverlaps{$seq1} eq $fam1){
-	  if($bits2 > $maxBits) {
-	    print NOT $_;
-	    print NOT "Can't resolve (seed overlap with high bit score), skipping\n";
-	  }
-	  else {
-	    print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
-      $canResolve++;
-	    push(@{ $fixes{$fam2} }, {  seq   => $seq2,
-					from  => $s2,
-					to    => $e2,
-					eFrom => $s2,
-					eTo   => $s1-1 });
-	    print "$fam2 ($bits2 bits), $seq2/$s2-$e2 => $seq2/$s2-($s1-1)\n";
-	  }
-	}else{
-	  print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
-    $canResolve++;
-	  push(@{ $fixes{$fam1} }, { seq   => $seq1,
-				     from  => $s1,
-				     to    => $e1,
-				     eFrom => $e2+1,
-				     eTo   => $e1 });
-	  print "$fam1 ($bits1 bits), $seq1/$s1-$e1 => $seq1/($e2+1)-$e1\n";
-	}
+
+        if($seedOverlaps{$seq1} and $seedOverlaps{$seq1} eq $fam1){
+          if($bits2 > $maxBits) {
+            print NOT $_;
+            print NOT "Can't resolve (seed overlap with high bit score), skipping\n";
+          }
+          else {
+            print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+            $canResolve++;
+            push(@{ $fixes{$fam2} }, {  seq   => $seq2,
+                from  => $s2,
+                to    => $e2,
+                eFrom => $s2,
+                eTo   => $s1-1 });
+            print "$fam2 ($bits2 bits), $seq2/$s2-$e2 => $seq2/$s2-($s1-1)\n";
+          }
+        }else{
+          print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+          $canResolve++;
+          push(@{ $fixes{$fam1} }, { seq   => $seq1,
+              from  => $s1,
+              to    => $e1,
+              eFrom => $e2+1,
+              eTo   => $e1 });
+          print "$fam1 ($bits1 bits), $seq1/$s1-$e1 => $seq1/($e2+1)-$e1\n";
+        }
       }
       else{ 
-	print NOT $_;
-	print NOT "Can't resolve (big overlap:1), skipping (overlap = $o, domain 1 = $l1,  domain 2 = $l2)\n";
+        print NOT $_;
+        print NOT "Can't resolve (big overlap:1), skipping (overlap = $o, domain 1 = $l1,  domain 2 = $l2)\n";
       }
     }
   }
@@ -209,35 +210,35 @@ while(<O>){
 
       if($seedOverlaps{$seq1} and $seedOverlaps{$seq1} eq $fam1){
 
-	if($bits2 > $maxBits) {
-	  print NOT $_;
-	  print NOT "Can't resolve (seed overlap with high bit score), skipping\n";
-	}
-	else {
-	  print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
-    $canResolve++;
-	  push(@{ $fixes{$fam2} }, {  seq   => $seq2,
-                                    from  => $s2,
-                                    to    => $e2,
-                                    eFrom => $e1+1,
-                                    eTo   => $e2 });
-	  print "$fam2 ($bits2 bits), $seq2/$s2-$e2 => $seq2/($e1+1)-$e2\n";
-	}
+        if($bits2 > $maxBits) {
+          print NOT $_;
+          print NOT "Can't resolve (seed overlap with high bit score), skipping\n";
+        }
+        else {
+          print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+          $canResolve++;
+          push(@{ $fixes{$fam2} }, {  seq   => $seq2,
+              from  => $s2,
+              to    => $e2,
+              eFrom => $e1+1,
+              eTo   => $e2 });
+          print "$fam2 ($bits2 bits), $seq2/$s2-$e2 => $seq2/($e1+1)-$e2\n";
+        }
       }else{
-	print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
-  $canResolve++;
-	push(@{ $fixes{$fam1} }, { seq   => $seq1,
-				   from  => $s1,
-				   to    => $e1,
-				   eFrom => $s1,
-				   eTo   => $s2-1 });
-	print "$fam1 ($bits1 bits), $seq1/$s1-$e1 => $seq1/$s1-($s2-1)\n";
-	
+        print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+        $canResolve++;
+        push(@{ $fixes{$fam1} }, { seq   => $seq1,
+            from  => $s1,
+            to    => $e1,
+            eFrom => $s1,
+            eTo   => $s2-1 });
+        print "$fam1 ($bits1 bits), $seq1/$s1-$e1 => $seq1/$s1-($s2-1)\n";
+
       }
     }
     else{ 
-	print NOT $_;
-	print NOT "Can't resolve (big overlap:2), skipping (overlap = $o, domain 1 = $l1,  domain 2 = $l2)\n";
+      print NOT $_;
+      print NOT "Can't resolve (big overlap:2), skipping (overlap = $o, domain 1 = $l1,  domain 2 = $l2)\n";
     } 
   }
   else { #Type 3 overlap
@@ -257,52 +258,52 @@ foreach my $fam (sort{ $fixes{$b} <=> $fixes{$a} }keys %fixes){
     my $hmmio  = Bio::Pfam::HMM::HMMResultsIO->new;
     my $hmmres = Bio::Pfam::HMM::HMMResultsIO->parsePFAMOUT('PFAMOUT');
     my $familyIO = Bio::Pfam::FamilyIO->new;
-    
+
     my $desc  = $familyIO->parseDESC('DESC');
     copy('DESC', 'DESC.beforeEdit');
- 
+
     unless ( $desc->EDITS ){
       $desc->EDITS( [] ); 
     }
-    
+
     foreach my $edit (@{$fixes{$fam}}){
       foreach my $u (@{ $hmmres->units}){
         if($u->name eq $edit->{seq} and 
-            $u->seqFrom <= $edit->{from} and $u->seqTo > $edit->{from}
+          $u->seqFrom <= $edit->{from} and $u->seqTo > $edit->{from}
             and $u->seqTo >= $edit->{to} and $u->seqFrom <= $edit->{to} ){
-              
-              my $newFrom = ($edit->{eFrom} eq $edit->{from} ? $u->envFrom : $edit->{eFrom});
-              my $newTo   = ($edit->{eTo} eq $edit->{to} ? $u->envTo : $edit->{eTo} ) ;
-              print "newFrom = $newFrom; newTo = $newTo\n";
-              my $newEdit = 1;
-              foreach my $oldEdit (@{$desc->EDITS}){
-                if($oldEdit->{seq} eq $edit->{seq} and 
-		   $oldEdit->{oldFrom} == $u->envFrom and 
-		   $oldEdit->{oldTo} == $u->envTo ) {
-                  #Looks like we already have this edit! 
-		  if($newTo < $oldEdit->{oldTo}){
-		    $oldEdit->{newTo} = $newTo;
-		  }
-		  if($newFrom > $oldEdit->{oldFrom}){
-		    $oldEdit->{newFrom} = $newFrom;
-		  }
-                  $newEdit = 0;
-                  last;     
-                }
+
+          my $newFrom = ($edit->{eFrom} eq $edit->{from} ? $u->envFrom : $edit->{eFrom});
+          my $newTo   = ($edit->{eTo} eq $edit->{to} ? $u->envTo : $edit->{eTo} ) ;
+          print "newFrom = $newFrom; newTo = $newTo\n";
+          my $newEdit = 1;
+          foreach my $oldEdit (@{$desc->EDITS}){
+            if($oldEdit->{seq} eq $edit->{seq} and 
+              $oldEdit->{oldFrom} == $u->envFrom and 
+              $oldEdit->{oldTo} == $u->envTo ) {
+              #Looks like we already have this edit! 
+              if($newTo < $oldEdit->{oldTo}){
+                $oldEdit->{newTo} = $newTo;
               }
-              
-              
-              push(@{$desc->EDITS}, { seq     => $edit->{seq}, 
-                                      oldFrom => $u->envFrom, 
-                                      oldTo   => $u->envTo, 
-                                      newFrom => $newFrom, 
-                                      newTo   => $newTo}) if ($newEdit);
-              
-              
-        print E "ED   ".$edit->{seq}."/".$u->envFrom."-".$u->envTo."; ";
-        $noOverlaps++;
-        
-        print E $edit->{seq}."/".($edit->{eFrom} == $edit->{from} ? $u->envFrom : $edit->{eFrom}).
+              if($newFrom > $oldEdit->{oldFrom}){
+                $oldEdit->{newFrom} = $newFrom;
+              }
+              $newEdit = 0;
+              last;     
+            }
+          }
+
+
+          push(@{$desc->EDITS}, { seq     => $edit->{seq}, 
+              oldFrom => $u->envFrom, 
+              oldTo   => $u->envTo, 
+              newFrom => $newFrom, 
+              newTo   => $newTo}) if ($newEdit);
+
+
+          print E "ED   ".$edit->{seq}."/".$u->envFrom."-".$u->envTo."; ";
+          $noOverlaps++;
+
+          print E $edit->{seq}."/".($edit->{eFrom} == $edit->{from} ? $u->envFrom : $edit->{eFrom}).
           "-".($edit->{eTo} == $edit->{to} ? $u->envTo : $edit->{eTo} ).";\n";
           last;
         }
@@ -317,9 +318,9 @@ foreach my $fam (sort{ $fixes{$b} <=> $fixes{$a} }keys %fixes){
 print "Resolved $noOverlaps\n";
 
 sub help {
-  
-print <<EOF;
-  
+
+  print <<EOF;
+
   !!!WARNING - this is a very dangerous script to run.....
 
   $0 <options>
@@ -335,6 +336,6 @@ print <<EOF;
 
 EOF
 
-exit;
+  exit;
 
 }
