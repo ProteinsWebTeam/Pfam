@@ -43,13 +43,13 @@ if ($schema) {
     #my $rc = $dbh->func('createdb', $clone_dbname, 'admin');
     #warn $rc;
 
-    my $command = qq(mysqldump -h$host -P$port -u$user -p$pass -d $live_dbname | mysql -h$host -P$port -u$user -p$pass pfam_release);
+    my $command = qq(mysqldump -h$host -P$port -u$user -p$pass -d $live_dbname | mysql -h$host -P$port -u$user -p$pass $clone_dbname);
     my $res = `$command`;
     if ($?) {
         die qq(Failure to import schema from $live_dbname to $clone_dbname: $res);
     }
 
-    my $command = "mysql -h$host -P$port -u$user -p$pass $live_dbname -e 'alter table pfam_release.pfamseq drop foreign key FK_pfamseq_1'";
+    my $command = "mysql -h$host -P$port -u$user -p$pass $live_dbname -e 'alter table $clone_dbname.pfamseq drop foreign key FK_pfamseq_1'";
     my $res = `$command`;
     if ($?) {
         die qq(Failure to drop keys on pfamseq: $res);
@@ -68,15 +68,15 @@ if ($data) {
                     _lock clan_database_links clan_lit_ref clan_membership
                     dead_clan dead_family pfamA_database_links pfamA_literature_reference
                     pfamA_wiki current_pfam_version nested_domains version pfamA_reg_seed 
-                    released_pfam_version released_clan_version);
+                    released_pfam_version released_clan_version author pfamA_author);
 
     foreach my $table (@tables) {
         if (my @matched_cols = columns_matched($table)) {
             my $col_str = join(",", @matched_cols);
-            my $sth = $dbh->prepare(qq{insert into pfam_release.$table ($col_str) select $col_str from pfam_live.$table});
+            my $sth = $dbh->prepare(qq{insert into $clone_dbname.$table ($col_str) select $col_str from pfam_live.$table});
             $sth->execute or die qq(Failure to copy $table);
         } else {
-            my $command = qq(mysqldump -h$host -P$port -u$user -p$pass pfam_live $table | mysql -h$host -P$port -u$user -p$pass pfam_release);
+            my $command = qq(mysqldump -h$host -P$port -u$user -p$pass pfam_live $table | mysql -h$host -P$port -u$user -p$pass $clone_dbname);
             my $res = `$command`;
             if ($?) {
 	        die qq(Failure to copy table $table: $res);
@@ -89,12 +89,13 @@ if ($check) {
     my @tables = qw(pfamA evidence markup_key wikipedia pfamseq clan literature_reference
                     _lock clan_database_links clan_lit_ref clan_membership clan_wiki
                     dead_clan dead_family pfamA_database_links pfamA_literature_reference
-                    pfamA_wiki current_pfam_version nested_domains version pfamA_reg_seed);
+                    pfamA_wiki current_pfam_version nested_domains version pfamA_reg_seed
+                    author pfamA_author);
 
     foreach my $table (@tables) {
         print "Table $table: ";
         my $live_rows = $dbh->selectall_arrayref(qq(select count(*) from pfam_live.$table))->[0]->[0];
-        my $release_rows = $dbh->selectall_arrayref(qq(select count(*) from pfam_release.$table))->[0]->[0];
+        my $release_rows = $dbh->selectall_arrayref(qq(select count(*) from $clone_dbname.$table))->[0]->[0];
         if ($live_rows == $release_rows) {
             print "OK [$live_rows]\n";
         } else {
@@ -111,7 +112,7 @@ sub columns_matched
     my ($table) = @_;
 
     my %columns_live = map { $_->[0], 1 } @{ $dbh->selectall_arrayref(qq(SELECT column_name from information_schema.columns where table_schema = "pfam_live" and table_name = "$table")) };
-    my %columns_rel = map { $_->[0], 1 } @{ $dbh->selectall_arrayref(qq(SELECT column_name from information_schema.columns where table_schema = "pfam_release" and table_name = "$table")) };
+    my %columns_rel = map { $_->[0], 1 } @{ $dbh->selectall_arrayref(qq(SELECT column_name from information_schema.columns where table_schema = "$clone_dbname" and table_name = "$table")) };
     my %matched;
     foreach my $col (keys %columns_live) {
         $matched{$col} = 1 if exists $columns_rel{$col};
