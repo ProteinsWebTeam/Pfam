@@ -60,9 +60,10 @@ __PACKAGE__->table("pfamA");
 
 =head2 type
 
-  data_type: 'enum'
-  extra: {list => ["Family","Domain","Repeat","Motif","Disordered","Coiled-coil"]}
+  data_type: 'varchar'
+  is_foreign_key: 1
   is_nullable: 0
+  size: 30
 
 =head2 comment
 
@@ -297,20 +298,7 @@ __PACKAGE__->add_columns(
   "seed_source",
   { data_type => "tinytext", is_nullable => 0 },
   "type",
-  {
-    data_type => "enum",
-    extra => {
-      list => [
-        "Family",
-        "Domain",
-        "Repeat",
-        "Motif",
-        "Disordered",
-        "Coiled-coil",
-      ],
-    },
-    is_nullable => 0,
-  },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 30 },
   "comment",
   { data_type => "longtext", is_nullable => 1 },
   "sequence_ga",
@@ -518,21 +506,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 authors
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamAAuthor>
-
-=cut
-
-__PACKAGE__->has_many(
-  "authors",
-  "PfamLive::Result::PfamAAuthor",
-  { "foreign.pfama_acc" => "self.pfama_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 interpros
 
 Type: has_many
@@ -679,6 +652,21 @@ Related object: L<PfamLive::Result::PfamAArchitecture>
 __PACKAGE__->has_many(
   "pfam_a_architectures",
   "PfamLive::Result::PfamAArchitecture",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 pfam_a_authors
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamAAuthor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfam_a_authors",
+  "PfamLive::Result::PfamAAuthor",
   { "foreign.pfama_acc" => "self.pfama_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -938,6 +926,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 type
+
+Type: belongs_to
+
+Related object: L<PfamLive::Result::SequenceOntology>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "type",
+  "PfamLive::Result::SequenceOntology",
+  { type => "type" },
+  { is_deferrable => 1, on_delete => "RESTRICT", on_update => "RESTRICT" },
+);
+
 =head2 uniprot_reg_fulls
 
 Type: has_many
@@ -954,8 +957,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:49:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:a4fgVZJiIovJcsyvjaGdSQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-06-21 16:04:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:as7eY546w3eKGL9NTXjzNQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
