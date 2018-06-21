@@ -980,7 +980,7 @@ sub family_overlaps_with_signal_peptide {
 sub family_overlaps_with_db {
   my ( $family, $ignore_ref, $pfamDB, $famObj, $compete, $noFilter) = @_;
   my ( %ignore, @overlaps );
-
+  
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("$family: Did not get a family object passed in.....\n");
   }
@@ -988,7 +988,9 @@ sub family_overlaps_with_db {
   unless($famObj->scores->numRegions) { #If empty ALIGN file, no need to filter overaps as SEED overlaps cannot be filtered
      $noFilter=1;
    }
-
+  if($noFilter) {
+    warn "Overlaps will not be filtered\n";
+  }
 
   #This could be nested in another domain, so we need to check!
   my $nestedRef = $pfamDB->getNestedDomain( $famObj->DESC->AC );
