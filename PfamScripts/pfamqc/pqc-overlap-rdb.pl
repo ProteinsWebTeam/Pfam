@@ -12,13 +12,13 @@ use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::PfamLiveDBManager;
 
-my ( @ignore, $help, $compete, $no_sigP, $all, $noFilter );
+my ( @ignore, $help, $compete, $no_sigP, $all, $filter );
 
 &GetOptions( "i=s@"     => \@ignore,
              "help"     => \$help,
              "compete"  => \$compete,
              "no_sigP"  => \$no_sigP,
-             "no_filter" => \$noFilter
+             "filter"   => \$filter,
            ) or die "Incorrect option passed in\n";
 
 
@@ -71,9 +71,14 @@ if( !-w "$pwd/$family" ) {
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
-my $overlaps =
-  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete,  $noFilter );
-  warn "$family: found $overlaps overlaps\n";
+my $overlaps;
+if($filter) {
+ $overlaps=&Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete,  undef );
+}
+else {
+  $overlaps=&Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete,  1 );
+}
+warn "$family: found $overlaps overlaps\n";
 
 unless($no_sigP) {
   my $signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
