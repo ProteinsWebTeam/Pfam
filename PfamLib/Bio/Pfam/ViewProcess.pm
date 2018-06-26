@@ -2419,7 +2419,15 @@ sub writeGFAnnotationBlock {
   if ( $pfam->previous_id and $pfam->previous_id =~ /\S+/ ) {
     print $annfile "#=GF PI   ", $pfam->previous_id, "\n";
   }
-  print $annfile "#=GF AU   ", $pfam->author,      "\n";
+
+  foreach my $a (@{$GFAnn->{author}}) {
+    my $author_line = $a->author->author.";";
+    if($a->author->orcid) {
+      $author_line .= $a->author->orcid;
+    }
+    print $annfile "#=GF AU   $author_line\n";
+  }
+
   print $annfile "#=GF SE   ", $pfam->seed_source, "\n";
 
   #Put in the ga, nc, tc and also add the build and search method lines.
@@ -2433,7 +2441,7 @@ sub writeGFAnnotationBlock {
     "HMM.ann SEED.ann\n";
   print $annfile "#=GF SM   ", $pfam->searchmethod, "\n";
 
-  print $annfile "#=GF TP   ", $pfam->type, "\n";
+  print $annfile "#=GF TP   ", $pfam->type->type, "\n";
 
   #If we find some wikipedia lines, print them out.
   if ( exists( $GFAnn->{wiki} ) and scalar( @{ $GFAnn->{wiki} } ) ) {
@@ -2500,6 +2508,9 @@ sub writeGFAnnotationBlock {
     }
   }
 
+  #Print sequence ontology
+  print $annfile "#=GF DR   SO; ".$GFAnn->{so} ."\n";
+       
   #Annotation comments
   #Currently, the text wrap is handling this!
   if ( $pfam->comment and $pfam->comment =~ /\S+/ ) {
@@ -3140,6 +3151,25 @@ sub getGFAnnotations {
   $annotations{clan}     = $clan;
   $annotations{wiki}     = \@wiki;
   $annotations{interpro} = $interpro[0];
+
+  #Get sequence ontology
+  my $so = $self->pfamdb->getSchema->resultset('SequenceOntology')->find( { type => $self->pfam->type->type });
+  my $so_id;
+  if($so->so_id =~ /(\d+)/) {
+    $so_id=$1;
+  }
+  $annotations{so} = $so_id ."; ".$so->so_name.";"; 
+
+  #Get author info
+  my @authorOrcids = $self->pfamdb->getSchema->resultset('PfamAAuthor')->search(
+    { pfama_acc => $self->pfam->pfama_acc },
+    {    
+      join     => [qw(author)],
+      order_by => 'author_rank ASC',
+      prefetch => [qw(author)]
+    }    
+  );   
+  $annotations{author}=\@authorOrcids;
 
   return( \%annotations);
 }
