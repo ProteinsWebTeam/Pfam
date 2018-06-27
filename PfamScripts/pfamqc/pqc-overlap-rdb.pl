@@ -115,7 +115,7 @@ Addional options:
   -i <family_name>       :Ignore this family (-i can occur multiple times)
   -compete               :Compete family before checking for overlaps
   -no_sigP               :Do not check whether family overlaps with signal peptide
-  -no_filter             :Do not filter overlaps
+  -filter                :Filter overlaps
 
 
 EOF
