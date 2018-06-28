@@ -48,6 +48,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
             off, so we recommend you run your searches
             using <a href="https://www.ebi.ac.uk/Tools/pfa/pfamscan/" target="_blank">PfamScan</a>
         </p>
+        <p>
+            Alternatively, you can run your searches on the
+            <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer website</a>
+            or using
+            <a href="https://www.ebi.ac.uk/interpro/search/sequence-search" target="_blank">InterProScan</a>.
+            These services are actively maintained, and they provide searches on
+            other databases in addition to Pfam.
+        </p>
     </div>
 
     <p>
