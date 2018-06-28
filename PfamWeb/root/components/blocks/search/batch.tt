@@ -38,8 +38,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     [%- END %]
 
     <p>
-      Upload a FASTA-format file containing multiple protein sequences to be
-      searched for matching Pfam families in
+      Upload a FASTA-format file containing sequences to search for matching
+      Pfam families using
       <a
         href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
         target="_blank"
