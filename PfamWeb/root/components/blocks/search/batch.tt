@@ -43,7 +43,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <a
         href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
         target="_blank"
-      >the Hmmer website</a>.
+      >the HMMER website</a>.
     </p>
 
     <div class="formWrapper">

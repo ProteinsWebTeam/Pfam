@@ -50,11 +50,11 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </p>
         <p>
             Alternatively, you can run your searches on the
-            <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer website</a>
+            <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">HMMER website</a>
             or using
             <a href="https://www.ebi.ac.uk/interpro/search/sequence-search" target="_blank">InterProScan</a>.
-            These services are actively maintained, and they provide searches on
-            other databases in addition to Pfam.
+            These services are actively maintained, and they provide searches
+            against other databases in addition to Pfam.
         </p>
     </div>
 
