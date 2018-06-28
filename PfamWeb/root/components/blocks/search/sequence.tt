@@ -44,8 +44,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
     <div id="hmmerBlock">
         <p>
-            The internal search feature on this website will soon be switched
-            off, so we recommend you run your searches
+            The internal search feature on this website will be switched off
+            soon, so we recommend you run your searches
             using <a href="https://www.ebi.ac.uk/Tools/pfa/pfamscan/" target="_blank">PfamScan</a>
         </p>
         <p>
