@@ -37,136 +37,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
     [%- END %]
 
-    <div id="hmmerBlock" class="hmmerBlock">
-        <p>
-            The internal search feature on this website will soon be switched
-            off, so we recommend you run your searches through
-            the <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank"> Hmmer website</a>
-        </p>
-        <p>
-            The <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer website</a> is
-            what we use behind the scenes to run your searches. Results will be identical.
-        </p>
-    </div>
-
     <p>
-      Upload a FASTA-format file containing multiple protein sequences to be
-      searched for matching Pfam families. Results of the search will be
-      returned to you at the email address that you specify. Please check the
-      <span onclick="reveal($('batchNotesSwitch'),'batchNotes',false, true)"
-            class="link">notes</span>
-      below for the restrictions on uploaded sequence files.
-      <span id="batchNotesSwitch"
-            class="moreLink"
-            onclick="reveal(this,'batchNotes',false, true);">More...</span>
+      Upload a FASTA-format file containing sequences to search for matching
+      Pfam families using
+      <a
+        href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
+        target="_blank"
+      >the HMMER website</a>.
     </p>
-
-    <div id="batchNotes" style="display: none">
-
-      <h2>File contents</h2>
-
-      <p>
-        We accept only <strong>protein sequences</strong> and your uploaded file
-        must in plain text and conform to a fairly strict interpretation of the
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/blast/fasta.shtml">
-          FASTA file format</a>.
-        We apply the following checks to the format of uploaded sequence files.
-        Files that do not conform to the following rules will be rejected by
-        the server
-      </p>
-
-      <h3>File contents</h3>
-
-      <p>
-        Files must contain only header lines and sequence lines. Header lines,
-        which begin with &quot;&gt;&quot;, can be used to describe the sequence
-        that follows. There is no fixed format for header lines but we restrict
-        the characters that are allowed. If your header lines contain any of the
-        following characters, your file will be rejected:
-      </p>
-      <strong><code>; \ ! *</code></strong>
-      <p>
-        Note that we explicitly include the semi-colon (;) in the list of
-        forbidden characters, although this may be used to denote comments in
-        some versions of the FASTA-format. Please do not use comments in the
-        FASTA files that you upload here.
-      </p>
-
-      <h3>Header rows</h3>
-
-      <p>
-        Batch searches are run using our <strong>pfam_scan.pl</strong> script,
-        which uses programs from the HMMER suite. These treat the first
-        &quot;word&quot; on the header line as the ID for a sequence.
-      </p>
-      <p>
-        The ID is taken to be the characters after the initial &quot;&gt;&quot;
-        and before the first whitespace character. The sequence IDs must be
-        unique and your uploaded sequence file will be rejected if we find the
-        same ID for multiple sequences.
-      </p>
-      <p>
-        Header rows must not have any whitespace between the &quot;&gt;&quot;
-        and the remainder of the header row. Header rows must also have
-        content; files with blank header lines will not be accepted.
-      </p>
-
-      <h3>Sequence symbols</h3>
-
-      <p>
-        Your sequence should be a <strong>valid protein sequence</strong>. As
-        such, the sequence line should contain only amino-acid symbols, i.e.
-        capital letters excluding &quot;J&quot;. In the context of a Pfam
-        search gaps and translation stops have little meaning and should not
-        normally be used, but we do accept &quot;-&quot; or &quot;*&quot; to
-        denote gaps and translation stops respectively. Nucleotide sequences
-        are not considered valid and will be rejected.
-      </p>
-
-      <h2>Service limits</h2>
-
-      <p>
-        Searches run on a &quot;compute farm&quot; with a limited number of
-        &quot;slots&quot;. Each search takes one slot and once all slots are
-        in use, new jobs wait in a queue for the next slot to become free. In
-        order to prevent large jobs occupying slots for very long periods,
-        which can impact the availability of the system for other users, we
-        place a number of restrictions on the size of job that we will accept.
-      </p>
-
-      <h3>File size</h3>
-
-      <p>
-        Files must have fewer than<strong> 500,000</strong> lines and fewer than
-        <strong>5000</strong> sequences.
-      </p>
-
-      <h3>Sequence length</h3>
-
-      <p>
-        Each sequence must be between <strong>6</strong> and <strong>20000</strong>
-        amino-acids in length.
-      </p>
-
-      <h3>Sequence variation</h3>
-
-      <p>
-        We use heuristics to check that a sequence has a reasonable level of
-        variation, in order to prevent large strings of identical sequence or
-        a large number of duplicate residues being searched. If you find that
-        you cannot submit a valid sequence because of this restriction, please
-        let us know.
-      </p>
-
-      <h2>E-value limit</h2>
-
-      <p>
-        If you specify an E-value cut-off for your search, that E-value must
-        be a positive number.
-      </p>
-
-      <hr />
-    </div>
 
     <div class="formWrapper">
 
@@ -257,66 +135,11 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label class="blankLabel">Submit</label>
-          <input class="submit" type="submit" name="submit" value="Submit through Hmmer" />
+          <input class="submit" type="submit" name="submit" value="Submit through the Hmmer website" />
           <input class="reset" type="reset" name="reset" value="Reset" />
-          <input type="button" name="oldsubmit" value="Switch to deprecated submission" />
         </div>
 
       </form>
-    </div>
-
-    <script>
-      (function() {
-        var form = document.querySelector('form#proteinBatchSearchForm');
-        var button = form.querySelector('input[name="oldsubmit"]');
-        if (!button) return;
-        button.addEventListener('click', function(e) {
-          var message = 'The batch searches through the Pfam website are not ';
-          message += 'maintained anymore and will be removed soon.\n';
-          message += 'Are you sure you want to continue?';
-          if (!confirm(message)) return;
-          var warningBox = document.querySelector('.hmmerBlock');
-          if (warningBox) warningBox.classList.add('warningBox');
-          form.action = form.dataset.oldaction;
-          const file = form.querySelector('[data-oldname');
-          file.name = file.dataset.oldname;
-          form.submit.value = 'Submit (using the deprecated way)';
-        });
-      })();
-    </script>
-
-    <div id="batchCheck">
-      <p>Already submitted a batch search? Check its status here.</p>
-      <p>Job ID:
-        <input
-          type="text"
-          placeholder="ADABEC68-703F-48C4-BEC7-07F1AB965FBB"
-          pattern="[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}"
-          size=37
-        >
-      </p>
-      <div class="message loading" style="border: none;">
-        Information loading...
-      </div>
-      <div class="message problem error">
-        Sorry, there was an error while fetching information. It might be because your job has finished (check your emails) or because of a network problem.
-      </div>
-      <div class="message hold warning">
-        This job has been put on hold. If you want more information please contact us with your job ID.
-      </div>
-      <div class="message run ok">
-        This job is currently running. The results should arrive soon.
-      </div>
-      <div class="message pend ok">
-        This job is in the waiting queue.
-        It will start being processed, there is no need to submit it again.
-      </div>
-      <div class="message fail error">
-        Sorry, there was an error while processing this job.
-        <a class="link" onclick="reveal($('batchNotesSwitch'), 'batchNotes', false, true);">Please check</a>
-        that you submitted a valid job.
-        If your are sure that you did and want more information please contact us with your job ID.
-      </div>
     </div>
   </div>
 
@@ -330,8 +153,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     // ]]>
   </script>
 </div>
-
-[% requirements.js.push( "batch.js" ); %]
 
 <!-- end batch search block -->
 [%#

@@ -45,8 +45,10 @@ IF refreshUri != "";
 
 <!-- prototype / scriptaculous -->
 <!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js"></script> -->
-<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.0/prototype.js"></script>
-<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js"></script>
+<!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.0/prototype.js"></script> -->
+<script type="text/javascript" src="[% staticUri %]/javascripts/third-party/prototype.js"></script>
+<!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js"></script> -->
+<script type="text/javascript" src="[% staticUri %]/javascripts/third-party/scriptaculous.js"></script>
 
 <!-- YUI -->
 <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
