@@ -95,7 +95,10 @@ foreach my $dir (@dirs) {
   my %tmp;
   while(<OVERLAP>) {
 
-    if(/\S+\s+\[(\S+)\]\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(\S+)/) {
+    next if(/SEED/);
+
+    #Sequence [Q87XD2] overlap DUF4414 PF14377/44-57 (PF14377/44-57, 22.9 bits) FULL with Cys_rich_CWC PF14375/16-67 (PF14375/16-68, 52.80 bits) FULL
+    if(/\S+\s+\[(\S+)\]\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s\S+\s+\S+\s+\S+\s+(\S+)/) {
       my ($seq, $fam) = ($1, $2);
 
       $overlap{$seq}=1;
