@@ -37,6 +37,17 @@
     Comments or questions on the site? Send a mail to <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;">&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;</a>.&nbsp;
   </p>
   <p class="spaced"><a href="http://www.embl.org/">European Molecular Biology Laboratory</a></p>
+  <script>
+        var newDataProtectionNotificationBanner = document.createElement('script');
+        newDataProtectionNotificationBanner.src = '/static/javascripts/ebi-notification-banner.js';
+        document.head.appendChild(newDataProtectionNotificationBanner);
+        newDataProtectionNotificationBanner.onload = function() {
+            ebiFrameworkRunDataProtectionBanner(); // invoke the banner
+            var badElement = document.querySelector('div#data-protection-banner > div.row');
+            badElement.style.marginLeft = "0px";
+            badElement.style.marginRight = "30px";
+        };
+    </script>
 </div>
 
 <!-- footer end -->
