@@ -551,10 +551,9 @@ if ( -e "$status_dir/upload_active_metal" ) {
     "Already uploaded $cwd/$pfamseq_dir/active_site_metal.dat to pfamseq_markup\n");
 }
 else {
-  $logger->info(
-    "Uploading $cwd/$pfamseq_dir/active_site_metal.dat to pfamseq_markup\n"); #changed logger message to reflect change to file name used for new mySQL statement / shchema
-  my $sth = $dbh->prepare('INSERT into pfamseq_markup VALUES (?,?,?,?)');
-  _loadTable( $dbh, "$cwd/$pfamseq_dir/active_site_metal.dat", $sth, 4 ); #updated to work with new mySQL statement for new schema above - use active_site_metal.dat now instead of active_site_metal.auto.dat
+  $logger->info("Uploading $cwd/$pfamseq_dir/active_site_metal.dat to pfamseq_markup\n");
+  my $sth = $dbh->prepare('INSERT into pfamseq_markup VALUES (?,?,?,?,?)');
+  _loadTable( $dbh, "$cwd/$pfamseq_dir/active_site_metal.dat", $sth, 5 ); 
   system("touch $status_dir/upload_active_metal")
     and $logger->logdie("Couldn't touch $status_dir/upload_active_metal:[$!]\n");
 }

@@ -50,10 +50,14 @@ LINE: while(<>) {
 	}
 	## Basically this is free text
 	/^\#=GF\s+DE\s{3}.*/ && do { $hash{'DE'}++; next; };
+
 	
-	## SURNAME INITALS or (SURNAME INITALS,)* SURNAME INITALS
-	/^\#=GF\s+AU\s{3}((\S+\s{1}\S{1,3}|SMART|LOAD)(\,\s{1})?)*$/ && do {$hash{'AU'}++; next; };
-	
+  ## SURNAME INITALS
+	/^\#=GF\s+AU\s{3}.*\S+\s{1}\S{1,3}|SMART|LOAD|PRINTS|TIGRFAMs|KOGs|COGs|FIGfams|PIRS;$/ && do {$hash{'AU'}++; next; };
+  ## Surname initials, followed by orcid id
+  /^\#=GF\s+AU\s{3}.*\S+\s\S{1,3};(\d{4}-\d{4}-\d{4}-\d{3}[\d|X]$)/ && do {$hash{'AU'}++; next; };
+
+
 	# Alignment Methods.  This needs changing
 	/^\#=GF\s+AL\s{3}/ && do {$hash{'AL'}++; next; };
 
@@ -96,7 +100,6 @@ LINE: while(<>) {
 	if (/^\#=GF\s+DR\s{1,3}(\S+);/){
 		my $db = $1;
 		if ($db eq "PDB"){
-      print STDERR "HERE\n";
 			next if (/\#=GF\s+DR\s{1,3}PDB;\s{1}\S{4}\s{1}\S{1};\s{1}-?\d{1,5}[A-Z0-9]{0,1}(\-)-?\d{1,5}[A-Z0-9]{0,1};$/);
 		}elsif($db eq "SMART"){
 			next if (/\#=GF\s+DR\s{3}SMART;\s{1}\S+;$/);
@@ -126,11 +129,11 @@ LINE: while(<>) {
 		}elsif($db eq "INTERPRO"){
 			next if (/\#=GF\s+DR\s{3}INTERPRO;\s{1}IPR\d{6};$/);
 		}
-
-		
-
-
 	}	
+
+  #Sequence ontology
+  /^#=GF\sDR\s{3}SO; \d{7}; .+;$/  && do { $hash{'SO'}++; next; };
+
 	## Reference Section
 	/^\#=GF\s+RN\s{3}/ && next;
 	/^\#=GF\s+RC\s{3}/ && next;
@@ -159,7 +162,7 @@ LINE: while(<>) {
     if( $hash{'DE'} != 1 ) {
 	print ("Warning: $hash{'DE'} DE lines for $pfam_id\n");
     }
-    if( $hash{'AU'} != 1 ) {
+    unless( $hash{'AU'}  >= 1 ) {
 	print ("Warning: $hash{'AU'} AU lines for $pfam_id\n");
     }
     if( $hash{'TC'} != 1 ) {
@@ -188,8 +191,9 @@ LINE: while(<>) {
 			print "Miss-Match betweeen number of NE and NL lines for $pfam_id\n";
 		}
 	}
-
-
+  if( $hash{'SO'} != 1) {
+    print "Warning $hash{'SO'} SO lines for $pfam_id\n";
+  }
     if ($noseqs) {
 	print ("Printing: There were no sequences in $pfam_id\n");
 	next LINE;

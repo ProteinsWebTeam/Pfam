@@ -407,8 +407,8 @@ sub applyEdits {
     if($self->seqs->{$e->{seq}}){
       my $matched = 0;
       foreach my $u (@{ $self->seqs->{ $e->{seq} }->hmmUnits }){
-          if($u->envFrom == $e->{oldFrom} and $u->envTo == $e->{oldTo}) {
-	    $matched = 1; #HMM unit found
+          if($u->envFrom == $e->{oldFrom} and $u->envTo == $e->{oldTo} and $self->seqs->{$e->{seq}}->bits >= $self->seqThr and $u->bits >= $self->domThr) {
+	    $matched = 1; #HMM unit found and unit is significant
 
             if(defined $e->{newFrom} and $e->{newTo}){
 	     
@@ -448,7 +448,7 @@ sub applyEdits {
 	  print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
 	}
 	else {
-	  warn $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}." does not appear in the list of hmm units - bad ED line\n";
+	  warn $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}." does not appear in the list of significant hmm units - bad ED line\n";
 	}
       }
     }else{ #Sequence not found - bad ED
@@ -456,7 +456,7 @@ sub applyEdits {
 	print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
       }
       else {
-	warn $e->{seq}." does not appear in the list of hmm units - bad ED line\n";  
+	warn $e->{seq}." does not appear in the list of significant hmm units - bad ED line\n";  
       }
     }
   }

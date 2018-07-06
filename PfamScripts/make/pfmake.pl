@@ -96,14 +96,6 @@ sub main {
   my $oldSeqThrs = $descObj->CUTGA->{seq};
   my $oldDomThrs = $descObj->CUTGA->{dom};
 
-  if( $descObj->EDITS ) {
-    if($removeBadEd) { #Remove ED lines that do not correspond to valid HMM units, and those that have out of range co-ordinates
-      $descObj->EDITS($HMMResults->applyEdits( $descObj->EDITS, 1 ));
-    }
-    else {
-      $HMMResults->applyEdits( $descObj->EDITS );
-    }
-  }
   
   #Set the thresholds on the results set.  
   if(defined $domThrs and defined $seqThrs){
@@ -117,7 +109,16 @@ sub main {
     $HMMResults->seqThr( 25.0 );
     $HMMResults->domThr( 25.0 );
   }
-  
+ 
+  if( $descObj->EDITS ) {
+    if($removeBadEd) { #Remove ED lines that do not correspond to significant and valid HMM units, and those that have out of range co-ordinates
+      $descObj->EDITS($HMMResults->applyEdits( $descObj->EDITS, 1 ));
+    }
+    else {
+      $HMMResults->applyEdits( $descObj->EDITS );
+    }
+  }
+
   #Apply the threshold when writing the scores file
   open(SCORES, ">scores") or die "Could not open file scores:[$!]\n";
   $HMMResultsIO->writeScoresFile($HMMResults);
