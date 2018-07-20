@@ -52,11 +52,10 @@ LINE: while(<>) {
 	/^\#=GF\s+DE\s{3}.*/ && do { $hash{'DE'}++; next; };
 
 	
-  ## SURNAME INITALS
-	/^\#=GF\s+AU\s{3}.*\S+\s{1}\S{1,3}|SMART|LOAD|PRINTS|TIGRFAMs|KOGs|COGs|FIGfams|PIRS;$/ && do {$hash{'AU'}++; next; };
+  ## SURNAME INITALS or dbname
+	/^\#=GF\s+AU\s{3}(\S+\s{1}\S{1,3}|SMART|LOAD|PRINTS|TIGRFAMs|KOGs|COGs|FIGfams|PIRSF);$/ && do {$hash{'AU'}++; next; };
   ## Surname initials, followed by orcid id
   /^\#=GF\s+AU\s{3}.*\S+\s\S{1,3};(\d{4}-\d{4}-\d{4}-\d{3}[\d|X]$)/ && do {$hash{'AU'}++; next; };
-
 
 	# Alignment Methods.  This needs changing
 	/^\#=GF\s+AL\s{3}/ && do {$hash{'AL'}++; next; };
