@@ -39,7 +39,12 @@ foreach my $f (@extra_mem) {
 }
 #If user has defined how much memory to use, add this to hash
 if($memory_gb) {
-  $memory{$acc}=$memory_gb;
+  if($clan) {
+    $memory{$clan}=$memory_gb;
+  }
+  else {
+    $memory{$acc}=$memory_gb;
+  }
 }
 
 #Get database connection
@@ -112,7 +117,10 @@ sub uniprotSearch {
     }
 
     #Estimate memory if not already defined
-    if($memory->{$pfamA_acc}) {
+    if($clan and $memory->{$clan_acc}) {
+      $memory_gb=$memory->{$clan_acc};
+    }
+    elsif($memory->{$pfamA_acc}) {
       $memory_gb=$memory{$pfamA_acc};
     }
     else {
