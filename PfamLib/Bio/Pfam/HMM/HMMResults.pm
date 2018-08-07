@@ -407,21 +407,28 @@ sub applyEdits {
     if($self->seqs->{$e->{seq}}){
       my $matched = 0;
       foreach my $u (@{ $self->seqs->{ $e->{seq} }->hmmUnits }){
-          if($u->envFrom == $e->{oldFrom} and $u->envTo == $e->{oldTo} and $self->seqs->{$e->{seq}}->bits >= $self->seqThr and $u->bits >= $self->domThr) {
-	    $matched = 1; #HMM unit found and unit is significant
+          if($u->envFrom == $e->{oldFrom} and $u->envTo == $e->{oldTo}) {
+            
+            if($removeBadEd) {
+              unless($self->seqs->{$e->{seq}}->bits >= $self->seqThr and $u->bits >= $self->domThr) {
+                next;
+              }
+            }
+
+            $matched = 1; #HMM unit found
 
             if(defined $e->{newFrom} and $e->{newTo}){
 	     
-	      #Check co-ordinates of new start and end positions are in range
-	      if( $e->{newFrom} < $u->{envFrom} or $e->{newTo} > $u->{envTo} or $e->{newFrom} > $e->{newTo}) {
-		if($removeBadEd) {
-		  print "Removing ED line due to out of range co-ordinates: " . $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}. "\n";
-		}
-		else {
-		  warn $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}." contains out of range co-ordinates - bad ED line\n";
-		}
-		last;
-	      }
+              #Check co-ordinates of new start and end positions are in range
+              if( $e->{newFrom} < $u->{envFrom} or $e->{newTo} > $u->{envTo} or $e->{newFrom} > $e->{newTo}) {
+                if($removeBadEd) {
+                  print "Removing ED line due to out of range co-ordinates: " . $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}. "\n";
+                }
+                else {
+                  warn $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}." contains out of range co-ordinates - bad ED line\n";
+                }
+                last;
+              }
 
               #Modify the start end positions
               $u->envFrom($e->{newFrom});
@@ -439,24 +446,24 @@ sub applyEdits {
               $u->bits(-999999.99);
             }
 
-	    push(@validEd, $e) if($removeBadEd);  
+            push(@validEd, $e) if($removeBadEd);  
             last;    
           }  
       }
       unless($matched){ #HMM unit not found - bad ED
-	if($removeBadEd) {
-	  print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
-	}
-	else {
-	  warn $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}." does not appear in the list of significant hmm units - bad ED line\n";
-	}
+        if($removeBadEd) {
+          print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
+        }
+        else {
+          warn $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}." does not appear in the list of significant hmm units - bad ED line\n";
+        }
       }
     }else{ #Sequence not found - bad ED
       if($removeBadEd) {
-	print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
+        print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
       }
       else {
-	warn $e->{seq}." does not appear in the list of significant hmm units - bad ED line\n";  
+        warn $e->{seq}." does not appear in the list of significant hmm units - bad ED line\n";  
       }
     }
   }
