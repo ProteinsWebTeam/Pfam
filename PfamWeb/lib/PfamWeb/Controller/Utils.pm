@@ -66,7 +66,8 @@ sub retrieve_ids : Private {
   # get the individual accessions
   my @seqAccs;
   foreach ( split /\s+|,/, $rs->id_list ) {
-    next unless  m/^([A-Z]\d[A-Z0-9]{3}\d)$/i;
+    next unless  m/^(.*?)$/i;
+    $c->log->debug("Adding $_");
     push @seqAccs, $1;
   }
   $c->log->debug( 'Utils::retrieve_ids: found |' . scalar @seqAccs
@@ -105,6 +106,7 @@ sub get_sequences : Private {
   # clans, so "entry" is more appropriate than "pfam", which we usually use.)
   my $fasta = '';
   foreach my $seqAcc ( @$accession_list ) {
+    $c->log->debug("Fasta $seqAcc => $fasta");
     my @rows = $c->model('PfamDB::PfamaRegFullSignificant')
                  ->search( { 'pfamseq.pfamseq_acc' => $seqAcc,
                              'me.pfama_acc'        => $pfam->pfama_acc,
