@@ -421,8 +421,7 @@ sub mailUserAndFail {
   if ( $self->job->user_id ) {
 
     my %header = (
-      To      => $self->job->user_id . '@ebi.ac.uk',
-      Cc      => $self->config->view_process_admin,
+      To      => $self->config->view_process_admin,
       From    => $self->config->view_process_admin,
       Subject => 'Error in view process for ' . $self->job->entity_id
     );
@@ -537,7 +536,7 @@ sub processALIGN {
 
   #Make family non-redundant for fasta
   $self->logger->debug("Making fasta file for $filename");
-  $self->makeNonRedundantFasta;
+  $self->makeNonRedundantFasta($aliIds);
 
   #Upload the alignments (stockholm and html) and tree into the database
   $self->uploadTreesAndAlign( $filename, $type );
@@ -559,21 +558,28 @@ sub addUniprotGF {
 
   my $pfamA_acc = $self->pfam->pfama_acc;
 
+  #Get the alignment from the db
   my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
-  my $alignment = Compress::Zlib::memGunzip($rs->alignment) ;
 
-  my @alignment=split(/\n/, $alignment);
+  #Strip out the lines starting with # and //
+  #Need to write the alignment as for the big alignments, perl cannot cope with a few gigs of data in a variable
+  my $file="uniprot.gz";
+  open(FH, ">$file") or $self->logger->logdie("Couldn't open fh to $file, $!");
+  print FH $rs->alignment;
+  close FH;
 
-  my $uniprot_aln="uniprotAln";
-  my $noSeqs;
-  open(ALN, ">$uniprot_aln") or $self->logger->logdie("Couldn't open $uniprot_aln, $!");
-  foreach my $line (@alignment) {
-    unless($line =~ /^#/ or $line =~ /^\/\//) { #The alignment might have the GF annoation already added, if so, just remove and add again
-      print ALN "$line\n";
+  my $uniprot_aln=$pfamA_acc.".aln";
+  open(ALN, ">$uniprot_aln") or $self->logger->logdie("Couldn't open fh, $!");
+  open(FILE, "gunzip -c $file |") or $self->logger->logdie("Couldn't open fh to 'gunzip -c $file |', $!");
+  my $noSeqs=0;
+  while(<FILE>) {
+    unless(/^#/ or /^\/\//) { #The alignment might have the GF annoation already added, if so, just remove and add again
+      print ALN $_;
       $noSeqs++;
-    }
+    }    
   }
-  close ALN;
+  close ALN; 
+  close FILE;
 
   $self->writeAnnotateAlignment($uniprot_aln, $GFAnn);
    
@@ -646,19 +652,26 @@ sub makeRPAligns {
     }
   }
 
-  #Get the uniprot alignemnt for the family
-  my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
-  my $alignment = Compress::Zlib::memGunzip($rs->alignment);
-  my @alignment = split(/\n/, $alignment);
 
+  my $file="uniprot.gz";
+  unless(-s "uniprot.gz") { #This should already exist from addUniprotGF subroutine
+    #Get the uniprot alignemnt for the family
+    my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
+    my $alignment = Compress::Zlib::memGunzip($rs->alignment);
+    open(FH, ">$file") or $self->logger->logdie("Couldn't open fh to $file, $!");
+    print FH $rs->alignment;
+    close FH;
+  }
 
-  my ($upload, $aln, $noSeqs);
 
   #Create the rp alignments, and upload to db
   foreach my $rp_level (@rp_levels) {
     $self->logger->debug("Working on level $rp_level");
     my ($upload, $aln, $noSeqs);
-    foreach my $row (@alignment) {
+    open(ALN, "gunzip -c $file |") or $self->logger->logdie("Couldn't open fh to 'gunzip -c $file |', $!");
+    while(<ALN>) {
+      chomp; 
+      my $row = $_;
       if($row =~ /^#/) {
         unless($row =~ /#=GF SQ/) {
           $upload.="$row\n";
@@ -678,6 +691,7 @@ sub makeRPAligns {
         $self->logger->logdie("Unrecognised line in uniprot alignment for $pfamA_acc:[$row]"); 
       }
     }
+    close ALN;
     unless($noSeqs) {
       $self->logger->debug("No sequences in $rp_level alignment");
       next;
@@ -1995,7 +2009,7 @@ sub secStrucConsensus {
 
 
 sub makeNonRedundantFasta {
-  my ( $self ) = @_;
+  my ( $self, $ali ) = @_;
 
   $self->logger->debug("The average identity of the alignment is ".$self->pfam->percentage_id);
   
@@ -2007,40 +2021,85 @@ sub makeNonRedundantFasta {
     $identity = 100 if($identity > 100);
   }
   
-  #Use belvu to make the full alignment 90% non-redundant.
   $identity = $identity / 100;
-  my $system_command = $self->config->binLocation . "/esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann 2> /dev/null";
-  system( $system_command ) == 0
-    or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
 
-  $system_command = $self->config->binLocation . '/esl-reformat fasta ALIGN.90 2> /dev/null |';
-  open( BEL, $system_command )
-    or $self->mailUserAndFail( "Could not open command ($system_command): [$!]\n" );
+  
+  #This section uses cd-hit to make the 90% redundant fasta file
+  #esl-weight was previously used
+  #
+  #Get mapping of id to acc (esl-weight took this from ALIGN.ann, but now we use cd-hit we need to get the mapping)
+  my %id2acc;
+  foreach my $seq ( $ali->each_seq ) {
+    my $seq_ver=$seq->acc.".".$seq->seq_version;
+    $id2acc{$seq->id}=$seq_ver;
+  }
 
+  #Reformat the alignment to aligned fasta
+  my $system_command =  $self->config->binLocation . "/esl-reformat fasta ALIGN > ALIGN.afa";
+  system( $system_command ) == 0 or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
+
+  #Use cd-hit to reduce redundancy to $identity
+  $system_command = "cd-hit -i ALIGN.afa -c $identity -o ALIGN.90";
+  system( $system_command ) == 0 or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
+
+  #Parse the output, remove gap charcaters and put the family accessions and name as part of the
+  #header line for each sequence.
   open( FAMFA, '>family.fa' )
     or $self->mailUserAndFail( "Failed to open family.fa:[$!]" );
 
-#Parse the output, remove gap charcaters and put the family accessions and name as part of the
-#header line for each sequence.
-  while (<BEL>) {
-    if (/\>(\S+\/\d+\-\d+)/) {
+  open(ALN, "ALIGN.90") or $self->mailUserAndFail( "Failed top open ALIGN.90, $!");
+  while (<ALN>) {
+    if (/\>(\S+)\/\d+\-\d+/) {
       chomp;
-      print FAMFA "$_ "
-        . $self->pfam->pfama_acc . "."
-        . $self->pfam->version . ";"
-        . $self->pfam->pfama_id . ";\n";
-    }
+      #A0A0J5QF43_9RHOB/67-502 A0A0J5QF43.1 PF00115.20;COX1;
+      print FAMFA "$_ $id2acc{$1} ". $self->pfam->pfama_acc . "." . $self->pfam->version . ";". $self->pfam->pfama_id . ";\n";
+    }    
     else {
       chomp;
       s/[\.-]//g;
       print FAMFA uc($_) . "\n";
-    }
+    }    
   }
-  close(BEL);
-  close(FAMFA);
+  close(ALN);
+  close(FAMFA); 
+
+ # Swapped to use cd-hit as esl-weight was very slow for big families
+ #
+ # my $system_command = $self->config->binLocation . "/esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann 2> /dev/null";
+ # system( $system_command ) == 0
+ #   or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
+
+ # $system_command = $self->config->binLocation . '/esl-reformat fasta ALIGN.90 2> /dev/null |';
+ # open( BEL, $system_command )
+ #   or $self->mailUserAndFail( "Could not open command ($system_command): [$!]\n" );
+
+ # open( FAMFA, '>family.fa' )
+ #   or $self->mailUserAndFail( "Failed to open family.fa:[$!]" );
+
+ # #Parse the output, remove gap charcaters and put the family accessions and name as part of the
+ # #header line for each sequence.
+ # while (<BEL>) {
+ #   if (/\>(\S+\/\d+\-\d+)/) {
+ #     chomp;
+ #     print FAMFA "$_ "
+ #       . $self->pfam->pfama_acc . "."
+ #       . $self->pfam->version . ";"
+ #       . $self->pfam->pfama_id . ";\n";
+ #   }
+ #   else {
+ #     chomp;
+ #     s/[\.-]//g;
+ #     print FAMFA uc($_) . "\n";
+ #   }
+ # }
+ # close(BEL);
+ # close(FAMFA);
+
+
+
 
   #gzip the file and add it to the database!
-  open( GZFA, "gzip -c family.fa |" )
+   open( GZFA, "gzip -c family.fa |" )
     or $self->mailUserAndFail( 
     "Failed to gzip family.fa:[$!]" );
   my $familyFA = join( "", <GZFA> );
@@ -2548,6 +2607,7 @@ sub make_tree {
   open( TREE, "esl-reformat --informat selex afa $filename | FastTree -fastest -nj -boot 100 |" )
     or $self->mailUserAndFail( 
     "Could not open pipe on sreformat and FastTree -nj -boot 100 $filename\n" );
+
 
   open( TREEFILE, ">$filename.tree" )
     or $self->mailUserAndFail(

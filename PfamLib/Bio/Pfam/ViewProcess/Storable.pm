@@ -58,7 +58,7 @@ sub submitToFarm {
   my $memory = 4000;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  -M $memory -R $resource -o ".
-              $self->options->{statusdir}."/store.\%J.\%I.log  -JStore\"[1-$noJobs]%41\"");
+              $self->options->{statusdir}."/store.\%J.\%I.log  -JStore\"[1-$noJobs]\"");
   $fh->print( "makeStorables.pl -chunk \$\{LSB_JOBINDEX\} -statusdir ".$self->options->{statusdir}."\n");
 
   $fh->close;
@@ -186,7 +186,7 @@ sub updateStorables {
               {
                 accession   => $region->pfama_acc->pfama_acc,
                 identifier  => $region->pfama_acc->pfama_id,
-                type        => $region->pfama_acc->type,
+                type        => $region->pfama_acc->type->type,
                 description => $region->pfama_acc->description,
                 score       => $region->domain_evalue_score,
                 scoreName   => 'e-value',
@@ -234,7 +234,7 @@ sub updateStorables {
                   {
                     accession   => $region->pfama_acc->pfama_acc,
                     identifier  => $region->pfama_acc->pfama_id,
-                    type        => $region->pfama_acc->type,
+                    type        => $region->pfama_acc->type->type,
                     description => $region->pfama_acc->description,
                     score       => $region->domain_evalue_score,
                     scoreName   => 'e-value',
