@@ -401,6 +401,13 @@ __PACKAGE__->has_many(
   { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
 );
 
+__PACKAGE__->has_one(
+  "tax_id",
+  "PfamDB::Taxonomy",
+  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+);
+
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.

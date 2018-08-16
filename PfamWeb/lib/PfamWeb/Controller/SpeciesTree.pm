@@ -392,7 +392,7 @@ sub getFamilyData : Private {
   my @regions = $c->model('PfamDB::Pfamseq')
                   ->search( { 'pfama_reg_full_significants.pfama_acc' => $pfamA->pfama_acc,
                               'pfama_reg_full_significants.in_full'         => 1 },
-                            { join              => [ qw( pfama_reg_full_significants ) ]} );
+                            { join              => [ qw( pfama_reg_full_significants tax_id) ]} );
 
   $c->stash->{regions} = \@regions;
 
@@ -402,7 +402,7 @@ sub getFamilyData : Private {
   # get the species information for the seed alignment
   my @resultsSeed = $c->model('PfamDB::Pfamseq')
                       ->search( { 'pfama_reg_seeds.pfama_acc' => $pfamA->pfama_acc },
-                                { join                         => [ qw( pfama_reg_seeds ) ] } );
+                                { join                         => [ qw( pfama_reg_seeds tax_id) ] } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
                   . scalar @resultsSeed . '| seed regions' ) if $c->debug;
 

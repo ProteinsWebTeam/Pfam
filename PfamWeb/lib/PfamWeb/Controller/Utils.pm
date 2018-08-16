@@ -66,7 +66,7 @@ sub retrieve_ids : Private {
   # get the individual accessions
   my @seqAccs;
   foreach ( split /\s+|,/, $rs->id_list ) {
-    next unless  m/^([A-Z]\d[A-Z0-9]{3}\d)$/i;
+    next unless  m/^(.*?)$/i;
     push @seqAccs, $1;
   }
   $c->log->debug( 'Utils::retrieve_ids: found |' . scalar @seqAccs
@@ -110,6 +110,11 @@ sub get_sequences : Private {
                              'me.pfama_acc'        => $pfam->pfama_acc,
                              in_full               => 1 },
                            { prefetch              => [ qw( pfamseq ) ] } );
+    #MAQ - join to taxonony table
+    #my @trows = $c->model('PfamDB::Pfamseq')
+    #             ->search( { 'me.pfamseq_acc' => $seqAcc,
+    #                         in_full               => 1 },
+    #                       { prefetch              => [ qw( taxonomy ) ] } );
     $c->stash->{numRows} = scalar @rows;
 
     # need to remember the final character in each row, the "\n"
