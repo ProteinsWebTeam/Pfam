@@ -26,6 +26,7 @@ __PACKAGE__->table("pfamA_author");
 =head2 pfama_acc
 
   data_type: 'varchar'
+  is_foreign_key: 1
   is_nullable: 0
   size: 7
 
@@ -44,7 +45,7 @@ __PACKAGE__->table("pfamA_author");
 
 __PACKAGE__->add_columns(
   "pfama_acc",
-  { data_type => "varchar", is_nullable => 0, size => 7 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "author_rank",
   { data_type => "integer", is_nullable => 0 },
   "author_id",
@@ -52,6 +53,20 @@ __PACKAGE__->add_columns(
 );
 
 =head1 UNIQUE CONSTRAINTS
+
+=head2 C<acc_author>
+
+=over 4
+
+=item * L</pfama_acc>
+
+=item * L</author_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("acc_author", ["pfama_acc", "author_id"]);
 
 =head2 C<acc_rank>
 
@@ -65,26 +80,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->add_unique_constraint("acc_author", ["pfama_acc", "author_id"]);
 __PACKAGE__->add_unique_constraint("acc_rank", ["pfama_acc", "author_rank"]);
-# SCP - non-ideal fix for allowing delete in FamilyIO.pm
-__PACKAGE__->set_primary_key(__PACKAGE__->columns);
-
-=head2 C<acc_rank_id>
-
-=over 4
-
-=item * L</pfama_acc>
-
-=item * L</author_rank>
-
-=item * L</author_id>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("acc_rank_id", ["pfama_acc", "author_rank", "author_id"]);
 
 =head1 RELATIONS
 
@@ -100,17 +96,31 @@ __PACKAGE__->belongs_to(
   "author",
   "PfamLive::Result::Author",
   { author_id => "author_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "RESTRICT",
-    on_update     => "RESTRICT",
-  },
+  { is_deferrable => 1, on_delete => "RESTRICT", on_update => "RESTRICT" },
+);
+
+=head2 pfama_acc
+
+Type: belongs_to
+
+Related object: L<PfamLive::Result::PfamA>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "pfama_acc",
+  "PfamLive::Result::PfamA",
+  { pfama_acc => "pfama_acc" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-11-30 14:55:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qiK6AfIY96r3OkYDd18enw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-04-04 11:46:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fTOQ59M793orp/YxgJDO2Q
+
+__PACKAGE__->add_unique_constraint("acc_rank", ["pfama_acc", "author_rank"]);
+# SCP - non-ideal fix for allowing delete in FamilyIO.pm
+__PACKAGE__->set_primary_key(__PACKAGE__->columns);
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

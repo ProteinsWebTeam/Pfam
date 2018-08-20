@@ -1871,7 +1871,7 @@ sub get_data : Private {
   my $pfam = $rs->first if defined $rs;
 
   if ( $pfam ) {
-    $c->log->debug( 'Family::get_data: got a Pfam-A' ) if $c->debug;
+    $c->log->debug( 'Family::get_data: got a Pfam-A [$entry]' ) if $c->debug;
     $c->stash->{pfam}      = $pfam;
     $c->stash->{acc}       = $pfam->pfama_acc;
     $c->stash->{entryType} = 'A';

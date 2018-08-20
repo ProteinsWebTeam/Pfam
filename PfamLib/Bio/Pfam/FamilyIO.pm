@@ -674,21 +674,30 @@ sub create_or_update_author {
     # Clear existing pfamA-author entries
     $pfamdb->getSchema->resultset('PfamAAuthor')->search({pfama_acc => $familyObj->DESC->AC})->delete;
     foreach my $author (@{$familyObj->DESC->AU}) { 
-      # search for an author by name
       my $author_entry;
+      my @mismatches;
+      # search for an author by ORCID...
       if ($author->{orcid}) {
-        $author_entry = $pfamdb->getSchema->resultset('Author')->find({orcid => $author->{orcid}});
-        if ($author_entry && $author_entry->author ne $author->{name}) {
-          croak(qq(Author ") . $author_entry->author . qq(" for ORCID ") . $author_entry->orcid . qq(" does not match DESC file [") . $author->{name} . "]'");
+        foreach my $entry ($pfamdb->getSchema->resultset('Author')->search({orcid => $author->{orcid}})) {
+          if ($entry->author eq $author->{name}) {
+            $author_entry = $entry;
+          } else {
+            push @mismatches, $entry->author;
+          }
         }
+      # ...or name
       } else {
         $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}});
       }
-      if (defined $author_entry) {
-        $author_entry->update({orcid => $author->{orcid}}) if $author->{orcid};
-      } else {
-        # create a new entry
-        $author_entry = $pfamdb->getSchema->resultset('Author')->create({author => $author->{name}, orcid => $author->{orcid}});
+      unless ($author_entry) {
+        my $fail_msg .= qq(\nAuthor ") . $author->{name} . qq(" not found in database);
+        $fail_msg .= (" or does not match ORCID " . $author->{orcid}) if $author->{orcid};
+        $fail_msg .= "\n";
+        if (@mismatches) {
+          $fail_msg .= "Author with ORCID " . $author->{orcid} . " has names: " . join(", ", @mismatches) . "\n";
+        }
+        $fail_msg .= "Please add new author using addORCID.pl\n\n";
+        croak($fail_msg);
       }
       # Add pfama_author
       $pfamdb->getSchema->resultset('PfamAAuthor')->create({author_id => $author_entry->author_id, pfama_acc => $familyObj->DESC->AC, author_rank => $rank});

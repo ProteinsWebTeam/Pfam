@@ -228,13 +228,13 @@ __PACKAGE__->has_one( pfamseq =>  'PfamDB::Pfamseq',
                       { proxy => [ qw( pfamseq_acc
                                        pfamseq_id
                                        seq_version
-                                       crc64 
-                                       md5 
+                                       crc64
+                                       md5
                                        description
                                        length
-                                       species 
+                                       species
                                        taxonomy
-                                       ncbi_taxid 
+                                       ncbi_taxid
                                        sequence
                                        is_fragment
                                        updated
@@ -256,10 +256,10 @@ __PACKAGE__->has_one( pfamseq =>  'PfamDB::Pfamseq',
 #  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq'}
 #);
 
-#__PACKAGE__->has_one( 
+#__PACKAGE__->has_one(
 #  "pfama" => "PfamDB::Pfama",
 #  { "foreign.auto_pfama" => "self.auto_pfama"},
-#  { proxy => [ qw( pfama_id 
+#  { proxy => [ qw( pfama_id
 #                   pfama_acc ) ] }
 #);
 

@@ -61,6 +61,7 @@ my $sth = $dbh->prepare(qq(
 $sth->execute();
 while (my $row = $sth->fetchrow_arrayref) {
     my @job = @{$row}[0..10];
+    $job[10] = "";
     my @stream = @{$row}[11..14];
     unless ($seen_job{$job[0]}) {
         # the left join means we'll get duplicate job rows in the result set
