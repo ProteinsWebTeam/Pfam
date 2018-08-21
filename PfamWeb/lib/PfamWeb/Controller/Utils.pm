@@ -105,7 +105,6 @@ sub get_sequences : Private {
   # clans, so "entry" is more appropriate than "pfam", which we usually use.)
   my $fasta = '';
   foreach my $seqAcc ( @$accession_list ) {
-    $c->log->debug("Fasta $seqAcc => $fasta");
     my @rows = $c->model('PfamDB::PfamaRegFullSignificant')
                  ->search( { 'pfamseq.pfamseq_acc' => $seqAcc,
                              'me.pfama_acc'        => $pfam->pfama_acc,
