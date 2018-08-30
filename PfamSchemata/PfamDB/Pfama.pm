@@ -46,11 +46,6 @@ __PACKAGE__->table("pfamA");
   is_nullable: 0
   size: 100
 
-=head2 author
-
-  data_type: 'tinytext'
-  is_nullable: 0
-
 =head2 deposited_by
 
   data_type: 'varchar'
@@ -65,9 +60,10 @@ __PACKAGE__->table("pfamA");
 
 =head2 type
 
-  data_type: 'enum'
-  extra: {list => ["Family","Domain","Repeat","Motif","Disordered","Coiled-coil"]}
+  data_type: 'varchar'
+  is_foreign_key: 1
   is_nullable: 0
+  size: 30
 
 =head2 comment
 
@@ -292,8 +288,6 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 100 },
-  "author",
-  { data_type => "tinytext", is_nullable => 0 },
   "deposited_by",
   {
     data_type => "varchar",
@@ -304,20 +298,7 @@ __PACKAGE__->add_columns(
   "seed_source",
   { data_type => "tinytext", is_nullable => 0 },
   "type",
-  {
-    data_type => "enum",
-    extra => {
-      list => [
-        "Family",
-        "Domain",
-        "Repeat",
-        "Motif",
-        "Disordered",
-        "Coiled-coil",
-      ],
-    },
-    is_nullable => 0,
-  },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 30 },
   "comment",
   { data_type => "longtext", is_nullable => 1 },
   "sequence_ga",
@@ -690,6 +671,21 @@ __PACKAGE__->has_many(
   undef,
 );
 
+=head2 pfama_authors
+
+Type: has_many
+
+Related object: L<PfamDB::PfamaAuthor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfama_authors",
+  "PfamDB::PfamaAuthor",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  undef,
+);
+
 =head2 pfama_database_links
 
 Type: has_many
@@ -930,6 +926,16 @@ __PACKAGE__->has_many(
   undef,
 );
 
+=head2 type
+
+Type: belongs_to
+
+Related object: L<PfamDB::SequenceOntology>
+
+=cut
+
+__PACKAGE__->belongs_to("type", "PfamDB::SequenceOntology", { type => "type" });
+
 =head2 uniprot_reg_fulls
 
 Type: has_many
@@ -946,8 +952,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:37:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nyysSjjENTflocPbBSU8Bg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-08-30 08:56:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:POY9a6H1towplCKyGe+zdw
 
 
 
