@@ -581,6 +581,17 @@ unless ( -d "$thisRelDir/SeqInfo" ){
     }
 
 }
+
+#Calculate coverage stats for ncbi, metaseq and uniprot
+unless(-e "$logDir/submitted_coverage_job") {
+  $logger->info("Submitting job to calculate coverage for ncbi, metaseq and uniprot databases to the farm");
+  chdir($thisRelDir) or $logger->logdie("Couldn't chdir into $thisRelDir, $!");
+  system("bsub -q production-rh7 -o $pwd/coverage_stats.log -Jstats -M 70000 -R \"rusage[mem=70000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
+  chdir($pwd);
+  touch("$logDir/submitted_coverage_job");
+}
+
+#Make keyword indices
 unless (-d "$thisRelDir/KW_indices"){
     $logger->info("Making keyword indices");
     my $index_dir = $thisRelDir . "/KW_indices";
@@ -634,6 +645,13 @@ unless ( -s "$thisRelDir/PfamSequence.xml" ) {
 }             
 $logger->info("Made site search Pfam Sequence xml");
 
+unless(-d "$thisRelDir/ftp/database_files") {
+  $logger->info("Making database files");
+  chdir("$thisRelDir/ftp") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp, $!");
+  system("make_database_files.pl") and $logger->logdie("Couldn't run make_database_files.pl, $!");
+  chdir($pwd);
+}
+$logger->info("Made database files");
 
 ###################################################################################################################
 
