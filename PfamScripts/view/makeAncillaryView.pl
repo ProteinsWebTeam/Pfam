@@ -44,7 +44,6 @@ my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
 # Now update the VERSION table with the number of PfamA
 
 
-
 if(! $archView->statusCheck('doneVersion')){
     $logger->debug("Updating version table");
     my $noPfama = $view->pfamdb->getSchema->resultset('PfamA')->search({})->count;
@@ -102,9 +101,18 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 	            }
 	        }
         }
-        system("make_Architecture_new_part3.pl") and die $logger->logdie("Can't run make_Architecture_new_part3.pl");
-
-        $archView->touchStatus('doneArch');
+        my $touch_dir = $archView->options->{statusdir};
+        system("bsub -q production-rh7 -R \"rusage[mem=20000]\" -M 20000 -o $touch_dir/arch3.log 'make_Architecture_new_part3.pl && touch $touch_dir/doneArch") and die $logger->logdie("Can't run make_Architecture_new_part3.pl, $!");
+        my $x=0;
+        until($x==1) {
+          sleep(600);
+          if(-e "$touch_dir/doneArch") {
+            $x=1;
+          }
+          else {
+            $logger->info("Architecture3 farm job still running - checking again in 10 minutes\n");
+          }
+        }
   }
   else {
     $archView->logger->info("Done architectures");
@@ -130,7 +138,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $storableView->submitToFarm;
     $storableView->touchStatus('doneStorables');
   }
-
+  
   #Now make the structure images
   if(! $pdbImageView->statusCheck('donePdbImages')){
     $logger->debug("Making structure images"); 
