@@ -139,7 +139,7 @@ my $pfama_res_cov = sprintf("%.2f", $pfama_residues/$pfamseq_residues*100);
 print "Statistcs for Pfam-A\n";
 print "*******************************\n\n\n";
 
-print "\npfamseq:\n\tResidues = $pfamseq_residues\n\tSequences = $pfamseq_sequences\n\n";
+print "\nTotal:\n\tResidues = $pfamseq_residues\n\tSequences = $pfamseq_sequences\n\n";
 
 print "Pfam-A\n======\n\n";
 print "\tNumber of families = $pfamAfamilies\n";
@@ -151,6 +151,8 @@ print "\tPercent Pfamseq sequences =",$pfama_seq_cov,"\n\n";
 
 my $seq_cov=sprintf("%.1f", $pfama_seq_cov);
 my $res_cov=sprintf("%.1f", $pfama_res_cov);
-my $dbh = $pfamDB->getSchema->storage->dbh;
-my $sth_version=$dbh->prepare("update version set pfamA_coverage='$seq_cov', pfamA_residue_coverage='$res_cov', number_families=$pfamAfamilies");
-$sth_version->execute() or die "Couldn't execute statement ".$sth_version->errstr."\n";
+if($pfama_flat =~ /Pfam-A.full$/) {
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $sth_version=$dbh->prepare("update version set pfamA_coverage='$seq_cov', pfamA_residue_coverage='$res_cov', number_families=(select count(*) from pfamA)");
+  $sth_version->execute() or die "Couldn't execute statement ".$sth_version->errstr."\n";
+}
