@@ -120,11 +120,28 @@ sub _databaseEntries{
   print $fh "<entries>";
   my $hs = HTML::Strip->new;
   foreach my $pfama (@$families){
+
+    #Get author info
+    my @authors = $pfamDB->getSchema->resultset('PfamAAuthor')->search(
+      { pfama_acc => $pfama->pfama_acc },
+      {    
+        join     => [qw(author)],
+        order_by => 'author_rank ASC',
+        prefetch => [qw(author)]
+      }    
+    ); 
+
+    my $author;
+    foreach my $a (@authors) {
+      $author.=", " if($author);
+      $author.=$a->author->author;
+    }
+
     my $data;
     $data->{id}  = $pfama->pfama_id;
     $data->{acc} = $pfama->pfama_acc;
     $data->{name} = $pfama->pfama_id;
-    $data->{authors} = $pfama->author;
+    $data->{authors} = $author;
     $data->{description} = $pfama->description;
     $data->{dates}->{creation} = $pfama->created;
     $data->{dates}->{last_modified} = $pfama->updated;    
