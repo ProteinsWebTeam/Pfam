@@ -732,7 +732,7 @@ sub makePfamAScanFile {
     print PFAMSCAN "#=GF GA   "
       . $fam->sequence_ga . "; "
       . $fam->domain_ga . ";\n";
-    print PFAMSCAN "#=GF TP   " . $fam->type . "\n";
+    print PFAMSCAN "#=GF TP   " . $fam->type->type . "\n";
     print PFAMSCAN "#=GF ML   " . $fam->model_length . "\n";
 
     my @nested =
