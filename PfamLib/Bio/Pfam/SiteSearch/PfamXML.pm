@@ -131,23 +131,27 @@ sub _databaseEntries{
       }    
     ); 
 
-    my $author;
-    foreach my $a (@authors) {
-      $author.=", " if($author);
-      $author.=$a->author->author;
-    }
 
     my $data;
     $data->{id}  = $pfama->pfama_id;
     $data->{acc} = $pfama->pfama_acc;
     $data->{name} = $pfama->pfama_id;
+
+    my $author;
+    foreach my $a (@authors) {
+      $author.=", " if($author);
+      $author.=$a->author->author;
+      if($a->author->orcid) {
+        $data->{xrefs}->{ORCID}->{$a->author->orcid}=1;
+      }
+    }   
     $data->{authors} = $author;
     $data->{description} = $pfama->description;
     $data->{dates}->{creation} = $pfama->created;
     $data->{dates}->{last_modified} = $pfama->updated;    
     
     $data->{addFields}->{comment} = $pfama->comment if($pfama->comment);
-    $data->{addFields}->{type}    = $pfama->type;
+    $data->{addFields}->{type}    = $pfama->type->type;
 
     #Get Interpro Xrefs;
     my $interPro = $pfamDB->getPfamInterPro($pfama->pfama_acc);
