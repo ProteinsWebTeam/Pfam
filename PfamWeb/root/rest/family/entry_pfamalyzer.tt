@@ -18,7 +18,7 @@ pfam.model_length _ "	" _
 pfam.author       _ "	" _
 pfam.seed_source  _ "	" _
 pfam.deposited_by _ "	" _
-pfam.type         _ "	" _
+pfam.type.type    _ "	" _
 pfam.sequence_ga  _ "	" _
 pfam.domain_ga    _ "	" _
 pfam.sequence_tc  _ "	" _

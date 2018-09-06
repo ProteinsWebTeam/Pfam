@@ -88,7 +88,7 @@ pageList = PROCESS "components/pageList.tt",
       <td>
         <a href="[% familyURI %]?acc=[% pfam.pfama_acc %]">[% pfam.pfama_acc %]</a>
       </td>
-      <td>[% pfam.type %]</td>
+      <td>[% pfam.type.type %]</td>
       <td>[% pfam.num_seed %]</td>
       <td>[% pfam.num_full %]</td>
       <td>[% pfam.average_length %]</td>

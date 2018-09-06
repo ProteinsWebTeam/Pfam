@@ -10,7 +10,7 @@ USE date;
 
 META naked = 1;
 
-CALL c.debug.log( "template found a pfam of type " + pfam.type );
+CALL c.debug.log( "template found a pfam of type " + pfam.type.type );
 IF entryType == "A";
   type = "Pfam-A";
   acc  = pfam.pfama_acc;

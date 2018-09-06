@@ -77,7 +77,7 @@ IF goTerms.size;
       <percentage_identity>[% pfam.percentage_id %]</percentage_identity>
       <av_length>[% pfam.average_length %]</av_length>
       <av_coverage>[% pfam.average_coverage %]</av_coverage>
-      <type>[% pfam.type %]</type>
+      <type>[% pfam.type.type %]</type>
     </curation_details>
     <hmm_details hmmer_version="[% relData.hmmer_version %]" model_version="[% pfam.version %]" model_length="[% pfam.model_length %]">
       <build_commands>[% pfam.buildmethod %]</build_commands>
