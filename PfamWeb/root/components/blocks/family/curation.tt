@@ -13,6 +13,8 @@ infoGIF = "${rootUri}shared/images/info.gif";
 help    = "${rootUri}help";
 %]
 
+[% USE String %]
+
 <!-- start curation block -->
 
 <div class="block" id="curationBlock">
@@ -70,12 +72,31 @@ help    = "${rootUri}help";
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
   	      <td class="label">Type:</td>
   	      <td class="data">
-              [% pfam.type %]
+              [% pfam.type.type %]
   	      </td>
   	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Sequence Ontology:</td>
+          <td class="data">
+            <a href=http://www.sequenceontology.org/miso/current_svn/term/[% pfam.type.so_id %]>[% pfam.type.so_id %]</a>
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Author:</td>
-          <td class="data">[% pfam.author %]</td>
+          <td class="data">
+            [% au_string = String.new() %]
+            [% FOREACH au IN pfam.pfama_authors %]
+              [% IF au_string.length() %]
+                [% CALL au_string.append(', ') %]
+              [% END %]
+              [% IF au.author_id.orcid %]
+                [% CALL au_string.append('<a href=https://orcid.org/', au.author_id.orcid, '>', au.author_id.author, ' <img align=top src=https://rfam.xfam.org/static/images/orcid.svg height=16></a>') %]
+              [% ELSE %]
+                [% CALL au_string.append(au.author_id.author) %]
+              [% END %]
+            [% END %]
+            [% au_string %]
+          </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
   	      <td class="label">Number in seed:</td>
