@@ -673,7 +673,7 @@ sub _drawUniProt : Private {
   #         {
   #           accession   => $region->pfama_acc,
   #           identifier  => $region->pfama_id,
-  #           type        => $region->type,
+  #           type        => $region->type->type,
   #           description => $region->description,
   #           score       => $region->domain_evalue_score,
   #           scoreName   => 'e-value',
@@ -845,7 +845,7 @@ sub _drawRegion {
       metadata    => Bio::Pfam::Sequence::MetaData->new( {
           accession   => $region->pfama_acc->pfama_acc,
           identifier  => $region->pfama_acc->pfama_id,
-          type        => $region->pfama_acc->type,
+          type        => $region->pfama_acc->type->type,
           description => $region->pfama_acc->description,
           score       => $region->domain_evalue_score,
           scoreName   => 'e-value',
