@@ -313,7 +313,7 @@ sub _drawRegion {
       metadata    => Bio::Pfam::Sequence::MetaData->new( {
           accession   => $region->pfama_acc->pfama_acc,
           identifier  => $region->pfama_acc->pfama_id,
-          type        => $region->pfama_acc->type,
+          type        => $region->pfama_acc->type->type,
           description => $region->pfama_acc->description,
           start       => $start,
           end         => $end,
