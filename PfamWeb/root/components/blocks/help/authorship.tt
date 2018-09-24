@@ -1,0 +1,61 @@
+
+[%
+# install.tt
+# jt6 20070913 WTSI
+# 
+# installation instructions for the website
+#
+# $Id: install.tt,v 1.5 2009-10-28 17:07:52 jt6 Exp $
+%]
+
+<!-- start authorship block -->
+
+<div class="block" id="helpAuthorshipBlock">
+  <div class="handle">
+    <h1>Authorship</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+       We greatly appreciate the contribution made to Pfam from our user community. To acknowledge these contributions,
+       and allow them to be an integral part of researchers' profiles, we have incorporated <a href=https://orcid.org>ORCID</a>
+       identifiers, displaying these in the 'curation and model' tab of each Pfam entry.
+    </p>
+    <p>
+       To claim Pfam entries against your ORCID, first go to the <a href=https://www.ebi.ac.uk>EMBL-EBI website</a>
+       and search by putting your ORCID
+       into the search box and selecting 'Protein Families' from the drop down.
+    </p>
+    <img class="jumpTo"
+         src="[% c.secure_uri_for( '/static/images/help/orcid-search.png' ) %]"
+         alt="orcid search" />
+    <p>
+       From the results page, navigate to
+       Pfam and you should then see a link at the top of the results inviting you to 'Claim to ORCID'. Click this and
+       you will then be taken to the ORCID site to authenticate.
+    </p>
+    <img class="jumpTo"
+         src="[% c.secure_uri_for( '/static/images/help/orcid-claim.png' ) %]"
+         alt="orcid claim" />
+    <p>
+  </div>
+</div>
+
+<!-- end authorship block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
