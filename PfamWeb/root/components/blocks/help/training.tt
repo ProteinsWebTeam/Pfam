@@ -20,6 +20,12 @@
       <ol>
         <li><a class="link" rel="quickTour">Quick tour</a></li>
       </ol>
+      <ol>
+        <li><a class="link" rel="creatingFamilies">Creating Families</a></li>
+      </ol>
+      <ol>
+        <li><a class="link" rel="repeats">Repeats in Pfam</a></li>
+      </ol>
     </div>
 
     <h2><a name="quickTour">Pfam Quick tour</a></h2>
@@ -29,6 +35,26 @@
       href="http://www.ebi.ac.uk/training/online/course/pfam-quick-tour">
       quick tour</a> provides a brief introduction to the Pfam website
       and database.
+    </p>
+
+    <p><a class="link" rel="trainingTop">back to top</a></p>
+
+    <h2><a name="quickTour">Creating Families</a></h2>
+
+    <p>
+      <a class="ext"
+      href="http://www.ebi.ac.uk/training/online/course/pfam-database-creating-protein-families">
+      Creating families</a> provides a tutorial on how to create a Pfam entry.
+    </p>
+
+    <p><a class="link" rel="trainingTop">back to top</a></p>
+
+    <h2><a name="quickTour">Repeats in Pfam</a></h2>
+
+    <p>
+      <a class="ext"
+      href="http://www.ebi.ac.uk/training/online/course/repeats-pfam">
+      Repeats</a> describes how repeats are represented in Pfam.
     </p>
 
     <p><a class="link" rel="trainingTop">back to top</a></p>
