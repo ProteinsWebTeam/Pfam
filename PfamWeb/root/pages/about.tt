@@ -47,6 +47,9 @@ META fullPage = 1;
       <a href="https://www.sbc.su.se/">
         <img src="[% c.secure_uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC">
       </a>
+      <a href="http://protein.bio.unipd.it">
+        <img width=80 height=auto src="[% c.secure_uri_for('/static/images/site_logos/bio-padua.png') %]" alt="Biocomputing">
+      </a>
   </div>
   <ul class="funding">Pfam is supported by the following organisations:
     <li>
