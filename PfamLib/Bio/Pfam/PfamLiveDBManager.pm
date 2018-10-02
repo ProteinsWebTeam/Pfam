@@ -654,7 +654,16 @@ sub updatePfamALitRefs {
 #Then added the information pfamA_literature_reference table.
   $self->getSchema->resultset('PfamALiteratureReference')
     ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
+  my $cc = $famObj->DESC->CC;
   if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
+    my %cc_refs;
+    while ($cc =~ m{\[(\d+)\]}g) {
+        $cc_refs{$1} = 1;
+    }
+    foreach my $r (map { $_->{RN} } @{ $famObj->DESC->REFS }) {
+        delete $cc_refs{$r};
+    }
+    confess("Found undeclared literature references in comments: " . join(",", keys(%cc_refs))) if keys %cc_refs;
     foreach my $ref ( @{ $famObj->DESC->REFS } ) {
       my $dbRef =
         $self->getSchema->resultset('LiteratureReference')->find_or_create(
@@ -676,6 +685,11 @@ sub updatePfamALitRefs {
           order_added => $ref->{RN}
         }
       );
+    }
+  } else {
+    my (@refs) = $cc =~ m{\[(\d+)\]}g;
+    if (@refs) {
+      confess("Found undeclared literature references in comments: " . join(",", @refs));
     }
   }
 }
