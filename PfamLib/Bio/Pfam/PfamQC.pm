@@ -62,7 +62,7 @@ sub passesAllFormatChecks {
     warn "|$family|: your family identifier contains disallowed characters\n";
   }
 
-  unless( &onlyASCII( $famObj->DESC )) {
+  unless( &onlyASCII( $famObj->DESC, $family )) {
     $error = 1;
     warn "|$family|: desc file contains illegal characters\n";
   }
@@ -672,14 +672,18 @@ sub nameFormatIsOK {
 =cut
 
 sub onlyASCII {
-  my $desc = shift;
+  my ($desc, $family_dir) = @_;
 
   my $chars = 0;
 
   foreach my $line ($desc->ID, $desc->DE, $desc->CC){
     next unless($line); #Sometimes $desc->CC is undefined;
     if($line =~ /[^[:ascii:]]/){ 
-      warn "ERROR: The following line matches non ascii characters\n\n$line\n\n"; 
+      warn "ERROR: The following line(s) in the DESC file match non-ASCII characters. If the non-ASCII characters are not visible below, type 'cat -v $family_dir/DESC' into the terminal to see them.\n";
+      system("grep --color='auto' -P -n \"[^[:ascii:]]\" $family_dir/DESC");
+      print "\n";
+      $chars=1;
+      last;
     }
   }
 
