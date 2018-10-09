@@ -201,6 +201,11 @@ $sth->finish;
 
 #We may want to add the nested domain data here, so that we can have complete pfamA info.
 
+
+#Populate sequence_ontology first
+$dbhNew->do( "insert into sequence_ontology select * from ". $connectParams->{database} . ".sequence_ontology");
+
+
 #Join against the temporary table
 $logger->info("Inserting Pfam-A related data.");
 
@@ -212,7 +217,7 @@ $dbhNew->do( "insert into pfamA select t.* from "
 $dbhNew->do("SET FOREIGN_KEY_CHECKS = 0;");
 foreach my $table (
   qw(pfamA_literature_reference pfamA_wiki _pfamA_internal pfamA_reg_seed pfamA_reg_full_significant pfamA_reg_full_insignificant
-  clan_membership edits interpro gene_ontology nested_domains nested_locations current_pfam_version released_pfam_version pdb_pfamA_reg pfamA_HMM)
+  clan_membership edits interpro gene_ontology nested_domains nested_locations current_pfam_version released_pfam_version pdb_pfamA_reg pfamA_HMM pfamA_author) 
   )
 {
   $dbhNew->do( "insert into $table select t.* from "
@@ -233,15 +238,12 @@ $dbhNew->do( "insert into clan select distinct t.* from "
 
 $logger->info("Inserting Clan related data.");
 foreach my $table (
-  qw(clan_database_links clan_lit_ref clan_wiki released_clan_version))
+  qw(clan_database_links clan_lit_ref released_clan_version))
 {
   $dbhNew->do( "insert into $table select t.* from "
       . $connectParams->{database}
       . ".$table t, clan f where t.clan_acc=f.clan_acc" );
 }
-$dbhNew->do( "replace wikipedia select distinct t.* from "
-    . $connectParams->{database}
-    . ".wikipedia t, clan_wiki f where t.auto_wiki=f.auto_wiki" );
 $dbhNew->do( "replace literature_reference select t.* from "
     . $connectParams->{database}
     . ".literature_reference t, clan_lit_ref f where t.auto_lit=f.auto_lit" );
@@ -272,19 +274,12 @@ my $marSth =
 
 ####proteomes 
 $logger->info("Inserting proteome related data.");
-my $proseqSth = 
-    $dbhNew->prepare("replace proteome_pfamseq select * from "
-     . $connectParams->{database}   
-    . ".proteome_pfamseq where pfamseq_acc=?" );
-my $proregSth = 
-    $dbhNew->prepare("replace proteome_regions select * from "
-     . $connectParams->{database}   
-    . ".proteome_regions where pfamseq_acc=?" );
+my $proSth = 
+   $dbhNew->prepare( "replace proteome_regions select * from "
+         . $connectParams->{database}
+             . ".proteome_regions where pfamA_acc in (select pfamA_acc from pfamA)" );
+$proSth->execute();
 
-my $comproSth =
-    $dbhNew->prepare("replace complete_proteomes select c.* from "
-     . $connectParams->{database}   
-    . ".complete_proteomes c, proteome_pfamseq p where c.auto_proteome = p.auto_proteome and p.pfamseq_acc=?" );
 
 
 my $commitPoint = 10000;
@@ -305,10 +300,6 @@ foreach my $table (
     $othSth->execute( $d->[0] );
     $disSth->execute( $d->[0] );
     $marSth->execute( $d->[0] );
-    $proseqSth->execute( $d->[0] );
-    $proregSth->execute( $d->[0] );
-    $comproSth->execute( $d->[0] );
-
   }
   $autoSeq->finish;
   $count++;
@@ -340,7 +331,7 @@ foreach my $table (qw(pdb_image)) {
 $dbhNew->do("SET FOREIGN_KEY_CHECKS = 1;");
 
 foreach
-  my $t (qw(taxonomy evidence dead_clan dead_family markup_key version))
+  my $t (qw(taxonomy evidence dead_clan dead_family markup_key version author))
 {
   $dbhNew->do(
     "insert into $t select * from " . $connectParams->{database} . ".$t" );
@@ -418,8 +409,8 @@ usage: $0 <options>
 Options -
   outdir      : The location where the test files will be placed.
   num_fam     : The numbers of families you want in the test repository.
-  family      : Name of a family that you want to include, us repeatedly for multiple entries.
-  clan        : Name of a clan that you want to include, us repeatedly for multiple entries.
+  family      : Name of a family that you want to include, use repeatedly for multiple entries.
+  clan        : Name of a clan that you want to include, use repeatedly for multiple entries.
   help        : print this message.
 
 e.g. $0 -num_fam 10 -family PF00001 -family PF00002 -clan CL0003 -outdir test
