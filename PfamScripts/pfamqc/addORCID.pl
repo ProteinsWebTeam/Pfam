@@ -148,7 +148,7 @@ while(<DESC>) {
             for(my $i=1; $i<=@$orcids; $i++) {
               if($i==1) {
                 $options .= "Choose an option from the list below:\n";
-                $options .= "0: Do nothing\n";
+                $options .= "0: Do not add an ORCID id for $author\n";
               }
               $options .= "$i: Add ORCID id ". $orcids->[$i-1]." for author $author\n";
             }
@@ -158,10 +158,15 @@ while(<DESC>) {
               $ans = <STDIN>;
               chomp($ans);
             }
-            print STDERR "Option $ans chosen, $author;$orcids->[$ans-1] will be added to the DESC file\n";
-            $desc_file .= "AU   $author;$orcids->[$ans-1]\n";
-            $added_orcid .= ", " if($added_orcid);
-            $added_orcid .= $author;          
+            if($ans == 0) {
+              print STDERR "Option $ans chosen, an ORCID id will not be added for $author\n";
+            }
+            else {
+              print STDERR "Option $ans chosen, $author;$orcids->[$ans-1] will be added to the DESC file\n";
+              $desc_file .= "AU   $author;$orcids->[$ans-1]\n";
+              $added_orcid .= ", " if($added_orcid);
+              $added_orcid .= $author;          
+            }
           }
         }
       }
