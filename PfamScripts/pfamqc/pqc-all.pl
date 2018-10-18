@@ -155,7 +155,7 @@ if ( $famObj->DESC->CL ) {
   
 }
 
-#If we are at sanger, perform an overlap check against the database.
+#If we are at sanger/ebi, perform an overlap check against the database.
 my $pfamDB;
 if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect = $config->pfamlive;
@@ -185,6 +185,52 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
     print "$0: $family contains errors.  You should rebuild this family.\n";
     exit(1);
+  }
+
+
+  #Check orcids 
+  if (defined($famObj->{DESC}->{AU})) {
+    foreach my $author (@{$famObj->DESC->AU}) { 
+      my $author_entry;
+      my @mismatches;
+      # search for an author by ORCID...
+      if ($author->{orcid}) {
+        foreach my $entry ($pfamDB->getSchema->resultset('Author')->search({orcid => $author->{orcid}})) {
+          if ($entry->author eq $author->{name}) {
+            $author_entry = $entry;
+          } else {
+            push @mismatches, $entry->author;
+          }   
+        }   
+      # ...or name
+      } else {
+        my @author_entry = $pfamDB->getSchema->resultset('Author')->search({author => $author->{name}});
+        if(@author_entry > 1) {
+          print "$0: There is more than one author with the name [".$author->{name}."] in the database. You must specify an orcid for ". $author->{name}." in the DESC file to distinguish it from the other author(s) with the same name.\n";
+          exit(1);
+        }   
+        foreach my $au_entry (@author_entry) {  #There will only be one entry in @author_entry if we get to here 
+          if($au_entry->orcid) {
+            print "[".$author->{name}. "] has an orcid in the database, but there is no orcid in your DESC file. Use 'addORCID.pl <family_dir>' to add the orcid to your DESC file.\n";
+            exit(1);
+          }   
+          else {
+            $author_entry = $au_entry;
+          }   
+        }   
+      }   
+      unless ($author_entry) {
+        my $fail_msg .= qq(\nAuthor ") . $author->{name} . qq(" not found in database);
+        $fail_msg .= (" or does not match ORCID " . $author->{orcid}) if $author->{orcid};
+        $fail_msg .= "\n";
+        if (@mismatches) {
+          $fail_msg .= "Author with ORCID " . $author->{orcid} . " has names: " . join(", ", @mismatches) . "\n";
+        }   
+        $fail_msg .= "Please add new author using 'addORCID.pl <family_dir>'\n\n";
+        print STDERR $fail_msg;
+        exit(1);
+      }   
+    }   
   }
 }
 
