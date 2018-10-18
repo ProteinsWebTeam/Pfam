@@ -79,7 +79,7 @@ while(<DESC>) {
             $added_orcid .= $author;
           }      
           elsif($ans eq 'n') {
-            $question = "Do you want to add a second ORCID id for $author ($author;$db_orcids->[0]) to the database (y/n)? This shouldn't happen very often so be sure if you choose 'y'.\n";
+            $question = "$author;$db_orcids->[0] is already in the database. Do you want to add $author;$orcid to the database (y/n)? This shouldn't happen very often so be sure (ask for advice if you are unsure) if you choose 'y'.\n";
             $ans = 0;
             until($ans eq 'y' or $ans eq 'n') {
               print STDERR $question;
@@ -91,7 +91,7 @@ while(<DESC>) {
               $pfamDB->getSchema->resultset('Author')->create({author => $author, orcid => $orcid});
             }
             else {
-              print STDERR "Warning: Your DESC file has a different ORCID id for Bateman A (0000-0002-6982-4661) to what is in the Pfam database (0000-0002-6982-4660)\n";
+              print STDERR "Warning: Your DESC file has a different ORCID id for '$author' ($orcid) to what is in the Pfam database (".$db_orcids->[0].")\n";
             }
           } 
         }
@@ -130,7 +130,26 @@ while(<DESC>) {
         my $orcids = author2orcid($pfamDB, $author);
         my $num_orcids = scalar(@$orcids);
         if($num_orcids ==0) {
-          print STDERR "Warning: no ORCID id found for '$author' in the Pfam database. Please add manually if possible.\n";
+          #Check if author is already in the db with no orcid
+          my @rows = $pfamDB->getSchema->resultset('Author')->search({ author => $author });
+          if(@rows) {
+            print STDERR "Warning: no ORCID id found for '$author' in the Pfam database. Please add the ORCID id manually to the DESC file if there is one and re-run this script.\n";
+          }
+          else {
+            print STDERR "Warning: author '$author' is a new author to the Pfam database. If there is a typo in the author name, please fix and then re-run this script. If you have an ORCID id, please add it to the DESC file and then re-run this script. If you do not have an ORCID id for this author, you can add it to the Pfam database without an ORCID id.\n";
+
+            my $question = "Do you want to add the author '$author' to the database without an ORCID id (y/n)?\n";
+            my $ans=0;
+            until($ans eq 'y' or $ans eq 'n') {
+              print STDERR $question;
+              $ans = <STDIN>;
+              chomp($ans);
+            }   
+            if($ans eq 'y') {
+              print STDERR "Adding $author to the Pfam database\n";
+              $pfamDB->getSchema->resultset('Author')->create({author => $author, orcid => "NULL"});
+            }  
+          }
           $desc_file .= "AU   $author;\n";
           $made_change=1 if(@authors > 1); #If >1 author, need to put each author on a single line
         }
@@ -150,7 +169,7 @@ while(<DESC>) {
                 $options .= "Choose an option from the list below:\n";
                 $options .= "0: Do not add an ORCID id for $author\n";
               }
-              $options .= "$i: Add ORCID id ". $orcids->[$i-1]." for author $author\n";
+              $options .= "$i: Add ORCID id ". $orcids->[$i-1]." to DESC file for author $author\n";
             }
             my $ans = -1;
             until($ans>=0 and $ans<=$num_orcids) {
