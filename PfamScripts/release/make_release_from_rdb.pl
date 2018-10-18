@@ -653,6 +653,28 @@ unless(-d "$thisRelDir/ftp/database_files") {
 }
 $logger->info("Made database files");
 
+
+#Make MD5 checksum files for ftp files, proteome files and database files
+unless(-e "$thisRelDir/ftp/md5_checksums") {
+  $logger->info("Generating checksums for ftp files");
+  chdir("$thisRelDir/ftp") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp, $!");
+  system("MD5checksum.pl -dir .") and $logger->logdie("Couldn't run 'MD5checksum.pl -dir .', $!");
+  chdir($pwd);
+}
+unless(-e "$thisRelDir/ftp/database_files/md5_checksums") {
+  $logger->info("Generating checksums for ftp/database files");
+  chdir("$thisRelDir/ftp/database_files") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp/database_files, $!");
+  system("MD5checksum.pl -dir .") and $logger->logdie("Couldn't run 'MD5checksum.pl -dir .', $!");
+  chdir($pwd);
+}
+unless(-e "$thisRelDir/ftp/proteomes/md5_checksums") {
+  $logger->info("Generating checksums for ftp/proteome files");
+  chdir("$thisRelDir/ftp/proteomes") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp/proteomes, $!");
+  system("MD5checksum.pl -dir .") and $logger->logdie("Couldn't run 'MD5checksum.pl -dir .', $!");
+  chdir($pwd);
+}  
+$logger->info("Made checksum files");
+
 ###################################################################################################################
 
 sub checkPfamseqSize {
