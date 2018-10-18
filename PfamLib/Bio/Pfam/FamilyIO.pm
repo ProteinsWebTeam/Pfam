@@ -214,6 +214,7 @@ sub parseDESC {
     RL => { RL => 1 },
   };
 
+  my $au_order=1;
   for ( my $i = 0 ; $i <= $#file ; $i++ ) {
     my $l = $file[$i];
     chomp($l);
@@ -249,31 +250,19 @@ sub parseDESC {
         }
     }
     elsif ($file[$i] =~ m{^AU\s{3}(.*)$}) {
-        my $order = 1;
-        $params{AU} = [];
         my $au_line = $1;
-        if ($file[$i] =~ m{,} && $file[$i + 1] !~ m{^AU}) {
-            chomp $au_line;
-            foreach my $au (split m{, }, $au_line) {
-                push @{$params{AU}}, { name => $au, orcid => undef, rank => $order };
-                $order++;
-            }
+        if($file[$i] =~ /,/) {
+          croak(qq(AU line is in old format, use 'addORCID.pl <family_dir>' to convert it to new format));
         } else {
-            do {
-                $au_line = $1;
-                chomp $au_line;
-                my ($author, $orcid) = split ';', $au_line;
-                if ($orcid && $orcid !~ m{\d{4}-\d{4}-\d{4}-\d{3}[\d|X]}) {
-                    croak(qq(Invalid ORCID $orcid));
-                }
-                unless ($author =~ m{^\S+}) {
-                    croak(qq(Invalid Author $author));
-                }
-                push @{$params{AU}}, { name => $author, orcid => $orcid, rank => $order };
-                $order++;
-                $i++;
-            } while ($file[$i] =~ m{^AU\s{3}(.*)$});
-            $i--;
+            my ($author, $orcid) = split ';', $au_line;
+            if ($orcid && $orcid !~ m{\d{4}-\d{4}-\d{4}-\d{3}[\d|X]}) {
+              croak(qq(Invalid ORCID $orcid));
+            }   
+            unless ($author =~ m{^\S+}) {
+              croak(qq(Invalid Author $author));
+            }   
+            push @{$params{AU}}, { name => $author, orcid => $orcid, rank => $au_order };
+            $au_order++;
         }
     }
     elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
@@ -687,7 +676,18 @@ sub create_or_update_author {
         }
       # ...or name
       } else {
-        $author_entry = $pfamdb->getSchema->resultset('Author')->find({author => $author->{name}});
+        my @author_entry = $pfamdb->getSchema->resultset('Author')->search({author => $author->{name}});
+        if(@author_entry > 1) {
+          croak("There is more than one author with the name [".$author->{name}."] in the database. You must specify an orcid for ". $author->{name}." in the DESC file to distinguish it from the other author(s) with the same name.\n");
+        }
+        foreach my $au_entry (@author_entry) { #There will only be one entry in @author_entry if we get to here
+          if($au_entry->orcid) {
+            croak ("[".$author->{name}. "] has an orcid in the database, but there is no orcid in your DESC file. Use 'addORCID.pl <family_dir>' to add the orcid to your DESC file.\n");
+          }
+          else {
+            $author_entry = $au_entry;
+          }
+        }
       }
       unless ($author_entry) {
         my $fail_msg .= qq(\nAuthor ") . $author->{name} . qq(" not found in database);
@@ -696,7 +696,7 @@ sub create_or_update_author {
         if (@mismatches) {
           $fail_msg .= "Author with ORCID " . $author->{orcid} . " has names: " . join(", ", @mismatches) . "\n";
         }
-        $fail_msg .= "Please add new author using addORCID.pl\n\n";
+        $fail_msg .= "Please add new author using 'addORCID.pl <family_dir>'\n\n";
         croak($fail_msg);
       }
       # Add pfama_author
