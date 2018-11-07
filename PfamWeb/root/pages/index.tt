@@ -382,17 +382,18 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <div class="citation">
       <span class="title">
         <a class="ext"
-           href="https://nar.oxfordjournals.org/content/44/D1/D279.long">
-           The Pfam protein families database: towards a more sustainable future</a>:
+           href="https://doi.org/10.1093/nar/gky995">
+           The Pfam protein families database in 2019</a>:
       </span>
       <span class="authors">
-        R.D.&nbsp;Finn, P.&nbsp;Coggill, R.Y.&nbsp;Eberhardt, S.R.&nbsp;Eddy, J.&nbsp;Mistry,
-        A.L.&nbsp;Mitchell, S.C.&nbsp;Potter, M.&nbsp;Punta, M.&nbsp;Qureshi, A.&nbsp;Sangrador-Vegas,
-        G.A.&nbsp;Salazar, J.&nbsp;Tate, A.&nbsp;Bateman
+        S.&nbsp;El-Gebali, J.&nbsp;Mistry, A.&nbsp;Bateman, S.R.&nbsp;Eddy, A.&nbsp;Luciani,
+        S.C.&nbsp;Potter, M.&nbsp;Qureshi, L.J.&nbsp;Richardson, G.A.&nbsp;Salazar, A.&nbsp;Smart,
+        E.L.L.&nbsp;Sonnhammer, L.&nbsp;Hirsh, L.&nbsp;Paladin, D.&nbsp;Piovesan, S.C.E.&nbsp;Tosatto,
+        R.D.&nbsp;Finn 
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2016)
-        &nbsp;Database Issue 44:D279-D285
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2019)
+        &nbsp;doi: 10.1093/nar/gky995
       </span>
     </div>
   </div>
