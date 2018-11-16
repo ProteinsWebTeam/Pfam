@@ -150,7 +150,7 @@ foreach my $dir (@dirs) {
 #Print header 
 open(ALL, ">alldata") or die "Coudln't open fh to alldata, $!";
 print ALL "#File is sorted by overlaps, then by number gained\n";
-print ALL "Only squences with at least one match in the sequence database are included in this file\n";
+print ALL "#Only squences with at least one match in the sequence database are included in this file\n";
 print ALL "#totalseq=number of sequences (not domains) in the align file\n";
 print ALL "#overlaps=number of sequences (not domains) in the overlaps file\n";
 print ALL "#gain=total_seq-overlaps\n";
