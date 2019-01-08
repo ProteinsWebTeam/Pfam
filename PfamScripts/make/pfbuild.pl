@@ -596,7 +596,7 @@ sub main {
 
 	  $fh->open( "| bsub -q "
 		     . $farmConfig->{lsf}->{queue}
-		     . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o /dev/null -Jhmmsearch$$"
+		     . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o farm.log -Jhmmsearch$$"
 		   );
 	}
 	else {
