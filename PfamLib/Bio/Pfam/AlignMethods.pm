@@ -111,13 +111,13 @@ sub read_fasta {
   Function: Takes array of sequences and aligns
           : $method = muscle, muscle-pro, MAFFT
   Returns : array of aligned sequences
-  Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file,$pdb,$chain)
+  Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file)
 
 =cut
 
 sub create_alignment {
 
-  my ( $bin, $sequence, $description, $method, $fasta_file, $pdb, $chain) = @_;
+  my ( $bin, $sequence, $description, $method, $fasta_file) = @_;
 
 
   # Create fasta file
@@ -127,19 +127,19 @@ sub create_alignment {
   }
   close(TMP);
 
-  # Create fasta file
+  # Run alignment program
   if ( $method =~ m/MAFFT/i ) {
     system("$bin/sreformat -u fasta tmp$$ > tmp$$.fa") and die "sreformat failed $!";
 
-# V4 of MAFFT is much better. It now has a wrapper and a series of options. There seems to be
-# no format issues now and my test show there is not need for the -/\. substitution.
+    # V4 of MAFFT is much better. It now has a wrapper and a series of options. There seems to be
+    # no format issues now and my test show there is not need for the -/\. substitution.
     system ("$bin/mafft  --quiet --maxiterate 16 tmp$$.fa > tmp$$.mafft") and die "Error running MAFFT: $!";
 
     open(TMP, "$bin/sreformat selex tmp$$.mafft |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.mafft) $!";
   }
   elsif ( $method =~ /muscle-pro/i ) {
 
-# Note need to remain this way round for the statement to distinguish between the two
+    # Note need to remain this way round for the statement to distinguish between the two
     system("$bin/muscle -in tmp$$ -out tmp$$.fa -quiet -maxiters 2") and die "Error running muscle: $!";
     open(TMP, "$bin/sreformat selex tmp$$.fa |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.fa) $!";
   }
@@ -155,8 +155,6 @@ sub create_alignment {
   my ( %hash, $ali_name, $sequence_s_e );
 
   # Put into mul format
-
-
   while (<TMP>) {
     if ( !(/^\#/) and ( !/^$/ ) and ( !/\/\// ) )  {    # Ignore blanks and lines beginning with #.
       /^(\S+)\s+(\S+)$/;                              # (name) (sequence).
@@ -218,26 +216,8 @@ sub print_alignment {
   my $line;
   my ( $key, $value );
 
-  if ( $method eq "mask" ) {
-
-    #need to trim alignment
-
-    open( FILE, ">tmp$$.mul" ) or die "Can't open tmp$$.mul $!";
-    while ( ( $key, $value ) = each( %{$hash} ) ) {
-      $line = sprintf( "%-" . $idlength . "s %s \n", $key, $value );
-      print FILE "$line";
-    }
-    close FILE;
-    open( FILE, "tmp$$.mul" ) or die "Can't open tmp$$.mul $!";
-    &trim_align( \*FILE, 99 );
-    close FILE;
-    unlink "tmp$$.mul";
-  }
-
-  else {
-    while ( ( $key, $value ) = each( %{$hash} ) ) {
-      print sprintf( "%-" . $idlength . "s %s \n", $key, $value );
-    }
+  while ( ( $key, $value ) = each( %{$hash} ) ) {
+    print sprintf( "%-" . $idlength . "s %s \n", $key, $value );
   }
 
   return;
