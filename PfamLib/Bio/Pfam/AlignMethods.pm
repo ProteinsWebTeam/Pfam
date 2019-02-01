@@ -84,7 +84,7 @@ Usage	: &readfasta($fasta_file, $bin_dir)
 sub read_fasta {
 
   my ($fasta_file, $bin) = @_;
-  open( FASTA, "$bin/sreformat fasta $fasta_file |") or die "Coudn't open fh to sreformat ($bin/sreformat fasta $fasta_file)  $!";
+  open( FASTA, "$bin/esl-reformat fasta $fasta_file |") or die "Coudn't open fh to esl-reformat ($bin/esl-reformat fasta $fasta_file)  $!";
 
   my ( @sequence, @description, $i );
 
@@ -173,13 +173,13 @@ sub create_alignment {
 
   }
   elsif ( $method =~ m/MAFFT/i ) {
-      system("$bin/sreformat -u fasta tmp$$ > tmp$$.fa") and die "sreformat failed $!";
+      system("$bin/esl-reformat -u fasta tmp$$ > tmp$$.fa") and die "esl-reformat failed $!";
 
 # V4 of MAFFT is much better. It now has a wrapper and a series of options. There seems to be
 # no format issues now and my test show there is not need for the -/\. substitution.
     system ("$bin/mafft  --quiet --maxiterate 16 tmp$$.fa > tmp$$.mafft") and die "Error running MAFFT: $!";
 
-    open(TMP, "$bin/sreformat selex tmp$$.mafft |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.mafft) $!";
+    open(TMP, "$bin/esl-reformat selex tmp$$.mafft |") or die "Couldn't open fh to esl-reformat ($bin/esl-reformat selex tmp$$.mafft) $!";
   }
   elsif ( $method =~ /muscle-pro/i ) {
 
@@ -190,7 +190,7 @@ sub create_alignment {
   elsif ( $method =~ /muscle/i ) {
 
     system("$bin/muscle -in tmp$$ -out tmp$$.fa -quiet") and die "Error running muscle: $!";
-    open(TMP, "$bin/sreformat selex tmp$$.fa |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.fa) $!";
+    open(TMP, "$bin/esl-reformat selex tmp$$.fa |") or die "Couldn't open fh to esl-reformat ($bin/esl-reformat selex tmp$$.fa) $!";
   }
   else {
     print "Cannot align with method: $method.\n";
