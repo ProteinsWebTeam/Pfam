@@ -20,53 +20,49 @@ sub help {
 
   if ( $prog =~ /extend.pl/ ) {
     print STDERR
-      "This program extends a preexisting alignment and outputs to STDOUT.
+    "This program extends a preexisting alignment and outputs to STDOUT.
 
-Required OPTIONS: 
+    Required OPTIONS: 
 
- -align <alignment>    Alignment in mul format \n
- -n <integer>          Number of residues to extend at amino end \n
- -c <integer>          Number of residues to extend at carboxyl end \n";
+    -align <alignment>    Alignment in mul format \n
+    -n <integer>          Number of residues to extend at amino end \n
+    -c <integer>          Number of residues to extend at carboxyl end \n";
   }
 
   elsif ( $prog =~ /wholeseq.pl/ ) {
     print STDERR
-"This program takes an alignment in mul format and creates an alignment from the whole sequences of each member of the alignment and outputs to STDOUT.
+    "This program takes an alignment in mul format and creates an alignment from the whole sequences of each member of the alignment and outputs to STDOUT.
 
-Required OPTIONS: 
+    Required OPTIONS: 
 
--align <alignment_file> \n";
+    -align <alignment_file> \n";
   }
 
   elsif ( $prog =~ /create_alignment.pl/ ) {
     print STDERR
-      "This program creates an alignment from fasta file and outputs to STDOUT.
+    "This program creates an alignment from fasta file and outputs to STDOUT.
 
-Required OPTIONS: 
+    Required OPTIONS: 
 
- -fasta <fasta_file> \n";
+    -fasta <fasta_file> \n";
   }
 
   elsif ( $prog =~ /merge_alignment.pl/ ) {
     print STDERR
-"This program creates an alignment from two fasta files and outputs to STDOUT.
+    "This program creates an alignment from two fasta files and outputs to STDOUT.
 
-Required OPTIONS: 
+    Required OPTIONS: 
 
- -fasta <fasta_file> \n
- -fasta2 <fasta_file2> \n";
+    -fasta <fasta_file> \n
+    -fasta2 <fasta_file2> \n";
   }
 
   print STDERR ( "
-One of the following alignment methods:
+    One of the following alignment methods:
 
-    -t		Use T-coffee alignment method \n
     -m          Use MAFFT alignment method \n
     -mu         Use muscle alignment method \n
-    -mup        Use muscle progressive-alignment methods (quicker, less accurate) \n
-    -cl         Use Clustalw \n
-    -ma   -pdb <pdb identifier>   -chain <chain>         Use mask alignment method (chain is optional)\n               
-" );
+    -mup        Use muscle progressive-alignment methods (quicker, less accurate) \n");
 
   exit(0);
 }
@@ -75,7 +71,7 @@ One of the following alignment methods:
 
 Title   : read_fasta
 Function: Takes fasta filename and returns two array references.
-	: (\@sequence,\@description)
+  : (\@sequence,\@description)
 Usage	: &readfasta($fasta_file, $bin_dir)
 
 =cut
@@ -111,11 +107,11 @@ sub read_fasta {
 
 =head2 create_alignment
 
-	Title	: create_alignment
-	Function: Takes array of sequences and aligns
-	       	: $method = clustal , T_coffee, MAFFT, hmmt
-	Returns : array of aligned sequences
-	Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file,$pdb,$chain)
+  Title	: create_alignment
+  Function: Takes array of sequences and aligns
+          : $method = muscle, muscle-pro, MAFFT
+  Returns : array of aligned sequences
+  Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file,$pdb,$chain)
 
 =cut
 
@@ -127,53 +123,13 @@ sub create_alignment {
   # Create fasta file
   open( TMP, ">tmp$$" ) or die "Couldn't open fh to tmp$$ $!";;
   for ( my $i=0; $i< @$sequence; $i++) {
-      print TMP ">$i~$description->[$i]\n$sequence->[$i]\n"; #need to insert $i at the beginning of each accession no. to ensure each one is unique
+    print TMP ">$i~$description->[$i]\n$sequence->[$i]\n"; #need to insert $i at the beginning of each accession no. to ensure each one is unique
   }
   close(TMP);
 
   # Create fasta file
-  if ( ( $method =~ m/clustal/i ) || ( $method =~ m/clustalw/i ) ) {
-    my $optns = "-infile=tmp$$";
-    system ("$bin/clustalw $optns -output=gcg > /dev/null") and die "Error running clustalw: $!";
-    open(TMP, "$bin/sreformat selex tmp$$.msf |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.msf) $!";
-  }
-  elsif ( $method =~ m/t_coffee/i ) {
-
-    #    print "\# Align with t_coffee\n";
-    system "$bin/t_coffee tmp$$ -output=msf > /dev/null" and die "Error running t_coffee: $!";;
-
-    # Reformat a bit
-    open( T,  "tmp$$.msf" )    || die "Could not open tmp$$.msf\n";
-    open( T2, "> tmp$$.msf2" ) || die "Could not open tmp$$.msf2\n";
-    my $print;
-    while (<T>) {
-      if ($print) {
-        print T2;
-      }
-      if (/\/\//) {
-        $print = 1;
-      }
-
-    }
-    close(T);
-    close(T2);
-
-    open(TMP, "$bin/sreformat selex tmp$$.msf2 |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.msf2) $!";
-  }
-  elsif ( $method =~ m/mask/i ) {
-
-    # Make mask file
-    open( MASK, ">maskfile" ) || die "Can't open maskfile $!";
-    &pdb2mask( $pdb, *MASK, $chain );
-    close(MASK);
-    open( SLX, "> tmp$$.slx" ) || die "Couldn't open tmp$$.slx $!";;
-    &clustal_mask( "maskfile", "tmp$$", *SLX );
-    close(SLX);
-    open(TMP, ">tmp$$.slx") or die "Couldn't open fh to tmp$$.slx $!";
-
-  }
-  elsif ( $method =~ m/MAFFT/i ) {
-      system("$bin/sreformat -u fasta tmp$$ > tmp$$.fa") and die "sreformat failed $!";
+  if ( $method =~ m/MAFFT/i ) {
+    system("$bin/sreformat -u fasta tmp$$ > tmp$$.fa") and die "sreformat failed $!";
 
 # V4 of MAFFT is much better. It now has a wrapper and a series of options. There seems to be
 # no format issues now and my test show there is not need for the -/\. substitution.
@@ -203,7 +159,7 @@ sub create_alignment {
 
   while (<TMP>) {
     if ( !(/^\#/) and ( !/^$/ ) and ( !/\/\// ) )  {    # Ignore blanks and lines beginning with #.
-	/^(\S+)\s+(\S+)$/;                              # (name) (sequence).
+      /^(\S+)\s+(\S+)$/;                              # (name) (sequence).
 
       $ali_name     = $1;
       $sequence_s_e = $2;
@@ -237,139 +193,12 @@ sub create_alignment {
   return %newhash;
 }
 
-=head2 pdb2mask
-
- Title    : pdb2mask
- Function : takes pdb code and chain and outputs mask file for clustal
-          : Returns zero if unsuccessful
- Usage    : &pdb2mask($id,*FILE, $chain);
-
-=cut
-
-sub pdb2mask {
-
-  my (
-    $id,                $chain,         $read,           $sequence,
-    $dir,               $current_chain, $residue_number, $sec_structure,
-    $old_sec_structure, $start,         $obj
-  );
-
-  $old_sec_structure = "B";    #arbitarily set
-
-  $id    = shift;
-  *FILE  = shift;
-  $chain = shift;
-
-  #    my $dssp_dir   = $Bio::Pfam::dssp_dir;
-  $id = lc $id;
-
-  if ($chain) {
-    $chain =~ tr/a-z/A-Z/;     # Chains are upper case in dssp
-  }
-
-  # Retrieve DSSP info
-  my $dssp = "DSSP";
-  system("getz -f res '[dssp:$id]' > DSSP") and die "Error running getz: $!";
-
-  open( DSSP, "$dssp" ) || do {
-    warn "Could not open dssp file for $id\n";
-    return 0;
-  };
-
-  # Need to write out dummy header
-  print FILE "ID   $id\n";
-
-  while (<DSSP>) {
-    unless (/^#/) {
-
-      if ($chain) {
-        $current_chain = substr( $_, 11, 1 );
-      }
-
-      if ( !$chain || $current_chain eq $chain ) {
-
-        $sequence .= substr( $_, 13, 1 );
-        $residue_number = substr( $_, 1,  4 );
-        $sec_structure  = substr( $_, 16, 1 );
-        $sec_structure =~ s/[STBG]//g;    # Ignore non H or E.
-
-        # Now need to write out FT lines
-        # This is start of secondary structure
-
-        if ( ( !$old_sec_structure || $old_sec_structure =~ /[^H]/ )
-          && $sec_structure =~ /H/ )
-        {
-          $start = $residue_number;
-        }
-        if ( ( !$old_sec_structure || $old_sec_structure =~ /[^E]/ )
-          && $sec_structure =~ /E/ )
-        {
-          $start = $residue_number;
-        }
-
-        # This is end of secondary structure
-        if ( $old_sec_structure =~ /[H]/
-          && ( $sec_structure ne $old_sec_structure ) )
-        {
-          print FILE "FT   HELIX       $start    ", $residue_number - 1, "\n";
-        }
-        if ( $old_sec_structure =~ /[E]/
-          && ( $sec_structure ne $old_sec_structure ) )
-        {
-          print FILE "FT   STRAND      $start    ", $residue_number - 1, "\n";
-        }
-        $old_sec_structure = $sec_structure;
-
-      }
-
-    }
-  }
-  close(DSSP);
-
-  print FILE "SQ\n";
-  print FILE "$sequence\n";
-  return ("1");
-}
-
-=head2 clustal_mask
-
-# Title    : clustal_mask
-# Function : uses mask to make alignment, writes file to $fasta.msf
-# Usage    : &clustal_mask($mask,$fasta,*FILEHANDLE);
-
-=cut
-
-sub clustal_mask {
-  my ( $i, $mask, $fasta, $bin );
-  $mask  = shift;
-  $fasta = shift;
-  *FILE  = shift;
-  $bin = shift;
-  $i     = 0;
-
-  # Do alignment
-  system("$bin/clustalw -profile -profile1=$mask -profile2=$fasta -secstrout=both -sequences -output=gcg > /dev/null") and die "Error running clustalw: $!";
-
-# Need to remove sequence of structure. May be duplicated or not exist in pfamseq!
-
-  open( ALI, "sreformat selex $fasta.msf | sel2mul |" ) or die "Can't open Alignment file [$fasta.msf] $!";
-  while (<ALI>) {
-    if ( $i > 0 ) {
-      print FILE "$_";
-    }
-    $i++;
-  }
-
-  return;
-
-}
-
 =head2 print_alignment
 
-	Title	: print_alignment
-	Function: Prints aligned sequences
-	Returns : 
-	Usage   : print_alignment(@\description,\@aligned_sequence)
+  Title	: print_alignment
+  Function: Prints aligned sequences
+  Returns : 
+  Usage   : print_alignment(@\description,\@aligned_sequence)
 
 =cut
 
@@ -416,10 +245,10 @@ sub print_alignment {
 
 =head2 extend_alignment
 
-	Title	: extend_alignment
-	Function: Extends a set of sequences
-	Returns : An extended set of sequences in fasta format
-	Usage   : &extend_alignment($opt_align, $dbarg, $opt_n, $opt_c)
+  Title	: extend_alignment
+  Function: Extends a set of sequences
+  Returns : An extended set of sequences in fasta format
+  Usage   : &extend_alignment($opt_align, $dbarg, $opt_n, $opt_c)
 
 =cut
 
@@ -445,17 +274,17 @@ sub extend_alignment {
   open(F, ">$fa_file") or die "Could not open $fa_file for writing :[$!]\n";
   while (<ALIGN>) {
     if (/^(\S+)\/(\d+)-(\d+)\s+(\S+)/) {
-        my ($acc, $start, $end) = ($1, $2, $3);
+      my ($acc, $start, $end) = ($1, $2, $3);
 
-	push(@{$nse{$acc}}, { start => $start, end => $end} );
-  $original++;	
-	push(@{ $seqList{$acc} }, { whole => 1 });
+      push(@{$nse{$acc}}, { start => $start, end => $end} );
+      $original++;	
+      push(@{ $seqList{$acc} }, { whole => 1 });
     }
     elsif(/^\/\//) {
-	next;
+      next;
     }
     else {
-	warn "Unrecognised line: [$_]\n";
+      warn "Unrecognised line: [$_]\n";
     }
   }
 
@@ -465,19 +294,19 @@ sub extend_alignment {
   my $diff = $original - $retrieved;
   print STDERR "Extending $retrieved out the $original sequences in alignment.\n";
   if($diff != 0) {
-      print STDERR "Warning - $diff of the $original sequences in the original alignment were not retrieved\n";
+    print STDERR "Warning - $diff of the $original sequences in the original alignment were not retrieved\n";
   }
 
   my $acc;
   open(F, "$fa_file") or die "Couldn't open $fa_file for reading :[$!]\n";
   while (<F>) {
-      if (/^>(\S+)\/\d+\-(\d+)/) {
-	  $acc = $1;
-          $length{$acc}=$2;
-      }
-      elsif (/(.*)/) {
-	  $sequence{$acc} .= $1;
-      }
+    if (/^>(\S+)\/\d+\-(\d+)/) {
+      $acc = $1;
+      $length{$acc}=$2;
+    }
+    elsif (/(.*)/) {
+      $sequence{$acc} .= $1;
+    }
   } 
   close(F);
   unlink("$fa_file");  
@@ -486,27 +315,27 @@ sub extend_alignment {
 
   foreach my $acc (keys %length) {
 
-      foreach my $se (@{$nse{$acc}}) {
-	  $retrieved++;
-	  my ($new_start, $new_end);
+    foreach my $se (@{$nse{$acc}}) {
+      $retrieved++;
+      my ($new_start, $new_end);
 
-	  if( ($se->{start} - $opt_n) > 0) {
-	      $new_start = $se->{start} - $opt_n;
-	  }
-	  else {
-	      $new_start = 1;
-	  }
-
-	  if( ($se->{end} + $opt_c) > $length{$acc}) {
-	      $new_end = $length{$acc};
-	  }
-	  else {
-	      $new_end = $se->{end} + $opt_c;
-	  }
-	  my $extended_seq = substr( $sequence{$acc}, $new_start - 1, $new_end - $new_start + 1 );
-
-	  print TEMP ">$acc/$new_start\-$new_end\n$extended_seq\n";
+      if( ($se->{start} - $opt_n) > 0) {
+        $new_start = $se->{start} - $opt_n;
       }
+      else {
+        $new_start = 1;
+      }
+
+      if( ($se->{end} + $opt_c) > $length{$acc}) {
+        $new_end = $length{$acc};
+      }
+      else {
+        $new_end = $se->{end} + $opt_c;
+      }
+      my $extended_seq = substr( $sequence{$acc}, $new_start - 1, $new_end - $new_start + 1 );
+
+      print TEMP ">$acc/$new_start\-$new_end\n$extended_seq\n";
+    }
   }
 
   close TEMP;
@@ -516,10 +345,10 @@ sub extend_alignment {
 
 =head2 id2acc
 
-	Title	: id2acc
-	Function: Changes id number to accession number
-	Returns : An accession number
-	Usage   : &id2acc($id)
+  Title	: id2acc
+  Function: Changes id number to accession number
+  Returns : An accession number
+  Usage   : &id2acc($id)
 
 =cut
 
