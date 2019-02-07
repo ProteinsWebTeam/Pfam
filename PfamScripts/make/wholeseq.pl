@@ -63,9 +63,9 @@ my ($original_seqno, $retrieved_seqno, %seqs);
 
 foreach my $element (sort keys %name){ 
     $original_seqno++;
-    unless($element =~ /\d/) {
+    #unless($element =~ /\d/) {
       #$element = &Bio::Pfam::AlignMethods::id2acc($element)   # If id number is present change to accession number
-    }
+    #}
     if($element) {
       push(@{ $seqs{$element} }, { whole => 1 });
       $retrieved_seqno++;
@@ -92,11 +92,11 @@ if($diff != 0) {
 my $fasta = "FA.whole";
 
 # Read fasta file and put ref into scalars
-my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta, $config->binLocation);
+my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta);
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation,$sequence,$description,$method,$fasta);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($sequence,$description,$method,$fasta);
 
 
 #Print alignment

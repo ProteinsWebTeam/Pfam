@@ -78,11 +78,11 @@ my $config = Bio::Pfam::Config->new;
 my $fasta = "FA";
 
 # Read fasta file and put ref into scalars
-my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta, $config->binLocation);
+my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta);
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation, $sequence,$description,$method,$fasta);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($sequence,$description,$method,$fasta);
 
 
 #Print alignment
