@@ -78,8 +78,16 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SeqFetch;
 
 my $config = Bio::Pfam::Config->new;
+my $sequence_db;
+my $uniprot = $config->{uniprot}->{location}."/uniprot";
+if(-s $uniprot) {
+  $sequence_db=$uniprot;
+}
+else {
+  $sequence_db=$config->{pfamseq}->{location}."/pfamseq";
+}
 open(F, ">FA.whole") or die "Could not open FA.whole for writing :[$!]\n";
-Bio::Pfam::SeqFetch::fetchSeqs(\%seqs,$config->pfamseqLoc."/uniprot", \*F); 
+Bio::Pfam::SeqFetch::fetchSeqs(\%seqs,$sequence_db, \*F); 
 close(F);
 
 

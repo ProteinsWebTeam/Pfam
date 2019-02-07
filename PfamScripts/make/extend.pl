@@ -71,8 +71,15 @@ print STDERR "$opt_c residues at the C terminus\n";
 
 
 my $config = Bio::Pfam::Config->new;      
-
-&Bio::Pfam::AlignMethods::extend_alignment($opt_align, $config->pfamseqLoc."/uniprot", $opt_n, $opt_c) ; # prints extended sequences in fasta format to a file called FA
+my $sequence_db;
+my $uniprot = $config->{uniprot}->{location}."/uniprot";
+if(-s $uniprot) {
+  $sequence_db=$uniprot;
+}
+else {
+  $sequence_db=$config->{pfamseq}->{location}."/pfamseq";
+}
+&Bio::Pfam::AlignMethods::extend_alignment($opt_align, $sequence_db, $opt_n, $opt_c) ; # prints extended sequences in fasta format to a file called FA
 
 
 my $fasta = "FA";
