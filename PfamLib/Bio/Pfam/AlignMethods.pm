@@ -40,21 +40,21 @@ sub help {
 
   elsif ( $prog =~ /create_alignment.pl/ ) {
     print STDERR
-    "This program creates an alignment from fasta file and outputs to STDOUT.
+    "This program creates an alignment from fasta file or a msa and outputs to STDOUT.
 
     Required OPTIONS: 
 
-    -fasta <fasta_file> \n";
+    -fasta <fasta_file_or_msa> \n";
   }
 
   elsif ( $prog =~ /merge_alignment.pl/ ) {
     print STDERR
-    "This program creates an alignment from two fasta files and outputs to STDOUT.
+    "This program creates an alignment from two fasta files/msas and outputs to STDOUT.
 
     Required OPTIONS: 
 
-    -fasta <fasta_file> \n
-    -fasta2 <fasta_file2> \n";
+    -fasta <fasta_file_or_msa> \n
+    -fasta2 <fasta_file2_or_msa> \n";
   }
 
   print STDERR ( "
@@ -72,34 +72,34 @@ sub help {
 Title   : read_fasta
 Function: Takes fasta filename and returns two array references.
   : (\@sequence,\@description)
-Usage	: &readfasta($fasta_file, $bin_dir)
+Usage	: &readfasta($fasta_file)
 
 =cut
 
 
 sub read_fasta {
 
-  my ($fasta_file, $bin) = @_;
-  open( FASTA, "$bin/sreformat fasta $fasta_file |") or die "Coudn't open fh to sreformat ($bin/sreformat fasta $fasta_file)  $!";
+  my ($fasta_file) = @_;
 
   my ( @sequence, @description, $i );
 
-  $/ = ">";    # Change record seperator
-  $i = 0;
-  while (<FASTA>) {
-    if (/^\s?(\S+)\s?.*\n/) {
-      $description[$i] = $1;
-      $sequence[$i]    = $';    #'
-      chop $sequence[$i];       # Remove > from end of sequence
-      $sequence[$i] =~ s/\n//g;        # Remove newlines from sequence
-      $sequence[$i] =~ s/.- _//g;      # Remove spaces from sequence
-      $sequence[$i] =~ tr/a-z/A-Z/;    # Make sequence upper case
-      $i++;
+  $i=0;
+  open( FASTA, "esl-reformat -u fasta $fasta_file |") or die "Coudn't open fh to esl-reformat (esl-reformat fasta $fasta_file)  $!";
+  while(<FASTA>) {
+    if(/^>(\S+)/) {
+      if(@description) { #No need to increment if on the first sequence
+        $i++;
+      }
+      $description[$i]=$1;
+    }
+    else {
+      chomp $_;
+      s/.- _//g;      # Remove spaces from sequence
+      $sequence[$i].=$_;
     }
   }
-  close(FASTA);
-
-  $/ = "\n";                           # Change record seperator
+  close FASTA;
+  
   return ( \@sequence, \@description );
 }
 
@@ -111,13 +111,13 @@ sub read_fasta {
   Function: Takes array of sequences and aligns
           : $method = muscle, muscle-pro, MAFFT
   Returns : array of aligned sequences
-  Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file)
+  Usage   : &create_alignment(\@sequence,\@description,$method,$fasta_file)
 
 =cut
 
 sub create_alignment {
 
-  my ( $bin, $sequence, $description, $method, $fasta_file) = @_;
+  my ( $sequence, $description, $method, $fasta_file) = @_;
 
 
   # Create fasta file
@@ -129,24 +129,24 @@ sub create_alignment {
 
   # Run alignment program
   if ( $method =~ m/MAFFT/i ) {
-    system("$bin/sreformat -u fasta tmp$$ > tmp$$.fa") and die "sreformat failed $!";
+    system("esl-reformat -u fasta tmp$$ > tmp$$.fa") and die "esl-reformat failed $!";
 
     # V4 of MAFFT is much better. It now has a wrapper and a series of options. There seems to be
     # no format issues now and my test show there is not need for the -/\. substitution.
-    system ("$bin/mafft  --quiet --maxiterate 16 tmp$$.fa > tmp$$.mafft") and die "Error running MAFFT: $!";
+    system ("mafft  --quiet --maxiterate 16 tmp$$.fa > tmp$$.mafft") and die "Error running MAFFT: $!";
 
-    open(TMP, "$bin/sreformat selex tmp$$.mafft |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.mafft) $!";
+    open(TMP, "esl-reformat selex tmp$$.mafft |") or die "Couldn't open fh to esl-reformat (esl-reformat selex tmp$$.mafft) $!";
   }
   elsif ( $method =~ /muscle-pro/i ) {
 
     # Note need to remain this way round for the statement to distinguish between the two
-    system("$bin/muscle -in tmp$$ -out tmp$$.fa -quiet -maxiters 2") and die "Error running muscle: $!";
-    open(TMP, "$bin/sreformat selex tmp$$.fa |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.fa) $!";
+    system("muscle -in tmp$$ -out tmp$$.fa -quiet -maxiters 2") and die "Error running muscle: $!";
+    open(TMP, "esl-reformat selex tmp$$.fa |") or die "Couldn't open fh to esl-reformat (esl-reformat selex tmp$$.fa) $!";
   }
   elsif ( $method =~ /muscle/i ) {
 
-    system("$bin/muscle -in tmp$$ -out tmp$$.fa -quiet") and die "Error running muscle: $!";
-    open(TMP, "$bin/sreformat selex tmp$$.fa |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.fa) $!";
+    system("muscle -in tmp$$ -out tmp$$.fa -quiet") and die "Error running muscle: $!";
+    open(TMP, "esl-reformat selex tmp$$.fa |") or die "Couldn't open fh to esl-reformat (esl-reformat selex tmp$$.fa) $!";
   }
   else {
     print "Cannot align with method: $method.\n";
