@@ -8,48 +8,23 @@ use Bio::Pfam::AlignMethods;
 
 my $prog = $0;
 
-my ($opt_align,$opt_n,$opt_c,$length, $t_coffee, $mafft, $clustalw, $probcons, $musclep, $muscle, $mcount, $mask, $pdb, $chain);
+my ($opt_align,$opt_n,$opt_c,$length, $mafft, $musclep, $muscle, $mcount);
 
 # Get options
 &GetOptions('align=s'=> \$opt_align,
 	    'n=i' => \$opt_n,
 	    'c=i' => \$opt_c,
-	    't!'  => \$t_coffee,
 	    'm!'  => \$mafft,
-	    'cl!' => \$clustalw,
-	    'p!'  => \$probcons,
 	    'mu!' => \$muscle,
 	    'mup!'=> \$musclep,
-            "ma!" => \$mask,
-            'pdb=s' => \$pdb,
-            'chain=s' => \$chain,
 	    );
 
 
 my $method;
 
-if($t_coffee) {
-   $method = "t_coffee";
-   $mcount++;
-}
 if($mafft) {
   $method = "mafft";
   $mcount++;
-}
-if($clustalw) {
-  $method = "clustalw";
-  $mcount++;
-}
-if($probcons) {
-  $method = "probcons";
-  $mcount++;
-}
-if($mask) {
-  $method = "mask";
-  $mcount++;
-  if(!$pdb) {
-      &AlignPfam::help($prog);
-  }
 }
 if($muscle) {
   $method = "muscle";
@@ -107,7 +82,7 @@ my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta, $con
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation, $sequence,$description,$method,$fasta, $pdb, $chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation, $sequence,$description,$method,$fasta);
 
 
 #Print alignment

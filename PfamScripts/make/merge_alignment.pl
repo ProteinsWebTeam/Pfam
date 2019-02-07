@@ -64,46 +64,20 @@ my $prog = "merge_alignment.pl";
 # Deal with the user input
 
 my (
-  $fasta1, $fasta2,  $t_coffee, $mafft, $clustalw, $probcons, $mask,
-  $muscle, $musclep, $method,   $pdb,   $chain,    $mcount
+  $fasta1, $fasta2,  $t_coffee, $mafft,$muscle, $musclep, $method,$mcount
 );
 
 &GetOptions(
   'fasta=s'  => \$fasta1,
   'fasta2=s' => \$fasta2,
-  't!'       => \$t_coffee,
   'm!'       => \$mafft,
-  'cl!'      => \$clustalw,
-  'p!'       => \$probcons,
-  'ma!'      => \$mask,
   'mu!'      => \$muscle,
   'mup!'     => \$musclep,
-  'pdb=s'    => \$pdb,
-  'chain=s'  => \$chain,
 );
 
-if ($t_coffee) {
-  $method = "t_coffee";
-  $mcount++;
-}
 if ($mafft) {
   $method = "mafft";
   $mcount++;
-}
-if ($clustalw) {
-  $method = "clustalw";
-  $mcount++;
-}
-if ($probcons) {
-  $method = "probcons";
-  $mcount++;
-}
-if ($mask) {
-  $method = "mask";
-  $mcount++;
-  if ( !$pdb ) {
-    &Bio::Pfam::AlignPfam::help($prog);
-  }
 }
 if ($muscle) {
   $method = "muscle";
@@ -160,7 +134,7 @@ my ($sequence, $description)  = &Bio::Pfam::AlignMethods::read_fasta($fasta_file
 
 
 # Create alignment
-my %hash =  &Bio::Pfam::AlignMethods::create_alignment( $config->binLocation, $sequence, $description, $method, $fasta_file, $pdb, $chain );
+my %hash =  &Bio::Pfam::AlignMethods::create_alignment( $config->binLocation, $sequence, $description, $method, $fasta_file);
 
 #Print alignment
 &Bio::Pfam::AlignMethods::print_alignment( \%hash, $method );

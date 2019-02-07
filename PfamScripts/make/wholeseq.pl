@@ -8,19 +8,13 @@ use Bio::Pfam::Config;
 
 my $prog = "wholeseq.pl";
 
-my ($ali_file, $t_coffee, $mafft, $clustalw, $probcons, $muscle, $musclep, $method, $mcount, $mask, $pdb, $chain);
+my ($ali_file, $mafft, $muscle, $musclep, $method, $mcount);
 
 
 &GetOptions("align=s" => \$ali_file,
-            "t!" => \$t_coffee,
 	    "m!" => \$mafft,	    
-	    "cl!" => \$clustalw,
-	    "p!"  => \$probcons,
 	    "mu!" => \$muscle,
-	    "mup!"=> \$musclep,
-            "ma!" => \$mask,
-            'pdb=s' => \$pdb,
-            'chain=s' => \$chain, );
+	    "mup!"=> \$musclep);
 
 
 
@@ -31,28 +25,9 @@ if (! $ali_file){
 }
 
 
-if($t_coffee) {
-  $method = "t_coffee";
-  $mcount++;
-}
 if($mafft) {
   $method = "mafft";
   $mcount++;
-}
-if($clustalw) {
-  $method = "clustalw";
-  $mcount++;
-}
-if($probcons) {
-  $method = "probcons";
-  $mcount++;
-}
-if($mask) {
-  $method = "mask";
-  $mcount++;
-  if(!$pdb) {
-      &iBio::Pfam::AlignPfam::help($prog);
-  }
 }
 if($muscle) {
   $method = "muscle";
@@ -103,9 +78,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SeqFetch;
 
 my $config = Bio::Pfam::Config->new;
-#system ("seq_get.pl -l list -d ".$config->pfamseqLoc."/pfamseq -nodesc > FA") and die "Failed to run seq_get.pl";        
 open(F, ">FA.whole") or die "Could not open FA.whole for writing :[$!]\n";
-
 Bio::Pfam::SeqFetch::fetchSeqs(\%seqs,$config->pfamseqLoc."/uniprot", \*F); 
 close(F);
 
@@ -123,7 +96,7 @@ my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta, $con
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation,$sequence,$description,$method,$fasta, $pdb, $chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation,$sequence,$description,$method,$fasta);
 
 
 #Print alignment
