@@ -98,9 +98,9 @@ foreach my $dir (@dirs) {
     next if(/SEED/);
 
     #Sequence [Q87XD2] overlap DUF4414 PF14377/44-57 (PF14377/44-57, 22.9 bits) FULL with Cys_rich_CWC PF14375/16-67 (PF14375/16-68, 52.80 bits) FULL
-    if(/\S+\s+\[(\S+)\]\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s\S+\s+\S+\s+\S+\s+(\S+)/) {
+    #Sequence [A0A0A1T2E8] overlap NEW NEW/110-227 JALIGN with HsbA PF12296/26-141 (PF12296/25-142, 68.40 bits) FULL
+    if(/\S+\s++\[(\S+)\]\s+\S+\s+\S+\s+\S+ JALIGN\s\S+\s+(\S+)/ or /\S+\s+\[(\S+)\]\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s\S+\s+\S+\s+\S+\s+(\S+)/) {
       my ($seq, $fam) = ($1, $2);
-
       $overlap{$seq}=1;
       next if(exists($tmp{"$seq:$fam"})); #Don't want to count same overlapping seq twice for a family
       $fam{$fam}++;

@@ -247,7 +247,7 @@ unless ( Bio::Pfam::PfamQC::noFragsInSeed( $family, $famObj ) ) {
 $verbose and print STDERR "$0: Did not find any fragment in the SEED\n";
 
 if  ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $famObj ) ) {
-  print STDERR "$0 SEED is not ragged\n";
+  print STDERR "$0: SEED is not ragged\n";
 } 
 
 unless($isNew){
@@ -263,6 +263,12 @@ $verbose and print STDERR "$0: SEED does not apeear to be ragged\n";
 #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
 unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $famObj, $family, undef, undef, $pfamDB ) ) {
   exit(1);
+}
+
+#Check all the references have been added
+unless( Bio::Pfam::PfamQC::checkReferencesAdded($famObj)) {
+    print STDERR "$0: Not all literature references in the CC lines have been added to the DESC file\n";
+    exit(1);
 }
 
 

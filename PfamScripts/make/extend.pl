@@ -8,48 +8,23 @@ use Bio::Pfam::AlignMethods;
 
 my $prog = $0;
 
-my ($opt_align,$opt_n,$opt_c,$length, $t_coffee, $mafft, $clustalw, $probcons, $musclep, $muscle, $mcount, $mask, $pdb, $chain);
+my ($opt_align,$opt_n,$opt_c,$length, $mafft, $musclep, $muscle, $mcount);
 
 # Get options
 &GetOptions('align=s'=> \$opt_align,
 	    'n=i' => \$opt_n,
 	    'c=i' => \$opt_c,
-	    't!'  => \$t_coffee,
 	    'm!'  => \$mafft,
-	    'cl!' => \$clustalw,
-	    'p!'  => \$probcons,
 	    'mu!' => \$muscle,
 	    'mup!'=> \$musclep,
-            "ma!" => \$mask,
-            'pdb=s' => \$pdb,
-            'chain=s' => \$chain,
 	    );
 
 
 my $method;
 
-if($t_coffee) {
-   $method = "t_coffee";
-   $mcount++;
-}
 if($mafft) {
   $method = "mafft";
   $mcount++;
-}
-if($clustalw) {
-  $method = "clustalw";
-  $mcount++;
-}
-if($probcons) {
-  $method = "probcons";
-  $mcount++;
-}
-if($mask) {
-  $method = "mask";
-  $mcount++;
-  if(!$pdb) {
-      &AlignPfam::help($prog);
-  }
 }
 if($muscle) {
   $method = "muscle";
@@ -96,18 +71,25 @@ print STDERR "$opt_c residues at the C terminus\n";
 
 
 my $config = Bio::Pfam::Config->new;      
-
-&Bio::Pfam::AlignMethods::extend_alignment($opt_align, $config->pfamseqLoc."/uniprot", $opt_n, $opt_c) ; # prints extended sequences in fasta format to a file called FA
+my $sequence_db;
+my $uniprot = $config->{uniprot}->{location}."/uniprot";
+if(-s $uniprot) {
+  $sequence_db=$uniprot;
+}
+else {
+  $sequence_db=$config->{pfamseq}->{location}."/pfamseq";
+}
+&Bio::Pfam::AlignMethods::extend_alignment($opt_align, $sequence_db, $opt_n, $opt_c) ; # prints extended sequences in fasta format to a file called FA
 
 
 my $fasta = "FA";
 
 # Read fasta file and put ref into scalars
-my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta, $config->binLocation);
+my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta);
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation, $sequence,$description,$method,$fasta, $pdb, $chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($sequence,$description,$method,$fasta);
 
 
 #Print alignment

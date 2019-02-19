@@ -126,7 +126,7 @@ sub commitFamily {
   $guard->commit;
   
   #If this family is part of a clan, we need to compete it
-  if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
+  if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
     $self->view->initiateClanViewProcess($famObj->DESC->CL, $author);
   }else{
     #If we have not died, then we should be good to go! 
@@ -165,7 +165,7 @@ sub commitNewFamily {
 
   $guard->commit;
   #If this family is part of a clan, we need to compete it
-  if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
+  if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
     $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
   }else{
     #If we have not died, then we should be good to go! 
@@ -181,7 +181,7 @@ sub initiateFamilyView {
   my ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
   
   #If this family is part of a clan, we need to compete it
-  if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
+  if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
     $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
   }else{
     #If we have not died, then we should be good to go! 

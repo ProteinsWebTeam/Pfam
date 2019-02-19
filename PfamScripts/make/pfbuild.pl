@@ -30,9 +30,6 @@ sub main {
     die
 "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
-  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) {
-    warn "Unkown location.....things will probably break\n";
-  }
   unless ( -d $config->hmmer3bin ) {
     die "Could not find the HMMER3 bin directory," . $config->hmmer3bin . "\n";
   }
@@ -83,6 +80,13 @@ sub main {
   if($removeBadEd and !$withpfmake) {
     die "Cannot specify -removeBadEd option without specifying -withpfmake option.\n";
   }
+
+  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) { 
+    unless($local) {
+      warn "Location is not EBI, switching on -local option\n";
+      $local=1;
+    }   
+                              }
 
   if ($pfamseq_local) {
     unless ($local) {
@@ -484,7 +488,7 @@ sub main {
       else {
         $pfmake_db = $db_location;
       }
-      my $pfmake_cmd.="pfmake.pl -d $pfmake_db ";
+      my $pfmake_cmd.="pfmake -d $pfmake_db ";
 
       if($removeBadEd) {
 	$pfmake_cmd.= "-removeBadEd ";
@@ -596,7 +600,7 @@ sub main {
 
 	  $fh->open( "| bsub -q "
 		     . $farmConfig->{lsf}->{queue}
-		     . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o /dev/null -Jhmmsearch$$"
+		     . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o farm.log -Jhmmsearch$$"
 		   );
 	}
 	else {
@@ -625,7 +629,7 @@ sub main {
           else {
             $pfmake_db = $db_location;
           }
-	  my $pfmake_cmd.="pfmake.pl -d $pfmake_db ";
+	  my $pfmake_cmd.="pfmake -d $pfmake_db ";
 
 	  if($removeBadEd) {
 	    $pfmake_cmd.= "-removeBadEd ";

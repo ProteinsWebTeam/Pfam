@@ -2293,6 +2293,52 @@ sub seedOnReferenceProteome {
 }
 
 
+=head2 checkReferencesAdded
+
+  Title    : checkReferencesAdded
+  Usage    : checkReferencesAdded($famObj) 
+  Function : Checks whether all the references in the CC lines have been added to DESC file
+  Args     : $famObj
+  Returns  : 1 if there are errors, 0 if everthing is fine 
+
+
+=cut
+
+sub checkReferencesAdded {
+  my $famObj = shift;
+  
+  my $error;
+  my $cc = $famObj->DESC->CC;
+  
+  if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
+    my %cc_refs;
+    while ($cc =~ m{\[(\d+)\]}g) {
+        $cc_refs{$1} = 1; 
+    }    
+    foreach my $r (map { $_->{RN} } @{ $famObj->DESC->REFS }) { 
+        delete $cc_refs{$r};
+    }    
+    if(keys %cc_refs) {
+      print STDERR "\n*** ERROR: found literature references in CC lines that have not been added to the DESC file: ".  join(",", keys(%cc_refs)) ." ***\n\n";    
+      $error=1;
+    }
+  }
+  else {
+    my (@refs) = $cc =~ m{\[(\d+)\]}g;
+    if (@refs) {
+      print STDERR "\n*** ERROR: found literature references in CC lines that have not been added to the DESC file: " . join(",", @refs) . " ***\n\n";
+      $error=1;
+    }
+  }
+
+  if ($error) {
+    return 0;
+  }
+  else {
+    return 1;
+  }
+}
+
 
 =head1 COPYRIGHT
 
