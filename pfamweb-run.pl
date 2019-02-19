@@ -30,6 +30,9 @@ if (defined $pfamConfigFile && -f $pfamConfigFile) {
     open(IN, "<$pfamConfigFile") or die ("Failed to open config file: $!");
     my ($name, $path, $suffix) = fileparse($pfamConfigFile, ".conf");
     my $newConfigFile = File::Spec->join($Bin, $path . "$name"."_autogen$suffix");
+    if (! -e File::Spec->join($Bin, "$path$name.$suffix")) {
+      $newConfigFile = File::Spec->join($path . "$name"."_autogen$suffix");
+    }
     open(OUT, ">", "$newConfigFile") or die ("Failed to create new config file '$newConfigFile': $!");
 
     my $baseRootPath = File::Spec->join($Bin, "PfamBase", "root");
