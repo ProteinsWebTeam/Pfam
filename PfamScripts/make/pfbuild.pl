@@ -101,7 +101,14 @@ sub main {
     $split = 0;
   }
 
-  $cpu = 4 unless ($cpu);
+  if($cpu) {
+  }
+  elsif($db eq 'mgnify') {
+    $cpu=16;
+  }
+  else {
+    $cpu = 4;
+  }
 
   #Check db and dbsize
   $db = "pfamseq" unless ($db);
@@ -165,27 +172,20 @@ sub main {
       $db_location = $config->ncbiLoc . "/$db";
     }
   }
-  elsif ( $db eq "metaseq" ) {
-    if ( $dbsize and $dbsize ne $config->meta_dbsize ) {
-      warn
-"\n***** Using effective database size [$dbsize] that is different to metaseq ["
-        . $config->meta_dbsize
-        . "] *****\n\n";
-    }
-    else {
-      $dbsize = $config->meta_dbsize;
-    }
-    if ( $config->location eq 'WTSI' ) {
-        $db_location = $config->pfamseqLustreLoc . "/$db";
-    }else {
-      $db_location = $config->metaseqLoc . "/$db";
-    }
+  elsif( $db eq "mgnify") {
+    if ( $dbsize and $dbsize ne $config->{mgnify}->{dbsize} ) {   
+      warn "\n***** Using effective database size [$dbsize] that is different to mgnify sequence db [" . $config->{mgnify}->{dbsize} . "] *****\n\n";
+    }   
+    else {   
+      $dbsize = $config->{mgnify}->{dbsize};
+    }   
+    $db_location = $config->{mgnify}->{location_zipped};
   }
   elsif ( $db eq "shuffled" ) {
     if ( $dbsize and $dbsize ne $config->dbsize ) {
       warn
-"\n***** Using effective database size [$dbsize] that is different to metaseq ["
-        . $config->meta_dbsize
+"\n***** Using effective database size [$dbsize] that is different to shuffled ["
+        . $config->shuffle_dbsize
         . "] *****\n\n";
     }
     else {
@@ -200,7 +200,7 @@ sub main {
   }
   else {
     die
-"db must be either 'pfamseq', 'shuffled', 'ncbi' or 'metaseq', you specified [$db]\n";
+"db must be either 'pfamseq', 'shuffled', 'ncbi' or 'mgnify', you specified [$db]\n";
   }
   unless ( int($dbsize) == $dbsize and $dbsize > 0 ) {
     die "dbsize ($dbsize) must be an integer greater than 1\n";
@@ -482,12 +482,17 @@ sub main {
     #run pfmake if we need to
     if ($withpfmake) {
       my $pfmake_db;
-      if ( $db eq "pfamseq" and ($config->location eq "WTSI" or $config->location eq "EBI") ) {
+      if ( $db eq "pfamseq" and $config->location eq "WTSI" ) { 
         $pfmake_db = $config->pfamseqLoc . "/$db";
-      }
+      }   
       else {
-        $pfmake_db = $db_location;
-      }
+        if($db eq 'mgnify') {
+          $pfmake_db = $config->{mgnify}->{location} ;
+        }   
+        else {
+          $pfmake_db = $db_location;
+        }   
+      }    
       my $pfmake_cmd.="pfmake -d $pfmake_db ";
 
       if($removeBadEd) {
@@ -623,12 +628,18 @@ sub main {
         #And finally, run pfmake if we need to
         if ($withpfmake) {
           my $pfmake_db;
-          if ( $db eq "pfamseq" and $config->location eq "WTSI" ) {
+
+          if ( $db eq "pfamseq" and $config->location eq "WTSI" ) { 
             $pfmake_db = $config->pfamseqLoc . "/$db";
-          }
+          }   
           else {
-            $pfmake_db = $db_location;
-          }
+            if($db eq 'mgnify') {
+              $pfmake_db = $config->{mgnify}->{location} ;
+            }   
+            else {
+              $pfmake_db = $db_location;
+            }   
+          }   
 	  my $pfmake_cmd.="pfmake -d $pfmake_db ";
 
 	  if($removeBadEd) {
@@ -706,7 +717,7 @@ Options that influence hmmbuild:
 
 Options that influence hmmsearch:
 
-  -db <x>     : Specify which database to search against (choose pfamseq||uniprot||metaseq||ncbi, default is pfamseq)
+  -db <x>     : Specify which database to search against (choose pfamseq||uniprot||mgnify||ncbi, default is pfamseq)
 
   General wrapping options:
   -local      : Run the hmmsearch on the local machine rather than submitting 
