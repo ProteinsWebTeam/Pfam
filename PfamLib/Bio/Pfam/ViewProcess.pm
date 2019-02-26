@@ -2440,7 +2440,7 @@ sub writeAnnotateAlignment {
 
   open(F, '<', $filename) or $self->logger->logdie("Could not open $filename:[$!]");
   while(<F>){
-    if(/^STOCKHOLM 1.0/){
+    if(/^STOCKHOLM 1.0/ or /^# STOCKHOLM 1.0/){
       next;
     }elsif(/^\/\/$/){
       next;
