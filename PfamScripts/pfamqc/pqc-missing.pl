@@ -18,6 +18,11 @@ unless($ARGV[0]){
 
 my $family = $ARGV[0];
 chomp($family);
+
+if($family =~ /(\S+)\/$/) {
+  $family = $1; #Remove trailing '/' if present
+}
+
 #-------------------------------------------------------------------------------
 #Check that family exists in svn
 my $client = Bio::Pfam::SVN::Client->new;
