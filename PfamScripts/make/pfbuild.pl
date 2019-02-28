@@ -28,7 +28,7 @@ sub main {
 
   unless ($config) {
     die
-"Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
+    "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
   unless ( -d $config->hmmer3bin ) {
     die "Could not find the HMMER3 bin directory," . $config->hmmer3bin . "\n";
@@ -69,7 +69,7 @@ sub main {
     'pfamseq=s'  => \$pfamseq_local,
     'M=i'        => \$memory_gb,
     'db=s'       => \$db
-    )
+  )
     or die "Unknown option, try running -help for more infortmation.\n";
 
   help() if ($help);
@@ -86,7 +86,7 @@ sub main {
       warn "Location is not EBI, switching on -local option\n";
       $local=1;
     }   
-                              }
+  }
 
   if ($pfamseq_local) {
     unless ($local) {
@@ -116,9 +116,9 @@ sub main {
   if ( $db eq "pfamseq" ) {
     if ( $dbsize and $dbsize ne $config->dbsize ) {
       warn
-"\n***** Using effective database size [$dbsize] that is different to pfamseq ["
-        . $config->dbsize
-        . "] *****\n\n";
+      "\n***** Using effective database size [$dbsize] that is different to pfamseq ["
+      . $config->dbsize
+      . "] *****\n\n";
     }
     else {
       $dbsize = $config->dbsize;
@@ -138,36 +138,36 @@ sub main {
   }
   elsif ( $db eq "uniprot" )
   {
-      if ( $dbsize and $dbsize ne $config->uniprot_dbsize )
-      {
-          warn "\n***** Using effective database size [$dbsize] that is different to uniprot sequence db [" . $config->uniprot_dbsize . "] *****\n\n";
-      }
-      else
-      {
-          $dbsize = $config->uniprot_dbsize;
-      }
-      if ( $config->location eq 'WTSI' )
-      {
-          $db_location = $config->pfamseqLustreLoc . "/$db";
-      }
-      else
-      {
-          $db_location = $config->uniprotLoc . "/$db";
-      }
+    if ( $dbsize and $dbsize ne $config->uniprot_dbsize )
+    {
+      warn "\n***** Using effective database size [$dbsize] that is different to uniprot sequence db [" . $config->uniprot_dbsize . "] *****\n\n";
+    }
+    else
+    {
+      $dbsize = $config->uniprot_dbsize;
+    }
+    if ( $config->location eq 'WTSI' )
+    {
+      $db_location = $config->pfamseqLustreLoc . "/$db";
+    }
+    else
+    {
+      $db_location = $config->uniprotLoc . "/$db";
+    }
   }
   elsif ( $db eq "ncbi" ) {
     if ( $dbsize and $dbsize ne $config->ncbi_dbsize ) {
       warn
-"\n***** Using effective database size [$dbsize] that is different to ncbi sequence db ["
-        . $config->ncbi_dbsize
-        . "] *****\n\n";
+      "\n***** Using effective database size [$dbsize] that is different to ncbi sequence db ["
+      . $config->ncbi_dbsize
+      . "] *****\n\n";
     }
     else {
       $dbsize = $config->ncbi_dbsize;
     }
     if ( $config->location eq 'WTSI' ) {
-        $db_location = $config->pfamseqLustreLoc . "/$db";
-      }
+      $db_location = $config->pfamseqLustreLoc . "/$db";
+    }
     else {
       $db_location = $config->ncbiLoc . "/$db";
     }
@@ -184,28 +184,28 @@ sub main {
   elsif ( $db eq "shuffled" ) {
     if ( $dbsize and $dbsize ne $config->dbsize ) {
       warn
-"\n***** Using effective database size [$dbsize] that is different to shuffled ["
-        . $config->shuffle_dbsize
-        . "] *****\n\n";
+      "\n***** Using effective database size [$dbsize] that is different to shuffled ["
+      . $config->shuffle_dbsize
+      . "] *****\n\n";
     }
     else {
       $dbsize = $config->shuffled_dbsize;
     }
     if ( $config->location eq 'WTSI' ) {
-        $db_location = $config->pfamseqLustreLoc . "/$db";
-      }
+      $db_location = $config->pfamseqLustreLoc . "/$db";
+    }
     else {
       $db_location = $config->shuffledLoc . "/$db";
     }
   }
   else {
     die
-"db must be either 'pfamseq', 'shuffled', 'ncbi' or 'mgnify', you specified [$db]\n";
+    "db must be either 'pfamseq', 'shuffled', 'ncbi' or 'mgnify', you specified [$db]\n";
   }
   unless ( int($dbsize) == $dbsize and $dbsize > 0 ) {
     die "dbsize ($dbsize) must be an integer greater than 1\n";
   }
-  
+
 
 #-------------------------------------------------------------------------------
 #Read in the DESC file.  This is now required!
@@ -213,7 +213,7 @@ sub main {
 
   unless ( -s 'DESC' ) {
     warn
-"We now require a DESC file before running $0.\n Writing dummy DESC file\n";
+    "We now require a DESC file before running $0.\n Writing dummy DESC file\n";
     $io->writeEmptyDESC;
   }
 
@@ -260,11 +260,11 @@ sub main {
     #  $aln->read_stockholm( \*SEED );
     #};
 
-  #Problem reading the alignment
-  #if($@){
-  #  warn "SEED alignment not in stockholm format, trying selex/Pfam format.\n";
-  #}
-  #Seed if it looks like a SEED in Pfam/Mul format
+    #Problem reading the alignment
+    #if($@){
+    #  warn "SEED alignment not in stockholm format, trying selex/Pfam format.\n";
+    #}
+    #Seed if it looks like a SEED in Pfam/Mul format
     eval { $aln->read_Pfam( \*SEED ); };
 
     if ($@) {
@@ -341,7 +341,7 @@ sub main {
       and die "Error building hmm!\n";
     unless ( -s "HMM" ) {
       die
-"Failed to run HMM build. Although it seems to have run successfully, the HMM has no size or is absent\n";
+      "Failed to run HMM build. Although it seems to have run successfully, the HMM has no size or is absent\n";
     }
 
     rename( "SEED.$$.selex", "SEED" ) or die "FATAL: can't rename SEED.$$\n";
@@ -456,7 +456,7 @@ sub main {
   $searchOptions .= " HMM";
 
 #-------------------------------------------------------------------------------
-#
+  #
 
   my $cmd;
   my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;
@@ -496,19 +496,19 @@ sub main {
       my $pfmake_cmd.="pfmake -d $pfmake_db ";
 
       if($removeBadEd) {
-	$pfmake_cmd.= "-removeBadEd ";
+        $pfmake_cmd.= "-removeBadEd ";
       }
 
       if ($makeEvalue) {
-	$pfmake_cmd .= "-e $makeEvalue ";
+        $pfmake_cmd .= "-e $makeEvalue ";
       }
       elsif(!-e "DESC" ) {
-	$pfmake_cmd .= "-e 0.01 ";
+        $pfmake_cmd .= "-e 0.01 ";
       }
       #else DESC must exist so it will use the GA in the DESC file
 
       system("$pfmake_cmd\n") and die "Failed to run pfmake\n";
-      
+
     }
   }
   else {
@@ -527,7 +527,7 @@ sub main {
       unless ($split) {
         system("qsub -N pfamHmmSearch -j y -o /dev/null -b y -cwd -V \'$cmd\'")
           and die
-"Failed to submit job to SGE,qsub -N pfamHmmSearch -j -o /dev/null -b y -cwd -V \'$cmd\' \n";
+        "Failed to submit job to SGE,qsub -N pfamHmmSearch -j -o /dev/null -b y -cwd -V \'$cmd\' \n";
       }
       else {
 
@@ -537,7 +537,7 @@ sub main {
     }
     elsif ( $farmConfig->{lsf} ) {
 
-     #First check that pfamseq is most up to date and if not, copy files to farm
+      #First check that pfamseq is most up to date and if not, copy files to farm
       my $rsyncObj = File::Rsync->new(
         {
           compress     => 1,
@@ -558,8 +558,8 @@ sub main {
       if ($copy) {
         mkdir( $farmConfig->{lsf}->{scratch} . "/$user/$uuid" )
           or die "Failed to make a directory on the farm users space, "
-          . $farmConfig->{lsf}->{scratch}
-          . "/$user/$uuid: [$!]";
+        . $farmConfig->{lsf}->{scratch}
+        . "/$user/$uuid: [$!]";
         copy( "SEED", $farmConfig->{lsf}->{scratch} . "/$user/$uuid/SEED" )
           or die "Failed to copy SEED to scratch space:[$!]";
         copy( "HMM", $farmConfig->{lsf}->{scratch} . "/$user/$uuid/HMM" )
@@ -571,58 +571,58 @@ sub main {
       unless ($split) {
         my $fh = IO::File->new();
 
-	unless($memory_gb) {
-	  #Going to estimate how much memory will be needed using this equation:
-	  #(Model length L * 40000 (longest sequence) * 48 (number of bytes in the dp) * number of cpus) /1,000,000 
-	  $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000); 
-	  
-	  #If estimated memory > 8Gb, reduce number of threads to see if memory can be reduced to less than 8Gb
-	  while($memory_gb >=8) {
-	    $cpu--;
-	    if($cpu == 0) {
-	      die "Cannot run pfbuild as estimated amount of memory required to run this pfbuild is more than 8Gb\n";
-	    } 
-	    $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000);
-	    print STDERR "If $cpu cpus used, $memory_gb Gb memory required\n";
-	    if($memory_gb < 8) {
-	      print STDERR "Reducing number of cpus to $cpu to reduce the estimated amount of memory required to below 8Gb\n";
-	    }
-	  }
-	  print STDERR "Reserving $memory_gb Gb of memory on farm\n";
-	}
-	
-	my $memory_mb=$memory_gb*1000;
-	my $memory_kb=$memory_mb*1000;
+        unless($memory_gb) {
+          #Going to estimate how much memory will be needed using this equation:
+          #(Model length L * 40000 (longest sequence) * 48 (number of bytes in the dp) * number of cpus) /1,000,000 
+          $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000); 
+
+          #If estimated memory > 8Gb, reduce number of threads to see if memory can be reduced to less than 8Gb
+          while($memory_gb >=8) {
+            $cpu--;
+            if($cpu == 0) {
+              die "Cannot run pfbuild as estimated amount of memory required to run this pfbuild is more than 8Gb\n";
+            } 
+            $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000);
+            print STDERR "If $cpu cpus used, $memory_gb Gb memory required\n";
+            if($memory_gb < 8) {
+              print STDERR "Reducing number of cpus to $cpu to reduce the estimated amount of memory required to below 8Gb\n";
+            }
+          }
+          print STDERR "Reserving $memory_gb Gb of memory on farm\n";
+        }
+
+        my $memory_mb=$memory_gb*1000;
+        my $memory_kb=$memory_mb*1000;
 
 
-	if( $config->location eq "WTSI") {
-	  $fh->open( "| bsub -q "
-		     . $farmConfig->{lsf}->{queue}
-		     . " -n $cpu -R \"span[hosts=1] select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -o /tmp/$$.log -Jhmmsearch$$ -G pfam-grp"
-		   );
-	}
-	elsif( $config->location eq "EBI") {
+        if( $config->location eq "WTSI") {
+          $fh->open( "| bsub -q "
+            . $farmConfig->{lsf}->{queue}
+            . " -n $cpu -R \"span[hosts=1] select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -o /tmp/$$.log -Jhmmsearch$$ -G pfam-grp"
+          );
+        }
+        elsif( $config->location eq "EBI") {
 
-	  $fh->open( "| bsub -q "
-		     . $farmConfig->{lsf}->{queue}
-		     . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o farm.log -Jhmmsearch$$"
-		   );
-	}
-	else {
-	  die "Config is not WTSI or EBI, do not know what to do";
-	}
+          $fh->open( "| bsub -q "
+            . $farmConfig->{lsf}->{queue}
+            . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o farm.log -Jhmmsearch$$"
+          );
+        }
+        else {
+          die "Config is not WTSI or EBI, do not know what to do";
+        }
 
         if ($copy) {
           $fh->print(
             "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" )
-            if ($copy);
+          if ($copy);
         }
         else {
           $fh->print( "cd " . $pwd . " \n" );
         }
         $fh->print("$cmd\n");
 
-     # now need to do the equivalent of convertHMMsearch method in$HMMResultsIO;
+        # now need to do the equivalent of convertHMMsearch method in$HMMResultsIO;
         $fh->print("pfbuild_farm_post_search.pl\n");
 
         #And finally, run pfmake if we need to
@@ -640,19 +640,19 @@ sub main {
               $pfmake_db = $db_location;
             }   
           }   
-	  my $pfmake_cmd.="pfmake -d $pfmake_db ";
+          my $pfmake_cmd.="pfmake -d $pfmake_db ";
 
-	  if($removeBadEd) {
-	    $pfmake_cmd.= "-removeBadEd ";
-	  }
+          if($removeBadEd) {
+            $pfmake_cmd.= "-removeBadEd ";
+          }
 
           if ($makeEvalue) {
-	    $pfmake_cmd .= "-e $makeEvalue ";
+            $pfmake_cmd .= "-e $makeEvalue ";
           }
           elsif (!-e "$pwd/DESC" ) {
-	    $pfmake_cmd .= "-e 0.01 ";
-	  }
-	  #else DESC must exist so it will use the GA in the DESC file
+            $pfmake_cmd .= "-e 0.01 ";
+          }
+          #else DESC must exist so it will use the GA in the DESC file
 
           $fh->print("$pfmake_cmd\n");
         }
@@ -710,7 +710,7 @@ Options that influence hmmbuild:
               : domanins.
   -ignoreBM   : Ignore the BM line present in the DESC file. Otherwise the BM
               : line will be supplimented to your BM options.  
-              
+
   Both of these options can not be supplied together;
 
   *** There are more specialised options to come ***
@@ -729,18 +729,18 @@ Options that influence hmmsearch:
   -split      : Run the hmmsearch against the split version of pfamseq (Not yet implemented).
   -ignoreSM   : Ignore the SM line present in the DESC file. Otherwise the SM
               : line will be supplimented to your SM options.            
-              
+
   Note, if -local is specified then split is switched off.
-  
+
   Options controlling significance thresholds for reporting:
   -E <x>      : E-value cutoff for reporting sequences  [default 1000].
   -Z <x>      : Effective size of the sequence database for E-value calculation
               : This should be an unsigned integer.  [default is size of pfamseq
               : grabbed from the Pfam config].
-              
+
   Note both -E and -Z only effect the sequence parameters and not the --domE and 
   --domZ parameters in HMMER3.  
-   
+
   Options controlling acceleration heuristics:
   -max        : Turn all heuristic filters off (increase sensitivity). This is 
               : not recommended for genral Pfam building as it will run very slowly, 
@@ -753,9 +753,9 @@ Options for gurus:
   -F1 <x>     : Stage 1 (MSV) threshold: promote hits w/ P <= F1  [0.02]
   -F2 <x>     : Stage 2 (Vit) threshold: promote hits w/ P <= F2  [1e-3]
   -F3 <x>     : Stage 3 (Fwd) threshold: promote hits w/ P <= F3  [1e-5]
-  
+
   Note, option -max is incompatible with option(s) -F1,-F2,-F3
- 
+
 And Finally:
 
   -withpfmake : run pfmake after the search.  If there is a DESC file present, 
@@ -764,7 +764,7 @@ And Finally:
   -makeEval   : Will run pfmake with the specified evalue cut-off   
   -removeBadEd: Will run pfmake with -removeBadEd option (need to use this option in conjuction with -withpfmake option)
   -M <int>    : Amount of memory in Gb to request (this option is only for EBI farm)
-  
+
 EOF
 
   exit(1);
