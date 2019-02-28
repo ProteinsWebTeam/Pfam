@@ -101,6 +101,8 @@ sub main {
     $split = 0;
   }
 
+
+  $db = "pfamseq" unless ($db);
   if($cpu) {
   }
   elsif($db eq 'mgnify') {
@@ -111,7 +113,6 @@ sub main {
   }
 
   #Check db and dbsize
-  $db = "pfamseq" unless ($db);
   my $db_location;
   if ( $db eq "pfamseq" ) {
     if ( $dbsize and $dbsize ne $config->dbsize ) {
@@ -206,6 +207,11 @@ sub main {
     die "dbsize ($dbsize) must be an integer greater than 1\n";
   }
 
+
+  #If outside of EBI, check the sequence database is up to date
+  unless($config->location eq 'EBI') {
+    check_dbsize($db, $config);
+  }
 
 #-------------------------------------------------------------------------------
 #Read in the DESC file.  This is now required!
@@ -771,3 +777,37 @@ EOF
 
 }
 
+sub check_dbsize {
+  my ($db, $config) = @_;
+
+  my $svn_url;
+  if($db eq 'pfamseq') {
+    $svn_url = $config->{pfamseq}->{svn_dbsize};
+  }
+  elsif($db eq 'uniprot') {
+    $svn_url = $config->{uniprot}->{svn_dbsize};  
+  }
+  else {
+    die "Search database must be pfamseq or uniprot if searching outside EBI\n";
+  }
+  unless($svn_url) {
+    die "Could not locate svn url for $db in the pfam config\n";
+  }
+
+
+  my $svn_dbsize;
+  open(F, "svn cat $svn_url |") or die "Error running 'svn $svn_url', $!";
+  while(<F>) {
+    if(/^(\d+)$/) {
+      $svn_dbsize=$1;
+    }   
+    else {
+      die "Unrecognised format of database size in svn: $_";
+    }   
+  }
+  close F;
+
+  unless($config->{$db}->{dbsize} eq $svn_dbsize) {
+    die "The database size for $db in the pfam config is [".$config->{$db}->{dbsize}."], but the current size of $db is [$svn_dbsize].\nPlease update your $db sequence database, and then update the dbsize in the pfam config\n";
+  }
+}
