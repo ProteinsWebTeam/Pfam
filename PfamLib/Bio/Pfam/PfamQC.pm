@@ -1963,7 +1963,7 @@ sub checkCLANDESCSpell {
   # system("ispell --dont-validate-words -W 0 -w 0123456789 -p$dictionary tmp.$$");
   my $cwd = cwd;
   my ( $dictionary_file, $path_to_dictionary, $suffix ) = fileparse( $dictionary );
-  system("cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p${dictionary_file}${suffix} check $cwd/tmp.$$") == 0
+  system("cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p$dictionary check $cwd/tmp.$$") == 0
     or warn "WARNING: couldn't run spell checker: $!";
 
   # Now need to put changes back into DESC file
@@ -2097,7 +2097,7 @@ sub checkDESCSpell {
   # system("ispell --dont-validate-words -W 0 -w 0123456789 -p$dictionary tmp.$$");
   my $cwd = cwd;
   my ( $dictionary_file, $path_to_dictionary, $suffix ) = fileparse( $dictionary );
-  system("cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p${dictionary_file}${suffix} check $cwd/tmp.$$") == 0
+  system("cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p$dictionary check $cwd/tmp.$$") == 0
     or warn "WARNING: couldn't run spell checker: $!";
 
   # Now need to put changes back into DESC file
