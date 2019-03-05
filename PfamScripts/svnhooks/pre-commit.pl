@@ -217,7 +217,7 @@ elsif ( $msg =~ /SEQUP/ ) {
 
 }else{
   my @changed = $txnlook->changed();
-  unless ( $changed[0] =~ m|Data/Dictionary/dictionary$| or $changed[0] =~ m|\.aspell\.lang\.pws|){
+  unless ( $changed[0] =~ m|Data/Dictionary/dictionary$|){
     die "Do not know where this commit has come from, [$msg]!\n";
   }
 }
