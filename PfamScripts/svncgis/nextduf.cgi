@@ -7,8 +7,9 @@
 # Last Modified: $Date$
 
 #This needs to be configured in apache ideally, but it works and so I am going with this......
-use lib '/pfam/home/code/PfamLib';
-use lib '/pfam/home/code/PfamSchemata';
+use lib '/nfs/production/xfam/pfam/software/Pfam/PfamSchemata';
+use lib '/nfs/production/xfam/pfam/software/Pfam/PfamLib';
+use lib '/nfs/production/xfam/pfam/rh7/perl5/lib/perl5';
 
 use strict;
 use warnings;
@@ -40,7 +41,7 @@ my @dufNosSort = sort {$b <=> $a} @dufNos;
 my $no = $dufNosSort[0] + 1;
 
 #Now return the overlaps
-print $q->header(), "The next available DUF number is: DUF$no";
+print $q->header(), "The next available DUF number is: DUF$no\n";
 
 exit;
 
