@@ -3,11 +3,21 @@
 use strict;
 use warnings;
 use File::Slurp;
+use LWP::Simple;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 
 my $config = Bio::Pfam::Config->new;
+
+#If running outside of EBI, use the cgi script
+unless($config->location eq 'EBI') {
+  my $cgi="https://xfamsvn.ebi.ac.uk/cgi-bin/nextduf.cgi";
+  my $nextDUF = get($cgi);
+  die "Error running '$cgi', $!" unless defined $nextDUF;
+  print STDERR "$nextDUF";
+  exit;
+}
 
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 unless($pfamDB){
