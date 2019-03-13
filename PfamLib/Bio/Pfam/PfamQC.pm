@@ -919,7 +919,6 @@ sub family_overlaps_with_signal_peptide {
     if($aln eq "ALIGN" and !$famObj->ALIGN) { # ALIGN0 This is not populated for families that do not have any reference proteome matches
       next;
     }
-    
     my(%regions);
     if(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfam'){
       foreach my $seq ($famObj->$aln->each_seq) {
@@ -928,33 +927,38 @@ sub family_overlaps_with_signal_peptide {
           if($seq->start < $regions{$seq->id}{start}) { #Only store first region on the sequence
             $regions{$seq->id}{start}=$seq->start;
             $regions{$seq->id}{end}=$seq->end;
-            $regions{$seq->id}{$aln}++;
           }
         }
         else {
           $regions{$seq->id}{start}=$seq->start;
           $regions{$seq->id}{end}=$seq->end;
-          $regions{$seq->id}{$aln}++;
         }
       }
     }elsif(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfamLite'){
       foreach my $seq (@{$famObj->$aln->all_nse}) {
+        my $id;
+        if($seq->[0] =~ /(\S+)\.\d+/) {
+          $id = $1;
+        }
+        else {
+          $id=$seq->[0];
+        }
         next if($seq->[1] > 120);
-        if(exists($regions{$seq->[0]})) {
-          if($seq->[1] < $regions{$seq->[0]}{start}) { #Only store first region on the sequence
-            $regions{$seq->[0]}{start}=$seq->[1];
-            $regions{$seq->[0]}{end}=$seq->[2];
+        if(exists($regions{$id})) {
+          if($seq->[1] < $regions{$id}{start}) { #Only store first region on the sequence
+            $regions{$id}{start}=$seq->[1];
+            $regions{$id}{end}=$seq->[2];
           }
         }else{
-          $regions{$seq->[0]}{start}=$seq->[1];
-          $regions{$seq->[0]}{end}=$seq->[2];
+          $regions{$id}{start}=$seq->[1];
+          $regions{$id}{end}=$seq->[2];
         }
       }
     }else{
       die "Unknown alignment type!\n";
     }
     my $overlap_hash = $pfamDB->getSignalPeptideRegion(\%regions);
-
+    
     foreach my $pfamseq_acc (keys %{$overlap_hash}) {
       print LOG "Sequence $pfamseq_acc/" . 
       $regions{$pfamseq_acc}{start} . "-". $regions{$pfamseq_acc}{end} . " in ".$aln." overlaps with signal peptide ".$overlap_hash->{$pfamseq_acc}."\n";
