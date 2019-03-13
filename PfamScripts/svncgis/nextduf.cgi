@@ -9,9 +9,7 @@
 #This needs to be configured in apache ideally, but it works and so I am going with this......
 use lib '/nfs/production/xfam/pfam/software/Pfam/PfamSchemata';
 use lib '/nfs/production/xfam/pfam/software/Pfam/PfamLib';
-use lib '/nfs/production/xfam/pfam/rh7/perl5/lib/perl5';
-use lib '/usr/share/perl5/'; #For CGI.pm
-
+use lib '/nfs/production/xfam/pfam/perl5/lib/perl5';
 
 use strict;
 use warnings;
@@ -19,8 +17,10 @@ use warnings;
 use CGI;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
-
 my $q = CGI->new;
+
+
+$ENV{'PFAM_CONFIG'} = "/nfs/production/xfam/pfam/software/Conf/pfam_svn.conf";
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
