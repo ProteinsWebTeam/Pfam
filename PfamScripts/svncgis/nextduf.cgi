@@ -10,7 +10,8 @@
 use lib '/nfs/production/xfam/pfam/software/Pfam/PfamSchemata';
 use lib '/nfs/production/xfam/pfam/software/Pfam/PfamLib';
 use lib '/nfs/production/xfam/pfam/rh7/perl5/lib/perl5';
-use lib '/usr/share/perl5/vendor_perl'; #For CGI.pm
+use lib '/usr/share/perl5/'; #For CGI.pm
+
 
 use strict;
 use warnings;
