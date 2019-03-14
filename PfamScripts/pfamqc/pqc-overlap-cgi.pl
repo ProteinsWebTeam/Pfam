@@ -55,12 +55,14 @@ use Bio::Pfam::PfamLiveDBManager;
 
 #-------------------------------------------------------------------------------
 #Check options and expected input
-my ( @ignore, $endpoints_opt, $help, $add_to_clan, $remove_from_clan, $filter );
+my ( @ignore, $endpoints_opt, $help, $add_to_clan, $remove_from_clan, $filter, $no_SigP, $compete );
 
 &GetOptions(
   "i=s@" => \@ignore,
   "help" => \$help,
-  "filter" => \$filter
+  "filter" => \$filter,
+  "no_SigP" => \$no_SigP,
+  "compete" => \$compete
 ) or exit;
 
 my $family = shift;
@@ -155,7 +157,9 @@ my $res = $ua->request(
     ignore => $ignore,
     clan   => $clan,
     nest   => $nestedDomains, 
-    filter => $filter
+    filter => $filter,
+    no_SigP => $no_SigP, 
+    compete => $compete
   ]
 );
 
@@ -212,25 +216,23 @@ sub help {
   print STDERR << "EOF";
 
 This script runs checks for overlaps between a Pfam family and the
-current Pfam database (pfamlive).  However, this script is brokered 
-through the pfamsvn and should be used by those who can not get
-direct connection to the database.  Proxy is taken from PFAM_CONFIG file
-or environment settings.
+current Pfam database (pfamlive). It is brokered through the pfamsvn 
+and should be used by those who can not get direct connection to 
+the database. The proxy is taken from PFAM_CONFIG file or environment 
+settings.
 
 Usage:
 
     $0 <family>
 
-Example:
-
-    $0 AAA -ignore other_AAA -ignore other_AAA2
-
 Addional options:
 
    -i <family_name>       :Ignore this family (-i can occur multiple times)
+   -compete               :Compete family before checking for overlaps
    -no_sigP               :Do not check whether family overlaps with signal peptide
    -filter                :Filter overlaps (small overlaps are sometimes permitted,
-                           use this option to see which overlaps will  i 
+                           use this option to remove such overlaps from the output)
+
 EOF
 
   exit(0);
