@@ -55,11 +55,12 @@ use Bio::Pfam::PfamLiveDBManager;
 
 #-------------------------------------------------------------------------------
 #Check options and expected input
-my ( @ignore, $endpoints_opt, $help, $add_to_clan, $remove_from_clan );
+my ( @ignore, $endpoints_opt, $help, $add_to_clan, $remove_from_clan, $filter );
 
 &GetOptions(
   "i=s@" => \@ignore,
-  "help" => \$help
+  "help" => \$help,
+  "filter" => \$filter
 ) or exit;
 
 my $family = shift;
@@ -153,7 +154,8 @@ my $res = $ua->request(
     file   => [$filename],
     ignore => $ignore,
     clan   => $clan,
-    nest   => $nestedDomains
+    nest   => $nestedDomains, 
+    filter => $filter
   ]
 );
 
@@ -161,23 +163,37 @@ my $res = $ua->request(
 # Check the outcome of the response
 my $overlaps = 0;
 if ( $res->is_success ) {
-  print $res->content;
   open( O, ">$pwd/$family/overlap" ) or die "Could not open $pwd/$family/overlap for writing:[$!]\n";
- 
+  open( S, ">$pwd/$family/sig_p_overlap") or die "Could not open $pwd/$family/sig_p_overlap for writing:[$!]\n";
+  my $sigP=0;
   foreach my $l (split(/\n/, $res->content)){
-    if($l =~ /^Sequence/) { 
-      $overlaps++; 
-      print O "$l\n" 
-    }  
+    if($sigP) {
+      if($l =~ /^Sequence/) {
+        print S "$l\n";
+      }
+      else {
+        print "$l\n";
+      }
+    }
+    else {
+      if($l =~ /^End of overlaps/) {
+        $sigP=1;
+        my $sOverlaps = Bio::Pfam::PfamQC::seedIntOverlaps($famObj);
+        $overlaps += $sOverlaps;
+
+        print "$family: found $overlaps overlaps\n";
+      }
+      else {
+        print "$l\n";
+        if($l =~ /^Sequence/) { 
+          $overlaps++; 
+          print O "$l\n" 
+        }  
+      }
+    }
   }
   close(O);
-
-  #Need to count the number of overlaps!!!!
-  my $sOverlaps = Bio::Pfam::PfamQC::seedIntOverlaps($famObj);
-  $overlaps += $sOverlaps;
-
-  print "Found $overlaps overlaps\n";
-
+  close S;
 }
 else {
   print $res->status_line, "\n";
@@ -198,17 +214,23 @@ sub help {
 This script runs checks for overlaps between a Pfam family and the
 current Pfam database (pfamlive).  However, this script is brokered 
 through the pfamsvn and should be used by those who can not get
-direct connection to the database.  Proxy it take from PFAM_CONFIG file
+direct connection to the database.  Proxy is taken from PFAM_CONFIG file
 or environment settings.
 
 Usage:
 
-    $0 <family> -i family1 -i family2
+    $0 <family>
 
 Example:
 
-    $0 AAA -ignore other_AAA
+    $0 AAA -ignore other_AAA -ignore other_AAA2
 
+Addional options:
+
+   -i <family_name>       :Ignore this family (-i can occur multiple times)
+   -no_sigP               :Do not check whether family overlaps with signal peptide
+   -filter                :Filter overlaps (small overlaps are sometimes permitted,
+                           use this option to see which overlaps will  i 
 EOF
 
   exit(0);
