@@ -42,6 +42,19 @@ my %ignore;    #Hash used to ignore duplicating entries in @ignore
 
 
 my $config = Bio::Pfam::Config->new;
+
+#If running outside of EBI, use the cgi script
+unless($config->location eq 'EBI') {
+  warn "Location is not EBI, running cgi script\n";
+  my $options ="";
+  $options .= "-compete " if($compete);
+  $options .= "-no_sigP " if($no_sigP);
+  $options .= "-filter " if($filter);
+  system("pqc-overlap-cgi $options $family");
+  exit;
+}
+
+
 my $connect = $config->pfamlive;
 
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
