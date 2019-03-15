@@ -35,11 +35,6 @@ if ( $family =~ /^(\S+)\/$/ ) {
 
 help() if ($help);
 
-my %ignore;    #Hash used to ignore duplicating entries in @ignore
-  foreach my $fam (@ignore) {
-  $ignore{$fam} = 1;
-}
-
 
 my $config = Bio::Pfam::Config->new;
 
@@ -50,10 +45,18 @@ unless($config->location eq 'EBI') {
   $options .= "-compete " if($compete);
   $options .= "-no_sigP " if($no_sigP);
   $options .= "-filter " if($filter);
+  foreach my $i (@ignore) {
+    $options .= "-i $i ";
+  }
+  print STDERR "pqc-overlap-cgi $options $family\n";
   system("pqc-overlap-cgi $options $family");
   exit;
 }
 
+my %ignore;    #Hash used to ignore duplicating entries in @ignore
+foreach my $fam (@ignore) {
+  $ignore{$fam} = 1;
+}
 
 my $connect = $config->pfamlive;
 
