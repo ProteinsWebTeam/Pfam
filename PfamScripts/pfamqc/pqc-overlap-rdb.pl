@@ -48,7 +48,6 @@ unless($config->location eq 'EBI') {
   foreach my $i (@ignore) {
     $options .= "-i $i ";
   }
-  print STDERR "pqc-overlap-cgi $options $family\n";
   system("pqc-overlap-cgi $options $family");
   exit;
 }
