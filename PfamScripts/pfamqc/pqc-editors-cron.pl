@@ -22,6 +22,8 @@ use DateTime::Format::MySQL;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
+$ENV{DBIC_DT_SEARCH_OK}=1; #This is to prevent a warning that is otherwise displayed
+
 # get the configuration
 my $config = Bio::Pfam::Config->new;
 
