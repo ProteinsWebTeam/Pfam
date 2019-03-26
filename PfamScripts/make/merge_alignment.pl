@@ -107,8 +107,7 @@ if ( !-s $fasta1 || !-s $fasta2 ) {
 
 my $fasta_file = "totalfa.$$";
 
-open( FILE1,   "$fasta1" )      or die "Cannot open $fasta1:[$!]\n";
-open( FILE2,   "$fasta2" )      or die "Cannot open $fasta2:[$!]\n";
+open( FILE1, "esl-reformat -u fasta $fasta1 |") or die "Cannot run 'esl-reformat -u fasta $fasta1', $!";
 open( CATFILE, ">$fasta_file" ) or die "Cannot open totalfa.$$ for writing:[$!]\n";
 
 while (<FILE1>) {
@@ -118,6 +117,7 @@ while (<FILE1>) {
 }
 close FILE1;
 
+open( FILE2, "esl-reformat -u fasta $fasta2 |") or die "Cannot run 'esl-reformat -u fasta $fasta2', $!";
 while (<FILE2>) {
   unless (/\/\//) {    # Remove lines containing //
     print CATFILE;
