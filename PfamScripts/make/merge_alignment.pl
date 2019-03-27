@@ -104,27 +104,14 @@ if ( !-s $fasta1 || !-s $fasta2 ) {
 
 #-------------------------------------------------------------------------------
 # Join the two input files.
-
 my $fasta_file = "totalfa.$$";
-
-open( FILE1, "esl-reformat -u fasta $fasta1 |") or die "Cannot run 'esl-reformat -u fasta $fasta1', $!";
-open( CATFILE, ">$fasta_file" ) or die "Cannot open totalfa.$$ for writing:[$!]\n";
-
-while (<FILE1>) {
-  unless (/\/\//) {    # Remove lines containing //
-    print CATFILE;
-  }
+foreach my $file ($fasta1, $fasta2) {
+  my $tmp_file = "tmp.$$";
+  my $grep_command = "grep -v ^// $file > $tmp_file";  #Remove // if present
+  system("$grep_command") and die "Couldn't run $grep_command, $!"; 
+  system("esl-reformat -u fasta $tmp_file >> $fasta_file") and die "Couldn't run esl-reformat -u fasta $tmp_file >> $fasta_file, $!";
+  unlink($tmp_file);
 }
-close FILE1;
-
-open( FILE2, "esl-reformat -u fasta $fasta2 |") or die "Cannot run 'esl-reformat -u fasta $fasta2', $!";
-while (<FILE2>) {
-  unless (/\/\//) {    # Remove lines containing //
-    print CATFILE;
-  }
-}
-close FILE2;
-close CATFILE;
 
 
 my $config = Bio::Pfam::Config->new;
@@ -139,4 +126,5 @@ my %hash =  &Bio::Pfam::AlignMethods::create_alignment($sequence, $description, 
 #Print alignment
 &Bio::Pfam::AlignMethods::print_alignment( \%hash, $method );
 
+unlink($fasta_file);
 exit(0);
