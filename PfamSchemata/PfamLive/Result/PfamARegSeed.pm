@@ -28,13 +28,13 @@ __PACKAGE__->table("pfamA_reg_seed");
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
-  size: 7
+  size: 8
 
 =head2 pfamseq_acc
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 10
+  size: 16
 
 =head2 seq_start
 
@@ -47,58 +47,17 @@ __PACKAGE__->table("pfamA_reg_seed");
   data_type: 'mediumint'
   is_nullable: 0
 
-=head2 cigar
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 tree_order
-
-  data_type: 'mediumint'
-  is_nullable: 1
-
-=head2 seq_version
-
-  data_type: 'tinyint'
-  is_nullable: 1
-
-=head2 md5
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 32
-
-=head2 source
-
-  data_type: 'enum'
-  extra: {list => ["pfamseq","uniprot"]}
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
   "pfama_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 8 },
   "pfamseq_acc",
-  { data_type => "varchar", is_nullable => 0, size => 10 },
+  { data_type => "varchar", is_nullable => 0, size => 16 },
   "seq_start",
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
   "seq_end",
   { data_type => "mediumint", is_nullable => 0 },
-  "cigar",
-  { data_type => "text", is_nullable => 1 },
-  "tree_order",
-  { data_type => "mediumint", is_nullable => 1 },
-  "seq_version",
-  { data_type => "tinyint", is_nullable => 1 },
-  "md5",
-  { data_type => "varchar", is_nullable => 1, size => 32 },
-  "source",
-  {
-    data_type => "enum",
-    extra => { list => ["pfamseq", "uniprot"] },
-    is_nullable => 1,
-  },
 );
 
 =head1 RELATIONS
@@ -119,19 +78,9 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-17 10:51:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S6kOyAPhetkbp3ONzsKVaA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-03-22 14:44:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B8hhNKeqBfJ2M01pjeBUxg
 
-__PACKAGE__->add_unique_constraint(
- 	"pfamA_reg_seed_reg_idx",
- 	["pfama_acc", "pfamseq_acc", "seq_start", "seq_end"],
- 	);
-
-__PACKAGE__->set_primary_key("pfama_acc", "pfamseq_acc", "seq_start", "seq_end");
-
-__PACKAGE__->might_have(
-	"clan_membership" => 'PfamLive::Result::ClanMembership',
-	{ 'foreign.pfama_acc' => 'self.pfama_acc' } );
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

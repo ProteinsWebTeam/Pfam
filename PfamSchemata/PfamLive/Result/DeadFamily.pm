@@ -26,8 +26,8 @@ __PACKAGE__->table("dead_family");
 =head2 pfama_acc
 
   data_type: 'varchar'
-  is_nullable: 0
-  size: 7
+  is_nullable: 1
+  size: 8
 
 =head2 pfama_id
 
@@ -60,16 +60,11 @@ __PACKAGE__->table("dead_family");
   default_value: current_timestamp
   is_nullable: 0
 
-=head2 title
-
-  data_type: 'tinytext'
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
   "pfama_acc",
-  { data_type => "varchar", is_nullable => 0, size => 7 },
+  { data_type => "varchar", is_nullable => 1, size => 8 },
   "pfama_id",
   { data_type => "varchar", is_nullable => 0, size => 40 },
   "comment",
@@ -90,8 +85,6 @@ __PACKAGE__->add_columns(
     default_value => \"current_timestamp",
     is_nullable => 0,
   },
-  "title",
-  { data_type => "tinytext", is_nullable => 1 },
 );
 
 =head1 UNIQUE CONSTRAINTS
@@ -109,26 +102,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->add_unique_constraint("pfamA_acc", ["pfama_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k/drOE1CSyrNxLMGuO1p7A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-03-22 14:44:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RT/wHI5q7FzLQF2LG5M5dA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
-
-=head2 pfam_a_wikis
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamAWiki>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfam_a_wikis",
-  "PfamLive::Result::PfamAWiki",
-  { "foreign.pfamA_acc" => "self.pfamA_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
 1;

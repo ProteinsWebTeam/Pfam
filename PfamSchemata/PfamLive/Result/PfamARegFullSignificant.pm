@@ -35,14 +35,13 @@ __PACKAGE__->table("pfamA_reg_full_significant");
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
-  size: 7
+  size: 8
 
 =head2 pfamseq_acc
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 0
-  size: 10
+  size: 16
 
 =head2 seq_start
 
@@ -106,27 +105,6 @@ __PACKAGE__->table("pfamA_reg_full_significant");
   is_nullable: 0
   size: 15
 
-=head2 cigar
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 in_full
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 0
-
-=head2 tree_order
-
-  data_type: 'mediumint'
-  is_nullable: 1
-
-=head2 domain_order
-
-  data_type: 'mediumint'
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -138,9 +116,9 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
   },
   "pfama_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 8 },
   "pfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
+  { data_type => "varchar", is_nullable => 0, size => 16 },
   "seq_start",
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
   "seq_end",
@@ -171,14 +149,6 @@ __PACKAGE__->add_columns(
   },
   "sequence_evalue_score",
   { data_type => "varchar", is_nullable => 0, size => 15 },
-  "cigar",
-  { data_type => "text", is_nullable => 1 },
-  "in_full",
-  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
-  "tree_order",
-  { data_type => "mediumint", is_nullable => 1 },
-  "domain_order",
-  { data_type => "mediumint", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -210,31 +180,10 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
-=head2 pfamseq_acc
 
-Type: belongs_to
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-03-22 14:44:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YgnbK9r2//8N7TVWtfKcDw
 
-Related object: L<PfamLive::Result::Pfamseq>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "pfamseq_acc",
-  "PfamLive::Result::Pfamseq",
-  { pfamseq_acc => "pfamseq_acc" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-22 11:24:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VIcoK2IybpaeHMlYrq+vuw
-__PACKAGE__->might_have(
-	"clan_membership" => 'PfamLive::Result::ClanMembership',
- 	{ 'foreign.pfama_acc' => 'self.pfama_acc' } );
-
-__PACKAGE__->might_have(
-	"interactions" => 'PfamLive::Result::PfamAInteraction',
-	{ 'foreign.pfama_acc_a' => 'self.pfama_acc' } );
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
