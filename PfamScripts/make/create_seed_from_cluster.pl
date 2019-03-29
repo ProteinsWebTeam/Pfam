@@ -2,10 +2,12 @@
 
 use strict;
 use warnings;
+use Getopt::Long;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::SeqFetch;
-use Getopt::Long;
+use Bio::Pfam::FamilyIO;
+use Bio::Pfam::Family::DESC;
 
 my $cluster_name;
 GetOptions( "cluster=s" => \$cluster_name);
@@ -54,3 +56,22 @@ unless($noSeqsFound == $total_seqs) {
 
 print STDERR "Running create_alignment.pl\n";
 system("create_alignment.pl -fasta $fasta_file -mu > SEED") and die "Couldn't run 'create_alignment.pl -fasta $fasta_file -mu > SEED', $!";
+
+#Create a DESC file
+my $io = Bio::Pfam::FamilyIO->new;
+my %desc = ( 
+  ID    => 'ShortName',
+  DE    => 'Family description',
+  AU    => [ { name => 'Who RU' } ],
+  SE    => "$cluster_name (release ".$config->{mgnify}->{release}.")",
+  CUTGA => { seq => '27.00', dom => '27.00' },
+  CUTNC => { seq => '27.00', dom => '27.00' },
+  CUTTC => { seq => '27.00', dom => '27.00' },
+  BM    => 'hmmbuild  -o /dev/null HMM SEED;',
+  SM    => 'hmmsearch -Z ' . $config->{mgnify}->{dbsize} . ' -E 1000 HMM mgnify',
+  TP    => 'Family'
+);  
+
+my $desc = Bio::Pfam::Family::DESC->new(%desc);
+$io->writeDESC($desc);
+
