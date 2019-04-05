@@ -583,15 +583,17 @@ sub main {
           $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000); 
 
           #If estimated memory > 8Gb, reduce number of threads to see if memory can be reduced to less than 8Gb
-          while($memory_gb >=8) {
-            $cpu--;
-            if($cpu == 0) {
-              die "Cannot run pfbuild as estimated amount of memory required to run this pfbuild is more than 8Gb\n";
-            } 
-            $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000);
-            print STDERR "If $cpu cpus used, $memory_gb Gb memory required\n";
-            if($memory_gb < 8) {
-              print STDERR "Reducing number of cpus to $cpu to reduce the estimated amount of memory required to below 8Gb\n";
+          unless($db eq 'mgnify') { 
+            while($memory_gb >=8) {
+              $cpu--;
+              if($cpu == 0) {
+                die "Cannot run pfbuild as estimated amount of memory required to run this pfbuild is more than 8Gb\n";
+              } 
+              $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000);
+              print STDERR "If $cpu cpus used, $memory_gb Gb memory required\n";
+              if($memory_gb < 8) {
+                print STDERR "Reducing number of cpus to $cpu to reduce the estimated amount of memory required to below 8Gb\n";
+              }
             }
           }
           print STDERR "Reserving $memory_gb Gb of memory on farm\n";
