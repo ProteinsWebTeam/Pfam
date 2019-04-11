@@ -94,7 +94,7 @@ subtype 'PfamClanAcc'
 
 subtype 'DescPfamAcc'
   => as Str
-  => where { $_ =~ m/^MPF\d{5}$/ }
+  => where { $_ =~ m/^MGYF\d{5}$/ }
   => message { 'Not a valid Pfam-A accession' };
 
 subtype 'DescPfamId'
