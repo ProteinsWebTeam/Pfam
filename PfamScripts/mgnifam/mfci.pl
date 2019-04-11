@@ -9,7 +9,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::SeqFetch;
-use Bio::Pfam::MPfam;
+use Bio::Pfam::MGnifam;
 
 my $family = shift;
 
@@ -22,9 +22,10 @@ if($family =~ /(\S+)\/$/) { #Remove trailing '/' if present
 
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
-unless($pfamDB->{database} eq "mpfam") {
-  die "Need to use the config for mpfam\n";
+unless($pfamDB->{database} eq "mgnifam") {
+  die "Need to use the config for mgnifam\n";
 }
+
 
 #Check there is a family dir, and that we can write to it
 my $cwd = getcwd;
@@ -41,33 +42,37 @@ unless(Bio::Pfam::PfamQC::checkFamilyFiles($family)) {
   print "$family contains errors. You should rebuild this family.\n";
 }
 
+
 #Read in the family
 my $familyIO = Bio::Pfam::FamilyIO->new;
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $cwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
-#Check user has filled in all the fields in DESC file
-if($famObj->DESC->ID eq "ShortName") {
-  die "Need to change the id in the DESC file (currently 'ShortName')\n";
-} 
-if($famObj->DESC->DE eq "Family description") {
-  die "Need to change the description in the DESC file (currently 'Family description')\n";
-} 
-if($famObj->DESC->AU eq "Who RU") {
-  die "Need to change the author name in the DESC file (currently 'Who RU')\n";
+my $rdb_family = $pfamDB->getSchema->resultset('Mgnifam')->find({ mgnifam_acc => $famObj->DESC->AC });
+unless($rdb_family) {
+  die "Your accession ".$famObj->DESC->AC." is not in the database. If this is a new family, use mfnew.pl\n";
 }
-if($famObj->DESC->SE eq "Where did the seed come from") {
-  die "Need to change the seed source in the DESC file (currently 'Where did the seed come from')\n";
+unless($rdb_family->mgnifam_id eq $famObj->DESC->ID) {
+  die "Your id (".$famObj->DESC->ID.") is different to what is in the database (".$rdb_family->pfama_id.")\n";
 }
 
-#if ( $famObj->DESC->AC ) { 
-#  die "Your family appears to have an accession, but you are using mfnew! Either remove and "
-#    . "let the database automatically assign the accession or use mfci\n";
-#}
 
-unless ( $famObj->DESC->ID ) {
-  die "Need to fill out the ID field in DESC file\n";
+#Check that the current checkout is the latest checkout
+my $last_modified;
+open(LM, "$cwd/$family/.lastModified") or die "Couldn't open fh to .lastModified, $!";
+while(<LM>) {
+  if(/(.+)/) {
+    $last_modified=$1;
+    last;
+  }
 }
+unless($last_modified) {
+  die "Error: Cannot determine when the family was checked out as there is no .lastModified file";
+}
+unless($last_modified eq $rdb_family->updated) {
+  die "The family has been updated in the database [".$rdb_family->updated."] since you checked this family out [$last_modified]. You will need to get a new checkout.\n";
+}
+
 
 #Some qc checks
 my $error=0;
@@ -113,35 +118,35 @@ unless($seed_total == $noSeqsFound) {
   die "Did not find all the sequences from your seed alignment in the sequence database, only $seed_total/$noSeqsFound were found\n";
 }
 
-#Look for overlaps between seed/full and pfamA_reg_seed
+
+#Look for overlaps between seed/full and mgnifam_reg_seed
 print STDERR "Looking for overlaps\n";
 my %regions;
-Bio::Pfam::MPfam::store_regions($famObj, \%regions);
+Bio::Pfam::MGnifam::store_regions($famObj, \%regions);
 
 my %overlaps;
-$pfamDB->getOverlapingSeedPfamRegions(\%regions, \%overlaps);
+Bio::Pfam::MGnifam::getOverlapingSeedPfamRegions($pfamDB, \%regions, \%overlaps);
 if (keys %overlaps) {
   print_overlaps(\%overlaps);
   exit(1);
 }
 
 #Everything looks good, so load family into the db
-#Update pfamA 
-Bio::Pfam::MPfam::update_pfamA($famObj, $pfamDB);
+#Update mgnifam 
+Bio::Pfam::MGnifam::update_mgnifam($famObj, $pfamDB);
 
-#Update pfamA_reg_seed
-Bio::Pfam::MPfam::update_pfamA_reg_seed($famObj, $pfamDB);
 
-#Update pfamA_reg_full
-Bio::Pfam::MPfam::update_pfamA_reg_full($famObj, $pfamDB);
+#Update mgnifam_reg_seed
+Bio::Pfam::MGnifam::update_mgnifam_reg_seed($famObj, $pfamDB);
+
+
+#Update mgnifam_reg_full
+Bio::Pfam::MGnifam::update_mgnifam_reg_full($famObj, $pfamDB);
+
 
 #Upload SEED
-Bio::Pfam::MPfam::upload_seed($famObj, $family, $pfamDB);
+Bio::Pfam::MGnifam::upload_seed($famObj, $family, $pfamDB);
+
 
 #Upload HMM
-Bio::Pfam::MPfam::upload_HMM($famObj, $family, $pfamDB);
-
-
-
-
-
+Bio::Pfam::MGnifam::upload_HMM($famObj, $family, $pfamDB);
