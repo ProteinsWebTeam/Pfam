@@ -1,5 +1,15 @@
-package Bio::Pfam::MPfam;
+package Bio::Pfam::MGnifam;
 
+
+=head2 store_regions
+
+ Title    : store_regions
+ Usage    : store_regions($famObj, \%regions)
+ Function : Store the regions from a SEED and FULL alignment in the regions hash   
+ Returns  : Nothing
+ Args     : Bio::Pfam::Family object and a hash reference
+
+=cut
 
 sub store_regions {
   my ($famObj, $regions) = @_;
@@ -43,6 +53,79 @@ sub store_regions {
   }
 }
 
+
+=head2 getOverlapingSeedPfamRegions
+
+ Title    : getOverlapingSeedPfamRegions (modified from subroutine of the same name in PfamDBManager.pm)
+ Usage    : getOverlapingSeedPfamRegions($pfamDB, \%regions, \%overlaps)
+ Function : Puts any regions that overlap with the mgnifam_reg_seed table into the overlaps hash
+ Returns  : Nothing
+ Args     : Bio::Pfam::PfamLiveDBManager object, hash reference, hash reference 
+
+=cut
+
+sub getOverlapingSeedPfamRegions {
+  my ( $pfamDB, $regionsHash, $overlaps ) = @_;
+
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $sth = $dbh->prepare(
+    "select distinct seq_start, seq_end, a.mgnifam_acc, mgnifam_id from mgnifam a, mgnifam_reg_seed r where r.pfamseq_acc=? and
+    ((? >= r.seq_start and ? <= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
+      and r.mgnifam_acc=a.mgnifam_acc and a.mgnifam_acc != ?"
+  ) or confess $dbh->errstr;
+
+  foreach my $seqAcc ( keys %{$regionsHash} ) {
+    my %seen;
+    foreach my $region ( @{ $regionsHash->{$seqAcc} } ) {
+
+      #Use start, ends for seed, and alignment co-ordinates for full
+      my ($st, $en);
+      if($region->{ali} eq "SEED") {
+        $st=$region->{from};
+        $en=$region->{to};
+      }    
+      else {
+        $st=$region->{ali_from};
+        $en=$region->{ali_to};
+      }    
+      unless($st and $en) {
+        die "$seqAcc ". $region->{ali} . " has no start/end\n";
+      }    
+
+      next if($seen{"$st:$en:".$region->{ali}});
+      $seen{"$st:$en:".$region->{ali} }++; 
+
+      $sth->execute($seqAcc, $st, $st, $en, $en, $st, $en, $region->{family});
+      my $foundOverlap = 0; 
+      foreach my $row ( @{ $sth->fetchall_arrayref } ) {
+        push(
+          @{ $region->{overlap} },
+          {    
+            from      => $row->[0],
+            to        => $row->[1],
+            family    => $row->[2],
+            family_id => $row->[3],
+            ali       => 'SEED'
+          }    
+        );   
+        $foundOverlap++;
+      }    
+      push( @{ $overlaps->{$seqAcc} }, $region ) if ($foundOverlap);
+    }    
+  }
+}
+
+
+=head2 print_overlaps
+
+ Title    : print_overlaps
+ Usage    : print_overlaps(\%overlaps)
+ Function : Print the overlaps contained in the \%overlaps hash to STDERR and an overlaps file. To be used after getOverlapingSeedPfamRegions subroutine
+ Returns  : Nothing
+ Args     : Hash reference containing any overlaps
+
+=cut
+
 sub print_overlaps {
   my ($overlaps) = @_;
 
@@ -83,16 +166,90 @@ sub print_overlaps {
   print STDERR "Your family has $numOverlaps overlaps to the SEEDs of other families.\n";
 }
 
-sub update_pfamA {
-  my ($famObj, $pfamDB) = @_;
-  print STDERR "Updating pfamA\n";
-  $pfamDB->getSchema->resultset('PfamA')->update_or_create(
+
+=head2 add_mgnifam
+
+ Title    : add_mgnifam
+ Usage    : add_mgnifam($famObj, $pfamDB)
+ Function : Adds a new entry to the mgnifam table in database
+ Returns  : Nothing (populates table in the database)
+ Args     : Bio::Pfam::Family object, Bio::Pfam::PfamLiveDBManager object
+
+=cut
+
+sub add_mgnifam {
+  my ($famObj, $pfamDB) = @_; 
+  print STDERR "Updating mgnifam\n";
+
+  my $au_line;
+  foreach my $author (@{$famObj->DESC->AU}) {
+    $au_line .= ", " if($au_line);
+    $au_line .= $author->{name};
+  }
+  
+  $pfamDB->getSchema->resultset('Mgnifam')->update_or_create(
     {
-      pfama_acc       => $famObj->DESC->AC,
-      pfama_id        => $famObj->DESC->ID,
+      mgnifam_acc     => $famObj->DESC->AC,
+      mgnifam_id      => $famObj->DESC->ID,
       previous_id     => $famObj->DESC->PI,
       description     => $famObj->DESC->DE,
+      author          => $au_line,
       deposited_by    => $ENV{'USER'},
+      seed_source     => $famObj->DESC->SE,
+      type            => $famObj->DESC->TP,
+      comment         => $famObj->DESC->CC,
+      sequence_ga     => $famObj->DESC->CUTGA->{seq},
+      domain_ga       => $famObj->DESC->CUTGA->{dom},
+      sequence_tc     => $famObj->DESC->CUTTC->{seq},
+      domain_tc       => $famObj->DESC->CUTTC->{dom},
+      sequence_nc     => $famObj->DESC->CUTNC->{seq},
+      domain_nc       => $famObj->DESC->CUTNC->{dom},
+      buildmethod     => $famObj->DESC->BM,
+      model_length    => $famObj->HMM->length,
+      searchmethod    => $famObj->DESC->SM,
+      msv_lambda      => $famObj->HMM->msvStats->{lambda},
+      msv_mu          => $famObj->HMM->msvStats->{mu},
+      viterbi_lambda  => $famObj->HMM->viterbiStats->{lambda},
+      viterbi_mu      => $famObj->HMM->viterbiStats->{mu},
+      forward_lambda  => $famObj->HMM->forwardStats->{lambda},
+      forward_tau     => $famObj->HMM->forwardStats->{tau},
+      num_seed        => $famObj->SEED->num_sequences,
+      num_full        => $famObj->scores->numRegions,
+      created         => \'NOW()',
+      updated         => \'NOW()'
+    }
+  );
+}
+
+
+=head2 update_mgnifam
+
+ Title    : update_mgnifam
+ Usage    : update_mgnifam($famObj, $pfamDB)
+ Function : Updates mgnifam table in database 
+ Returns  : Nothing (populates table in the database)
+ Args     : Bio::Pfam::Family object, Bio::Pfam::PfamLiveDBManager object
+
+=cut
+
+sub update_mgnifam {
+  my ($famObj, $pfamDB) = @_; 
+  print STDERR "Updating mgnifam\n";
+
+  my $au_line;
+  foreach my $author (@{$famObj->DESC->AU}) {
+    $au_line .= ", " if($au_line);
+    $au_line .= $author->{name};
+  }
+
+
+  $pfamDB->getSchema->resultset('Mgnifam')->update_or_create(
+    {
+      mgnifam_acc     => $famObj->DESC->AC,
+      mgnifam_id      => $famObj->DESC->ID,
+      previous_id     => $famObj->DESC->PI,
+      description     => $famObj->DESC->DE,
+      author          => $au_line,
       seed_source     => $famObj->DESC->SE,
       type            => $famObj->DESC->TP,
       comment         => $famObj->DESC->CC,
@@ -120,15 +277,25 @@ sub update_pfamA {
 }
 
 
-sub update_pfamA_reg_seed {
+=head2 update_mgnifam_reg_seed
+
+ Title    : update_mgnifam_reg_seed
+ Usage    : update_mgnifam_reg_seed($famObj, $pfamDB)
+ Function : Updates mgnifam_reg_seed table in the database
+ Returns  : Nothing
+ Args     : Bio::Pfam::Family object, Bio::Pfam::PfamLiveDBManager object
+
+=cut
+
+sub update_mgnifam_reg_seed {
   my ($famObj, $pfamDB) = @_;
 
-  print STDERR "Updating pfamA_reg_seed\n";
+  print STDERR "Updating mgnifam_reg_seed\n";
   #Delete all the seed regions
-  $pfamDB->getSchema->resultset('PfamARegSeed')->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
+  $pfamDB->getSchema->resultset('MgnifamRegSeed')->search( { mgnifam_acc => $famObj->DESC->AC } )->delete;
 
   $pfamDB->getSchema->storage->dbh->do('SET foreign_key_checks=0');
-  my $pfamA_acc=$famObj->DESC->AC;
+  my $mgnifam_acc=$famObj->DESC->AC;
 
   my @rows;
   foreach my $seq ( $famObj->SEED->each_seq ) {
@@ -136,25 +303,35 @@ sub update_pfamA_reg_seed {
       @rows,
       {    
         pfamseq_acc => $seq->id,
-        pfama_acc   => $pfamA_acc,
+        mgnifam_acc   => $mgnifam_acc,
         seq_start    => $seq->start,
         seq_end      => $seq->end
       }    
     );   
   }
 
-  $pfamDB->getSchema->resultset('PfamARegSeed')->populate( \@rows );
+  $pfamDB->getSchema->resultset('MgnifamRegSeed')->populate( \@rows );
   $pfamDB->getSchema->storage->dbh->do('SET foreign_key_checks=1');
 }
 
 
-sub update_pfamA_reg_full {
+=head2 update_mgnifam_reg_full
+
+ Title    : update_mgnifam_reg_full
+ Usage    : update_mgnifam_reg_full($famObj, $pfamDB)
+ Function : Updates mgnifam_reg_full table in the database
+ Returns  : Nothing
+ Args     : Bio::Pfam::Family object, Bio::Pfam::PfamLiveDBManager object 
+
+=cut
+
+sub update_mgnifam_reg_full {
   my ($famObj, $pfamDB) = @_; 
 
-  print STDERR "Updating pfamA_reg_full\n";
+  print STDERR "Updating mgnifam_reg_full\n";
 
   #Delete old regions
-  $pfamDB->getSchema->resultset('PfamARegFullSignificant')->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
+  $pfamDB->getSchema->resultset('MgnifamRegFull')->search( { mgnifam_acc => $famObj->DESC->AC } )->delete;
 
   $pfamDB->getSchema->storage->dbh->do('SET foreign_key_checks=0');
 
@@ -171,7 +348,7 @@ sub update_pfamA_reg_full {
           push(
             @significant,
             {    
-              pfama_acc   => $famObj->DESC->AC,
+              mgnifam_acc   => $famObj->DESC->AC,
               pfamseq_acc => $seq->name,
               seq_start    => $u->envFrom,
               seq_end      => $u->envTo,
@@ -190,17 +367,25 @@ sub update_pfamA_reg_full {
       }
     }
     if ( scalar(@significant) > 1000 ) {
-      $pfamDB->getSchema->resultset("PfamARegFullSignificant")->populate( \@significant );
+      $pfamDB->getSchema->resultset("MgnifamRegFull")->populate( \@significant );
       @significant = ();
     }
   }
 
-  $pfamDB->getSchema->resultset("PfamARegFullSignificant")->populate( \@significant );
+  $pfamDB->getSchema->resultset("MgnifamRegFull")->populate( \@significant );
   $pfamDB->getSchema->storage->dbh->do('SET foreign_key_checks=1');
 }
 
 
+=head2 upload_HMM
 
+ Title    : upload_HMM
+ Usage    : upload_HMM($famObj, $family_dir, $pfamDB)
+ Function : Updates mgnifam_HMM table in database   
+ Returns  : Nothing
+ Args     : Bio::Pfam::Family object, family dir, Bio::Pfam::PfamLiveDBManager object 
+
+=cut
 
 sub upload_HMM {
   my ($famObj, $family, $pfamDB) = @_;
@@ -233,14 +418,25 @@ sub upload_HMM {
   }
   close HMM;
 
-  $pfamDB->getSchema->resultset('PfamAHmm')->update_or_create(
+  $pfamDB->getSchema->resultset('MgnifamHmm')->update_or_create(
     {
-      pfama_acc  => $famObj->DESC->AC,
+      mgnifam_acc  => $famObj->DESC->AC,
       hmm        => $hmm_string
     }
   );
 
 }
+
+
+=head2 upload_seed
+
+ Title    : upload_seed
+ Usage    : upload_seed($famObj, $family_dir, $pfamDB)
+ Function : Updates mgnify_reg_seed table in database   
+ Returns  : Nothing
+ Args     : Bio::Pfam::Family object, family dir, Bio::Pfam::PfamLiveDBManager object
+
+=cut
 
 sub upload_seed {
   my ($famObj, $family, $pfamDB) = @_; 
@@ -257,9 +453,9 @@ sub upload_seed {
   }
   close SEED;
 
-  $pfamDB->getSchema->resultset('PfamASeed')->update_or_create(
+  $pfamDB->getSchema->resultset('MgnifamSeed')->update_or_create(
     {   
-      pfama_acc  => $famObj->DESC->AC,
+      mgnifam_acc  => $famObj->DESC->AC,
       seed       => $seed_string
     }   
   );  
