@@ -48,6 +48,11 @@ my $familyIO = Bio::Pfam::FamilyIO->new;
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $cwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
+
+#A few quick checks
+unless($famObj->DESC->AC) {
+  die "Your DESC file does not have an accession. If this is a new family, use mfnew.pl\n";
+}
 my $rdb_family = $pfamDB->getSchema->resultset('Mgnifam')->find({ mgnifam_acc => $famObj->DESC->AC });
 unless($rdb_family) {
   die "Your accession ".$famObj->DESC->AC." is not in the database. If this is a new family, use mfnew.pl\n";
@@ -130,6 +135,7 @@ if (keys %overlaps) {
   print_overlaps(\%overlaps);
   exit(1);
 }
+
 
 #Everything looks good, so load family into the db
 #Update mgnifam 
