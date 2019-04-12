@@ -69,8 +69,10 @@ if($famObj->DESC->ID eq "ShortName") {
 if($famObj->DESC->DE eq "Protein of unknown function (MGDUF)") {
   die "Need to add the MGDUF number to the DE line\n";
 } 
-if($famObj->DESC->AU eq "Who RU") {
-  die "Need to change the author name in the DESC file (currently 'Who RU')\n";
+foreach my $author (@{$famObj->DESC->AU}) {
+  if($author->{name} eq "Who RU")  {
+    die "Need to change the author name in the DESC file (currently 'Who RU')\n";
+  }
 }
 if($famObj->DESC->SE eq "Where did the seed come from") {
   die "Need to change the seed source in the DESC file (currently 'Where did the seed come from')\n";
