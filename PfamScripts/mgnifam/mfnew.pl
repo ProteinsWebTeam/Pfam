@@ -169,7 +169,7 @@ sub add_accession_to_desc {
   my @dead_fams = $pfamDB->getSchema->resultset("DeadMgnifam")->search();
   my %acc_numbers;
   foreach my $mgnifam (@fams, @dead_fams){
-    if($mgnifam->pfama_acc =~ /^MGYF(\d+)$/){
+    if($mgnifam->mgnifam_acc =~ /^MGYF(\d+)$/){
       $acc_numbers{$1}=1;
     }
   }
