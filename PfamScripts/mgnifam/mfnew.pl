@@ -56,7 +56,7 @@ if($famObj->DESC->AC) {
 
 
 #Check the id isn't already taken
-$rdb_family = $pfamDB->getSchema->resultset('Mgnifam')->find({ mgnifam_id => $famObj->DESC->ID });
+my $rdb_family = $pfamDB->getSchema->resultset('Mgnifam')->find({ mgnifam_id => $famObj->DESC->ID });
 if($rdb_family) {
   die "There is already a family in the database called ".$famObj->DESC->ID."\n";
 }
