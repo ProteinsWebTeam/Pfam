@@ -66,8 +66,8 @@ if($rdb_family) {
 if($famObj->DESC->ID eq "ShortName") {
   die "Need to change the id in the DESC file (currently 'ShortName')\n";
 } 
-if($famObj->DESC->DE eq "Family description") {
-  die "Need to change the description in the DESC file (currently 'Family description')\n";
+if($famObj->DESC->DE eq "Protein of unknown function (MGDUF)") {
+  die "Need to add the MGDUF number to the DE line\n";
 } 
 if($famObj->DESC->AU eq "Who RU") {
   die "Need to change the author name in the DESC file (currently 'Who RU')\n";
