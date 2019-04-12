@@ -17,12 +17,15 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 my $cluster_file = $config->{mgnify}->{clusterseq};
 my $mgnify_fasta = $config->{mgnify}->{location};
 
+
 unless($cluster_name and $cluster_name =~ /^MGYP\d{12}$/) {
   print STDERR "Need to specify a valid cluster name on the command line\n";
   print STDERR "E.g. $0 -cluster MGYP000001829837\n";
   exit;
 }
 
+
+#Get cluster members
 print STDERR "Getting $cluster_name cluster members\n";
 my $cluster_seqs;
 my $total_seqs=0;
@@ -45,6 +48,8 @@ else {
   print STDERR "$cluster_name contains $total_seqs sequences\n";
 }
 
+
+#Get fasta sequences for cluster members
 print STDERR "Retrieving sequences\n";
 my $fasta_file = "seqs.fa";
 open(F, ">$fasta_file") or die "Couldn't open fh to $fasta_file, $!"; 
@@ -57,11 +62,12 @@ unless($noSeqsFound == $total_seqs) {
 print STDERR "Running create_alignment.pl\n";
 system("create_alignment.pl -fasta $fasta_file -mu > SEED") and die "Couldn't run 'create_alignment.pl -fasta $fasta_file -mu > SEED', $!";
 
+
 #Create a DESC file
 my $io = Bio::Pfam::FamilyIO->new;
 my %desc = ( 
   ID    => 'ShortName',
-  DE    => 'Family description',
+  DE    => 'Protein of unknown function (MGDUF)',
   AU    => [ { name => 'Who RU' } ],
   SE    => "$cluster_name (release ".$config->{mgnify}->{release}.")",
   CUTGA => { seq => '27.00', dom => '27.00' },
