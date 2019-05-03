@@ -69,7 +69,7 @@ sub getOverlapingSeedPfamRegions {
 
   my $dbh = $pfamDB->getSchema->storage->dbh;
   my $sth = $dbh->prepare(
-    "select distinct seq_start, seq_end, a.mgnifam_acc, mgnifam_id from mgnifam a, mgnifam_reg_seed r where r.pfamseq_acc=? and
+    "select distinct seq_start, seq_end, a.mgnifam_acc, mgnifam_id from mgnifam a, mgnifam_reg_seed r where r.mgnifamseq_acc=? and
     ((? >= r.seq_start and ? <= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
       and r.mgnifam_acc=a.mgnifam_acc and a.mgnifam_acc != ?"
   ) or confess $dbh->errstr;
@@ -302,7 +302,7 @@ sub update_mgnifam_reg_seed {
     push(
       @rows,
       {    
-        pfamseq_acc => $seq->id,
+        mgnifamseq_acc => $seq->id,
         mgnifam_acc   => $mgnifam_acc,
         seq_start    => $seq->start,
         seq_end      => $seq->end
@@ -349,7 +349,7 @@ sub update_mgnifam_reg_full {
             @significant,
             {    
               mgnifam_acc   => $famObj->DESC->AC,
-              pfamseq_acc => $seq->name,
+              mgnifamseq_acc => $seq->name,
               seq_start    => $u->envFrom,
               seq_end      => $u->envTo,
               ali_start    => $u->seqFrom,
