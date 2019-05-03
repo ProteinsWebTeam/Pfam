@@ -30,7 +30,7 @@ __PACKAGE__->table("mgnifam_reg_seed");
   is_nullable: 0
   size: 9
 
-=head2 pfamseq_acc
+=head2 mgnifamseq_acc
 
   data_type: 'varchar'
   is_nullable: 0
@@ -52,7 +52,7 @@ __PACKAGE__->table("mgnifam_reg_seed");
 __PACKAGE__->add_columns(
   "mgnifam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 9 },
-  "pfamseq_acc",
+  "mgnifamseq_acc",
   { data_type => "varchar", is_nullable => 0, size => 16 },
   "seq_start",
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
@@ -78,8 +78,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-11 09:45:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:raT27SYhos0izcwkujyesA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-05-03 13:41:53
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wtURrfnexa59q0EXLlANHg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
