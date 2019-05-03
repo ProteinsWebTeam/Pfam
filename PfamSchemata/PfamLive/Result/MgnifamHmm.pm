@@ -28,7 +28,7 @@ __PACKAGE__->table("mgnifam_HMM");
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
-  size: 8
+  size: 9
 
 =head2 hmm
 
@@ -39,7 +39,7 @@ __PACKAGE__->table("mgnifam_HMM");
 
 __PACKAGE__->add_columns(
   "mgnifam_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 8 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 9 },
   "hmm",
   { data_type => "mediumblob", is_nullable => 1 },
 );
@@ -62,8 +62,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-11 09:45:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Dfl7KRnQu/25WfZhl5U9XA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-05-03 13:41:53
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NVvqx3LMOngI0s9TGhRozw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
