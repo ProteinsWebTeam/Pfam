@@ -86,7 +86,7 @@ unless(Bio::Pfam::PfamQC::noFragsInSeed($family, $famObj)) {
 }
 unless(Bio::Pfam::PfamQC::nonRaggedSeed($family, $famObj)) { 
   $error=1;
-  print STDERR "$0: SEED is not ragged\n";
+  print STDERR "$0: SEED is ragged\n";
 }
 unless(Bio::Pfam::PfamQC::nameFormatIsOK($famObj->DESC->ID)) {
   $error = 1; 
