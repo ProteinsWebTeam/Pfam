@@ -59,7 +59,7 @@ foreach my $mgnifam (@mgnifams) {
   print SEED "DE   ".$mgnifam->description."\n";
   my @authors = split(/, /, $mgnifam->author);
   foreach my $author (@authors) { 
-    print SEED "AU   $author\n";
+    print SEED "AU   $author".";\n";
   }    
   print SEED "SE   ".$mgnifam->seed_source."\n";
   print SEED "GA   ".$mgnifam->sequence_ga." ".$mgnifam->domain_ga.";\n";
