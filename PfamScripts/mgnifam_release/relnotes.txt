@@ -1,0 +1,53 @@
+
+MGNIFAM: A database of metagenomic protein sequence alignments and profile-HMMs 
+-------------------------------------------------------------------------------
+
+1. INTRODUCTION
+
+   MGnifam is a collection of protein family alignments which were
+   constructed semi-automatically using hidden Markov models (HMMs).
+   Sequences that are not covered by MGnifam were previously clustered
+   and aligned automatically, and released as MGnifam-B.  MGnifam-B has 
+   been discontinued with effect from release 28.0. MGnifam families 
+   have permanent accession numbers and contain functional annotation
+   and cross-references to other databases, while MGnifam-B families were
+   re-generated at each release and were unannotated.
+
+
+2. LOCATION
+
+   MGnifam is available on the web at:
+
+
+3. CONSTRUCTION OF MGNIFAM
+
+   MGnifam is based on protein sequences from the MGnify resource
+   
+   MGnify can be accessed at:
+
+   https://www.ebi.ac.uk/metagenomics/
+
+
+4. DESCRIPTION OF RELEASE FILES
+
+   README                  - a brief description on how to use the MGnifam HMM library
+   userman.txt             - A fuller description of MGnifam fields.
+   MGnifam-A.hmm           - MGnifam HMMs in an HMM library searchable with the hmmscan program.
+   MGnifam-A.hmm.dat       - Data associated with each HMM, this file is required by mgnifam_scan.pl
+
+5. DESCRIPTION OF FIELDS
+
+   Compulsory fields:
+   ------------------
+
+   AC   Accession number:           Accession number in form PFxxxxx.version.
+   ID   Identification:             Family identifier.
+   DE   Definition:                 Short description of family.
+   AU   Author:                     Authors of the entry.
+   SE   Source of seed:             The source suggesting the seed members belong to one family.
+   GA   Gathering method:           Search threshold to build the full alignment.
+   TC   Trusted Cutoff:             Lowest sequence score and domain score of match in the full alignment.
+   NC   Noise Cutoff:               Highest sequence score and domain score of match not in full alignment.
+   TP   Type:                       Type of family -- presently Family, Domain, Motif, Repeat, Coiled-coil or Disordered.
+   SQ   Sequence:                   Number of sequences in alignment.
+   //                               End of alignment.

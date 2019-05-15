@@ -1,0 +1,46 @@
+MGnifam
+=======
+
+MGnifam is a collection of metagenomic profile-HMMs which 
+are based on protein sequences from the MGnify resource [1][2].
+The profile-HMMs are built using the HMMER3 software [3].
+
+
+Release   # Entries
+   1.0            6
+
+MGnifam is freely available under the Creative commons Zero (CC0) licence.
+http://creativecommons.org/publicdomain/zero/1.0/
+
+
+How to use MGnifam
+==================
+
+The protein alignments that the MGnifam profile-HMMs are built from can be 
+found in the file MGnifam.seed. The library of HMMs that were created from 
+these alignments can be found in the file MGnifam.hmm.
+
+To use the MGnifam HMM library you must first index files with the following 
+command:
+
+  hmmpress MGnifam.hmm
+
+To search MGnifam against a set of sequences you run the following command:
+
+  hmmsearch --cut_ga MGnifam.hmm seqs.fasta
+
+
+References
+==========
+
+1. EBI Metagenomics in 2017: enriching the analysis of microbial communities, 
+   from sequence reads to assemblies. Nucleic Acids Research (2017) 
+   doi: 10.1093/nar/gkx967
+   Alex L. Mitchell, Maxim Scheremetjew, Hubert Denise, Simon Potter, 
+   Aleksandra Tarkowska, Matloob Qureshi, Gustavo A. Salazar, Sebastien Pesseat, 
+   Miguel A. Boland, Fiona M. I. Hunter, Petra ten Hoopen, Blaise Alako, 
+   Clara Amid, Darren J. Wilkinson, Thomas P. Curtis, Guy Cochrane, Robert D. Finn.
+
+2. https://www.ebi.ac.uk/metagenomics/
+
+3. http://hmmer.org/

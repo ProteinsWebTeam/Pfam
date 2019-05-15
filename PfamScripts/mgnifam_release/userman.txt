@@ -1,0 +1,200 @@
+
+           _/_/_/_/      _/_/_/_/_/     _/_/_/       _/      _/
+          _/      _/    _/           _/      _/     _/_/  _/_/ 
+         _/      _/    _/           _/      _/     _/  _/  _/  
+        _/_/_/_/      _/_/_/_/     _/_/_/_/_/     _/      _/   
+       _/            _/           _/      _/     _/      _/    
+      _/            _/           _/      _/     _/      _/     
+     _/            _/           _/      _/     _/      _/      
+
+
+
+
+
+  This document currently includes a more detailed description of the
+  fields used in the MGnifam database. MGnifam entries are composed of 
+  two sections, shown in the figure below.
+
+                 __________________________________
+                 |                                |
+                 |        Header Section          |
+                 |                                |
+                 |________________________________|
+                 |                                |
+                 |       Alignment Section        |
+                 |                                |
+                 |________________________________|
+
+
+
+
+  Header Section:
+  ---------------
+
+  The header section mainly contains compulsory fields.  These include
+  MGnifam specific information such as accession numbers and identifiers.
+  The only non-compulsory field in the header section is the PI field.  
+  All the fields in this section are described below.
+
+  AC   Accession number:          MGYPxxxxx
+
+       The MGnifam accession numbers MGYPxxxxx are the stable identifiers 
+       for each MGnifam family.
+ 
+  ID   Identification:            15 characters or less
+
+       This field is designed to be a meaningful identifier for the
+       family.
+
+       Capitalisation of the first letter will be
+       preferred. Underscores are used in place of space, and hyphens
+       are only used to mean hyphens.
+
+  DE   Definition:                80 characters or less
+
+       This must be a one line description of the MGnifam family.
+
+  AU   Author:
+
+       Author(s) of the entry.
+
+       The format for this record is shown below. AU lines contain a 
+       single author followed by a semi-colon.
+
+       An example of the AU lines from a single entry:
+
+       AU   Bateman A;
+       AU   Chothia C;
+
+  BM   HMM building command lines.  
+
+       See the HMMER3 user's manual for full instructions on building
+       HMMs. Also see URL:
+
+       http://hmmer.org/
+
+       An example of the BM lines from a single entry
+       
+       BM   hmmbuild  -o /dev/null HMM SEED
+ 
+  SM   HMM searching command line
+
+       See the HMMER3 user's manual for full instructions on building
+       HMMs. Also see URL:
+
+       http://hmmer.org/
+     
+       An example of the SM line for a family:
+
+       SM   hmmsearch -Z 1024303329 -E 1000 --cpu 16 HMM mgnify
+
+  SE   Source of seed:    
+
+       The source suggesting seed members belong to a family.
+
+  GA   Gathering threshold:   
+
+       Search threshold to build the full alignment.
+
+       GA lines are the thresholds in bits used in the hmmsearch
+       command line.  An example GA line is shown below:
+
+       GA   25.00 15.00;
+
+       The order of the thresholds is sequence, domain
+
+       The corresponding hmmsearch command line for the HMM
+       would be:
+
+       hmmsearch -T 25 --domT 15 HMM DB
+
+       The -T option specifies the whole sequence score in bits, and
+       the --domT option specifies the per-domain threshold in bits.
+
+  NC   Noise cutoff:
+
+       This field refers to the bit scores of the highest scoring
+       match not in the full alignment.
+
+       An example NC line is shown below
+
+       NC   19.50 18.10;
+
+       As with the GA line, this field contains two numbers - the
+       first number in the set refers to the highest whole sequence
+       score in bits of a match not in the full alignment, and the
+       second number specifies the highest per-domain score in bits of
+       a match not in the full alignment.  These two scores may not
+       refer to the same sequence.
+
+  TC   Trusted cutoff:
+
+       This field refers to the bit scores of the lowest scoring match
+       in the full alignment.
+
+       An example TC line is shown below
+
+       TC   23.00 16.10;
+
+       As with the GA line, this field contains two numbers - the
+       first set refers to the lowest whole sequence score in bits of
+       a match in the full alignment, and the second number specifies
+       the lowest per-domain score in bits of a match in the full
+       alignment.  These two scores may not refer to the same
+       sequence.
+
+  TP   Type field:                 Single word
+
+       The type field is a compulsory field describing the type of
+       family.  At present it can be one of:
+
+       TP   Family
+       TP   Domain
+       TP   Repeat
+       TP   Motif
+       TP   Coiled-coil
+       TP   Disordered
+
+  PI   Previous IDs:               Semi-colon list
+
+      The most recent names are stored on the left.  This field is
+      non-compulsory.
+
+  SQ   Sequence:               Number of sequences, start of alignment.
+
+  //                           End of alignment
+
+
+
+
+
+  The alignment is in Stockholm format.  This includes mark-ups of four
+  types:
+
+     #=GF <featurename> <Generic per-File annotation, free text>
+     #=GC <featurename> <Generic per-Column annotation, exactly 1 char per column>
+     #=GS <seqname> <featurename> <Generic per-Sequence annotation, free text>
+     #=GR <seqname> <featurename> <Generic per-Sequence AND per-Column mark up, exactly 1 char per column>
+
+  Recommended placements:
+
+     #=GF Above the alignment
+     #=GC Below the alignment
+     #=GS Above the alignment or just below the corresponding sequence
+     #=GR Just below the corresponding sequence
+
+  The alignment formats have the following size limits:
+
+     <aligned sequence>: max 4096 characters.
+     <seqname>: max 50 characters.
+     <featurename> max 50 characters.
+
+  These details can also be found on the web, see URL:
+
+     http://sonnhammer.sbc.su.se/Stockholm.html
+
+  Structural mark ups are provided by MGnifam.  For each sequence of
+  known structure we provide #=GR lines with featurenames SS
+  for secondary structure. For the whole family we provide
+  consensus #=GC lines with feature names SS_cons.
+
