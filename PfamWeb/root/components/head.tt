@@ -61,7 +61,6 @@ IF refreshUri != "";
 <!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/history/history-min.js"></script> -->
 <!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script> -->
 
-<script type='text/javascript' src='[% staticUri %]/javascripts/third-party/treeview-min.js'></script>
 <script type='text/javascript' src='[% staticUri %]/javascripts/third-party/yahoo-dom-event.js'></script>
 <script type='text/javascript' src='[% staticUri %]/javascripts/third-party/element-min.js'></script>
 <script type='text/javascript' src='[% staticUri %]/javascripts/third-party/tabview-min.js'></script>
