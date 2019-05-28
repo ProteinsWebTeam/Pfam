@@ -192,14 +192,14 @@ PROCESS components/links.tt; %]
                 <h1 class="firstHeading">
                   [% article.title.replace( "_", " " ) | html %]
                   <a class="btn go"
-                     href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% article.title | uri %]">
+                     href="http://en.wikipedia.org/w/index.php?veaction=edit&amp;title=[% article.title | uri %]">
                     <span class="btn-inner">Edit Wikipedia article</span></a>
                 </h1>
                 [% article.wikitext.text %]
               </div>
               <p id="wpLicense">
                 This page is based on a
-                <a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">
+                <a class="ext" href="https://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">
                   Wikipedia article</a>. The text is available under the
                 <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
                   Creative Commons Attribution/Share-Alike License</a>.
