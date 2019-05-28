@@ -43,6 +43,9 @@
         document.head.appendChild(newDataProtectionNotificationBanner);
         newDataProtectionNotificationBanner.onload = function() {
             ebiFrameworkRunDataProtectionBanner('compliance'); // invoke the banner
+            var badElement = document.querySelector('div#data-protection-banner div.row');
+            badElement.style.marginLeft = "0px";
+            badElement.style.marginRight = "30px";
         };
     </script>
 </div>
