@@ -46,23 +46,32 @@ IF refreshUri != "";
 <!-- prototype / scriptaculous -->
 <!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js"></script> -->
 <!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.0/prototype.js"></script> -->
-<script type="text/javascript" src="[% staticUri %]/javascripts/third-party/prototype.js"></script>
 <!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js"></script> -->
+
+<script type="text/javascript" src="[% staticUri %]/javascripts/third-party/prototype.js"></script>
 <script type="text/javascript" src="[% staticUri %]/javascripts/third-party/scriptaculous.js"></script>
 
 <!-- YUI -->
-<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
-<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/element/element-min.js"></script>
+<!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script> -->
+<!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/element/element-min.js"></script> -->
+<!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/tabview/tabview-min.js"></script> -->
+<!-- <link rel="stylesheet" type="text/css" href="//yui-s.yahooapis.com/2.8.0r4/build/tabview/assets/skins/sam/tabview.css"/> -->
+<!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/treeview/treeview-min.js"></script> -->
+<!-- <link rel="stylesheet" type="text/css" href="//yui-s.yahooapis.com/2.8.0r4/build/treeview/assets/skins/sam/treeview.css" /> -->
+<!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/history/history-min.js"></script> -->
+<!-- <script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script> -->
 
-<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/tabview/tabview-min.js"></script>
-<link rel="stylesheet" type="text/css" href="//yui-s.yahooapis.com/2.8.0r4/build/tabview/assets/skins/sam/tabview.css"/>
+<script type='text/javascript' src='[% staticUri %]/javascripts/third-party/yahoo-dom-event.js'></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/third-party/element-min.js'></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/third-party/tabview-min.js'></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/third-party/treeview-min.js'></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/third-party/history-min.js'></script>
+<script type='text/javascript' src='[% staticUri %]/javascripts/third-party/utilities.js'></script>
 
-<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/treeview/treeview-min.js"></script>
-<link rel="stylesheet" type="text/css" href="//yui-s.yahooapis.com/2.8.0r4/build/treeview/assets/skins/sam/treeview.css" />
+<link rel='stylesheet' href='[% staticUri %]/css/prototip.css' type='text/css' />
+<link rel='stylesheet' href='[% staticUri %]/css/tabview.css' type='text/css' />
+<link rel='stylesheet' href='[% staticUri %]/css/treeview.css' type='text/css' />
 
-<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
-
-<script type="text/javascript" src="//yui-s.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script>
 
 <!-- prototip -->
 <script type='text/javascript' src='[% sharedUri %]/javascripts/prototip.js'></script>
