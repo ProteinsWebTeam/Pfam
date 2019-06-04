@@ -79,7 +79,7 @@ sub getPfamData {
     $pfamA->{ $row->pfama_acc }->{pfamA_acc}    = $row->pfama_acc;
     $pfamA->{ $row->pfama_acc }->{pfamA_id}     = $row->pfama_id;
     $pfamA->{ $row->pfama_acc }->{model_length} = $row->model_length;
-    $pfamA->{ $row->pfama_acc }->{type}         = $row->type;
+    $pfamA->{ $row->pfama_acc }->{type}         = $row->type->type;
   }
 
   $self->pfamA($pfamA);
