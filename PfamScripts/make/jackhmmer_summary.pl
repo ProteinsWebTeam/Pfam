@@ -5,6 +5,7 @@ use warnings;
 use Getopt::Long;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
+use Bio::Pfam::CompositionalBias;
 use Log::Log4perl qw(:easy);
 
 
@@ -133,9 +134,25 @@ foreach my $dir (@dirs) {
   $frac_gain = sprintf("%.2f", $frac_gain);
 
 
+  my $prop_bias;
+  if(-s "$full_dir/prop_bias") {
+    open(BIAS, "$full_dir/prop_bias") or die "Couldn't open fh to $full_dir/prop_bias, $!";
+    while(<BIAS>) {
+      if(/^(\S+)/) {
+        $prop_bias=$1;
+        last;
+      }
+    }
+    close BIAS;
+  }
+  else {
+    $prop_bias = Bio::Pfam::CompositionalBias::calculate_compositional_bias("$full_dir/$aln");
+  }
+  $prop_bias= sprintf("%.1f", $prop_bias);
+  
   open(OUT, ">$full_dir/summary.txt") or $logger->logdie("Couldn't open fh to $full_dir/summary.txt, $!");
 
-  print OUT sprintf ("%-10s totalseq:%7s  overlaps:%7s  Gain: %7s  Frac gained: %4s  ", $dir, $align, $overlap, $gain, $frac_gain);
+  print OUT sprintf ("%-10s totalseq:%7s  overlaps:%7s  Gain: %7s  Frac gained: %4s  Bias: %4s  ", $dir, $align, $overlap, $gain, $frac_gain, $prop_bias);
   
   if($clan_fam) {
     print OUT "$clan_fam\n";
@@ -155,6 +172,7 @@ print ALL "#totalseq=number of sequences (not domains) in the align file\n";
 print ALL "#overlaps=number of sequences (not domains) in the overlaps file\n";
 print ALL "#gain=total_seq-overlaps\n";
 print ALL "#frac gained=gain/totalseq\n";
+print ALL "#bias=proportion of residues in align file predicted to be disordered or low complexity\n";
 print ALL "#Overlapping clans and families are given at the end of the line (if any)\n";
 close ALL;
 
