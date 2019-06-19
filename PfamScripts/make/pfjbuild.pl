@@ -18,6 +18,7 @@ use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::SeqFetch;
 use Bio::Pfam::PfamQC;
+use Bio::Pfam::CompositionalBias;
 
 main(@ARGV) unless caller();
 
@@ -251,6 +252,11 @@ sub main {
       system("gzip JOUT") and die "Failed to run gzip on JOUT, $!";
     }
     unlink("JOUT.final");
+
+    my $prop_bias = Bio::Pfam::CompositionalBias::calculate_compositional_bias("align");
+    open(BIAS, ">prop_bias") or die "Couldn't open fh to prop_bias, $!";
+    print BIAS "$prop_bias\n";
+    close BIAS;
 
 
   }
