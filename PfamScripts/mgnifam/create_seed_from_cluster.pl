@@ -3,11 +3,13 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use File::Copy;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::SeqFetch;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::Family::DESC;
+use Bio::Pfam::CompositionalBias;
 
 my $cluster_name;
 GetOptions( "cluster=s" => \$cluster_name);
@@ -34,7 +36,7 @@ while(<CLUSTER>) {
   if(/^(\S+)\s+(\S+)/) {
     my ($name, $seq) = ($1, $2);
     if($name eq $cluster_name) {
-      push( @{ $cluster_seqs->{$seq} }, { whole => 1 } );
+      push( @{ $cluster_seqs->{$seq} }, { whole => 1 } ) if($seq =~ /^MGYP/);
       $total_seqs++;
     }
   }
@@ -58,6 +60,23 @@ my $noSeqsFound = &Bio::Pfam::SeqFetch::fetchSeqs($cluster_seqs, $mgnify_fasta, 
 unless($noSeqsFound == $total_seqs) {
   die "Did not find all the sequences you requested: Requested $total_seqs; Got $noSeqsFound\n";
 }
+
+#Calculate percent compositional bias in fasta
+print STDERR "Calculating percent of residues that are low complexity or disordered\n";
+my $prop_bias = Bio::Pfam::CompositionalBias::calculate_compositional_bias($fasta_file);
+open(BIAS, ">prop_bias") or die "Couldn't open fh to prop_bias, $!";
+print BIAS "$prop_bias\n";
+close BIAS;
+
+if($prop_bias > 20) {
+  chdir("../") or die "Couldn't chdir up dir, $!";
+  unless(-e "BIAS") {
+    mkdir("BIAS", 0775) or die "Couldn't mkdir BIAS, $!";
+  }
+  rename($cluster_name, "BIAS/$cluster_name") or die "Couldn't rename $cluster_name to BIAS, $!";
+  exit;
+}
+
 
 print STDERR "Running create_alignment.pl\n";
 system("create_alignment.pl -fasta $fasta_file -mu > SEED") and die "Couldn't run 'create_alignment.pl -fasta $fasta_file -mu > SEED', $!";
