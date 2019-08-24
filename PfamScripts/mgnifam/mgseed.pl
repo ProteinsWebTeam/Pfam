@@ -23,5 +23,6 @@ my $memory_gb = 4;
 my $memory_mb = $memory_gb*1000;
 
 #Submit job to farm
-system("bsub -q production-rh7 -o seed.log -J$cluster_name -M $memory_mb -R \"rusage[mem=$memory_mb]\" create_seed_from_cluster.pl -cluster $cluster_name");
+my $group = '/mgnifam';
+system("bsub -q production-rh7 -g $group -o seed.log -J$cluster_name -M $memory_mb -R \"rusage[mem=$memory_mb]\" create_seed_from_cluster.pl -cluster $cluster_name");
 chdir("../") or die "Couldn't changde dir up from $cluster_name, $!";
