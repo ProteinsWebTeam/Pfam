@@ -43,8 +43,12 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 
 #Copy over AntiFam hmms and relnotes
 my $antifamdir = $config->antifamLoc;
-copy ("$antifamdir/AntiFam.hmm","AntiFam.hmm") or $logger->logdie("Could not copy AntiFam.hmm [$!]\n");
-copy ("$antifamdir/relnotes","relnotes") or $logger->logdie("Could not copy relnotes [$!]\n");
+unless(-s "Antifam.hmm") {
+  copy ("$antifamdir/AntiFam.hmm","AntiFam.hmm") or $logger->logdie("Could not copy AntiFam.hmm [$!]\n");
+}
+unless(-s "relnotes") {
+  copy ("$antifamdir/relnotes","relnotes") or $logger->logdie("Could not copy relnotes [$!]\n");
+}
 
 #Now run pfamseq against antifam.....
 if ( -e 'matches' ) {
@@ -59,7 +63,6 @@ else {
   $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -M 2000000 -o runantifam.log -Jantifam") or $logger->logdie("Couldn't open file handle [$!]\n");
   $fh->print( "hmmsearch --cpu 8 --noali --cut_ga --tblout matches AntiFam.hmm uniprot.fasta\n"); 
   $fh->close;
-#print STDERR "Exiting here\n"; exit;
   chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd [$!]");
 #have jobs finished?
   if (-e "$status_dir/finishedantifam"){
