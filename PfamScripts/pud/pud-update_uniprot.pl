@@ -258,7 +258,7 @@ else {
         $complete = 0;
 
       }
-      print UNIPROT "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t$reference\t$complete\t\\N\t0\t0\t0\t0\n";
+      print UNIPROT "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t$record{'NCBI_TAX'}\t$reference\t$complete\t\\N\t0\t0\t0\t0\n";
       print FASTA ">$record{'AC'}.$record{'SEQ_VER'} $record{'ID'} $description\n$record{'SEQ'}\n";
       
       #count for debugging
@@ -299,15 +299,15 @@ if ( -e "$status_dir/uploaded_uniprot" ) {
 else {
 
   #Delete old uniprot data
-  $logger->info("Deleting old data from uniprot table");
-  my $sth_delete = $dbh->prepare("delete from uniprot");
-  $sth_delete->execute() or $logger->logdie("Failed to delete old data from uniprot ".$sth_delete->errstr."\n");
+#  $logger->info("Deleting old data from uniprot table");
+#  my $sth_delete = $dbh->prepare("delete from uniprot");
+#  $sth_delete->execute() or $logger->logdie("Failed to delete old data from uniprot ".$sth_delete->errstr."\n");
 
 
   $logger->info("Uploading $pfamseq_dir/uniprot.dat to database\n");
-  my $sth = $dbh->prepare('INSERT into uniprot VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-  _loadTable( $dbh, "$pfamseq_dir/uniprot.dat", $sth, 22 );  
-
+  my $sth = $dbh->prepare('INSERT into uniprot (uniprot_acc, uniprot_id, seq_version, crc64, md5, description, evidence, length, species, taxonomy, is_fragment, sequence, created, ncbi_taxid, ref_proteome, complete_proteome, treefam_acc, rp15, rp35, rp55, rp75) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+  _loadTable( $dbh, "$pfamseq_dir/uniprot.dat", $sth, 21 );  
+  
   system("touch $status_dir/uploaded_uniprot")
     and $logger->logdie("Couldn't touch $status_dir/uploaded_uniprot:[$!]\n");
 }
@@ -407,7 +407,7 @@ sub _loadTable {
       $values[$i] = undef if ( !defined($values[$i]) or $values[$i] eq '\N');
     }   
     $sth->execute(@values);
-
+    
     $count += 1;
     if ( $count % $batchsize == 0 ) { 
       $dbh->commit;    # doublecheck the commit statement too
