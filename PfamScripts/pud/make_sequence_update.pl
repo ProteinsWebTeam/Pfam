@@ -153,7 +153,7 @@ else {
   }
 
   unless(-e "$status_dir/update_uniprot") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 16000, -R => 'rusage[mem=16000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
+    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 32000, -R => 'rusage[mem=32000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
     my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot_done', -w => "done($uniprot_job)", "touch $status_dir/update_uniprot");
   }
 
@@ -162,7 +162,6 @@ else {
     sleep 600;
   }
 }
-
 
 #Run all sequences against antifam and remove any that match
 if(-e "$status_dir/run_antifam") {
@@ -190,7 +189,7 @@ else {
   }
 
   unless(-e "$status_dir/uniprot_fasta") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta', -M => 16000, -R => 'rusage[mem=16000]', "pud-make_uniprot_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
+    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta', -M => 32000, -R => 'rusage[mem=32000]', "pud-make_uniprot_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
     my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta_done', -w => "done($uniprot_job)", "touch $status_dir/uniprot_fasta");
   }   
 
