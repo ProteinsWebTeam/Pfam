@@ -299,9 +299,9 @@ if ( -e "$status_dir/uploaded_uniprot" ) {
 else {
 
   #Delete old uniprot data
-#  $logger->info("Deleting old data from uniprot table");
-#  my $sth_delete = $dbh->prepare("delete from uniprot");
-#  $sth_delete->execute() or $logger->logdie("Failed to delete old data from uniprot ".$sth_delete->errstr."\n");
+  $logger->info("Deleting old data from uniprot table");
+  my $sth_delete = $dbh->prepare("delete from uniprot");
+  $sth_delete->execute() or $logger->logdie("Failed to delete old data from uniprot ".$sth_delete->errstr."\n");
 
 
   $logger->info("Uploading $pfamseq_dir/uniprot.dat to database\n");
