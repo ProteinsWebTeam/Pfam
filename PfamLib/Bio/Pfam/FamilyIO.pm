@@ -653,7 +653,7 @@ sub writeDESC {
 
 sub create_or_update_author {
   my ($self, $pfamdb, $familyObj) = @_;
-  
+
   if(!$familyObj or !$familyObj->isa('Bio::Pfam::Family::PfamA')) {
     croak('Either the Bio::Pfam::Family::PfamA object was undefined or not an object of that type.');
   }
@@ -681,7 +681,10 @@ sub create_or_update_author {
           croak("There is more than one author with the name [".$author->{name}."] in the database. You must specify an orcid for ". $author->{name}." in the DESC file to distinguish it from the other author(s) with the same name.\n");
         }
         foreach my $au_entry (@author_entry) { #There will only be one entry in @author_entry if we get to here
-          if($au_entry->orcid) {
+          if($au_entry->orcid eq 'NULL') {
+            $author_entry = $au_entry;
+          }
+          elsif($au_entry->orcid) {
             croak ("[".$author->{name}. "] has an orcid in the database, but there is no orcid in your DESC file. Use 'addORCID.pl <family_dir>' to add the orcid to your DESC file.\n");
           }
           else {
