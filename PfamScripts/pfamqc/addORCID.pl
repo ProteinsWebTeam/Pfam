@@ -155,10 +155,15 @@ while(<DESC>) {
         }
         else {
           if($num_orcids ==1) {
-            print STDERR "Single ORCID id found for $author, $author;$orcids->[0] will be added to the DESC file\n";
-            $desc_file .= "AU   $author;$orcids->[0]\n";
-            $added_orcid .= ", " if($added_orcid);
-            $added_orcid .= $author;
+            if($orcids->[0] eq "NULL") {
+              print STDERR "$author is in the database but does not have an ORCID id. If you have an ORCID id for this author, please add it to the DESC file and then re-run this script.\n";
+            } 
+            else {
+              print STDERR "Single ORCID id found for $author, $author;$orcids->[0] will be added to the DESC file\n";
+              $desc_file .= "AU   $author;$orcids->[0]\n";
+              $added_orcid .= ", " if($added_orcid);
+              $added_orcid .= $author;
+            }
           }
           else {
             print STDERR "Multiple ORCID ids found for $author\n";
@@ -238,7 +243,7 @@ sub author2orcid {
 
   my @orcids;
   foreach my $row (@rows) {
-    push(@orcids, $row->orcid) if($row->orcid); #Add non-null values to array
+    push(@orcids, $row->orcid);
   }
 
   return(\@orcids);
