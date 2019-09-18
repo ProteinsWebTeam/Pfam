@@ -211,6 +211,10 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
         }   
         foreach my $au_entry (@author_entry) {  #There will only be one entry in @author_entry if we get to here 
           if($au_entry->orcid) {
+            if($au_entry->orcid eq "NULL") {
+              $author_entry=1;
+              next;
+            }
             print "[".$author->{name}. "] has an orcid in the database, but there is no orcid in your DESC file. Use 'addORCID.pl <family_dir>' to add the orcid to your DESC file.\n";
             exit(1);
           }   
