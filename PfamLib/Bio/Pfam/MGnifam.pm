@@ -462,4 +462,40 @@ sub upload_seed {
 
 }
 
+=head2 next_MGDUF_number
+
+ Title    : next_MGDUF_number
+ Usage    : next_MGDUF_number($pfamDB)
+ Function : Gets next MGDUF number (eg 10)
+ Returns  : Next MGDUF number
+ Args     : Bio::Pfam::PfamLiveDBManager object
+
+=cut
+
+sub next_MGDUF_number {
+
+  my ($pfamDB) = @_;
+
+  #Get a list of dufs from the database
+  my %duf_numbers;
+  my @fams = $pfamDB->getSchema->resultset("Mgnifam")->search();
+  my @dead_fams = $pfamDB->getSchema->resultset("DeadMgnifam")->search();
+
+  foreach my $mgnifam (@fams, @dead_fams){
+    if($mgnifam->mgnifam_id =~ /^MGDUF(\d+)$/){
+      $duf_numbers{$1}=1;
+    }
+  }
+
+  #Find the biggest duf number, and increment by one
+  my $num;
+  foreach my $duf (sort { $b <=> $a } keys %duf_numbers) {
+    $num = $duf + 1;
+    last;
+  }
+
+  return $num;
+}
+
+
 1;
