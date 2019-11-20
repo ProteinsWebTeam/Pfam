@@ -300,7 +300,7 @@ sub family_page : Chained( 'family' )
     $c->forward( 'get_db_xrefs' );
     $c->forward( 'get_interactions' );
     #$c->forward( 'get_pseudofam' );
-    $c->forward( 'get_wikipedia' );
+    $c->forward( 'get_wikipedia_title_role' );
 
     return;
 
@@ -2273,6 +2273,27 @@ sub get_wikipedia : Private {
   $c->stash->{articles} = \@articles;
 }
 
+=head2 get_wikipedia_title_role : Private
+
+Retrieves the wikipedia title, if any, for this family.
+
+=cut
+
+sub get_wikipedia_title_role : Private {
+  my ( $this, $c ) = @_;
+
+  my @articles = $c->model('WebUser::ArticleMapping')
+                   ->search( { accession => $c->stash->{acc} },
+                             { join     => [ 'wikitext' ],
+                               prefetch => [ 'title' ] } );
+
+  return unless scalar @articles;
+
+  $c->log->debug( 'Family::get_wikipedia: found ' . scalar @articles . ' articles' )
+    if $c->debug;
+
+  $c->stash->{articles} = \@articles;
+}
 #-------------------------------------------------------------------------------
 
 =head2 get_logo : Private

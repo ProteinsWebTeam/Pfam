@@ -15,13 +15,14 @@ requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
+requirements.js.push( "wikifetcher.js" );
 
 sharedRequirements.css.push( "wp.css" );
 
 #-------------------------------------------------------------------------------
 
-# make a boolean to show whether we have wikipedia articles or not
-hasWikiArticles = articles.size ? 1 : 0;
+# make a boolean to show whether we have wikipedia titles or not
+hasWikiTitles = titles.size ? 1 : 0;
 
 # process the template that defines the blocks that do various things with
 # database links. We use it later to convert IDs in the Pfam comment and to
@@ -45,10 +46,10 @@ PROCESS components/links.tt; %]
 
       <ul id="summaryTabsNav" class="yui-nav">
         <!-- wp -->
-        [%- IF hasWikiArticles;
-          FOREACH article IN articles %]
-          <li[% IF loop.first AND NOT ( is_duf AND article.title == "Domain_of_unknown_function" ) %] class="selected"[% END %]>
-            <a href="#wpContent[% loop.index %]">Wikipedia: [% article.title.replace( "_", " " ) | html %]</a>
+        [%- IF hasWikiTitles;
+          FOREACH title IN titles %]
+          <li[% IF loop.first AND NOT ( is_duf AND title.get_column('title') == "Domain_of_unknown_function" ) %] class="selected"[% END %]>
+            <a href="#wpContent[% loop.index %]">Wikipedia: [% title.get_column('title').replace( "_", " " ) | html %]</a>
           </li>
           [% END;
         ELSE -%]
@@ -57,7 +58,7 @@ PROCESS components/links.tt; %]
           </li>
         [%- END %]
         <!-- pf -->
-        <li[% IF ( NOT hasWikiArticles ) OR ( is_duf AND article.title == "Domain_of_unknown_function" ) %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
+        <li[% IF ( NOT hasWikiTitles ) OR ( is_duf AND title.get_column('title') == "Domain_of_unknown_function" ) %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
         <!-- ip -->
         <li[% ' class="disabled"' UNLESS pfam.interpros %]>
           <a href="#interproContent">InterPro</a>
@@ -69,13 +70,13 @@ PROCESS components/links.tt; %]
 
         <!-- ============================================================== -->
 
-        [%- IF hasWikiArticles;
-          FOREACH article IN articles %]
+        [%- IF hasWikiTitles;
+          FOREACH title IN titles %]
             <div id="wpContent[% loop.index %]">
 
               <p>
                 This is the Wikipedia entry entitled
-                &quot;<a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">[% article.title.replace( "_", " " ) | html %]</a>&quot;.
+                &quot;<a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% title.get_column('title') | uri %]">[% title.get_column('title').replace( "_", " " ) | html %]</a>&quot;.
                 <!--
                 The Pfam group coordinates the annotation of Pfam families in
                 <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>.
@@ -190,16 +191,17 @@ PROCESS components/links.tt; %]
 
               <div class="wpData">
                 <h1 class="firstHeading">
-                  [% article.title.replace( "_", " " ) | html %]
+                  [% title.get_column('title').replace( "_", " " ) | html %]
                   <a class="btn go"
-                     href="http://en.wikipedia.org/w/index.php?veaction=edit&amp;title=[% article.title | uri %]">
+                     href="http://en.wikipedia.org/w/index.php?veaction=edit&amp;title=[% title.get_column('title') | uri %]">
                     <span class="btn-inner">Edit Wikipedia article</span></a>
                 </h1>
-                [% article.wikitext.text %]
+
+                <span id="wikipedia" />
               </div>
               <p id="wpLicense">
                 This page is based on a
-                <a class="ext" href="https://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">
+                <a class="ext" href="https://en.wikipedia.org/w/index.php?title=[% title.get_column('title') | uri %]">
                   Wikipedia article</a>. The text is available under the
                 <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
                   Creative Commons Attribution/Share-Alike License</a>.
@@ -399,7 +401,7 @@ PROCESS components/links.tt; %]
           fixed: true }
       );
 
-      [%- IF hasWikiArticles;
+      [%- IF hasWikiTitles;
         # set up the "show"/"hide" links in the wiki content %]
         $$(".wpData").each( function( wpData ) {
           wikiContents.push( new WikiContent( wpData ) );
