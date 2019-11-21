@@ -50,11 +50,12 @@ PROCESS components/links.tt; %]
           FOREACH title IN titles %]
           <li[% IF loop.first AND NOT ( is_duf AND title.get_column('title') == "Domain_of_unknown_function" ) %] class="selected"[% END %]>
             <a href="#wpContent[% loop.index %]">Wikipedia: [% title.get_column('title').replace( "_", " " ) | html %]</a>
+            <div hidden class="wiki_title" data_title="[%title%]">
           </li>
           [% END;
         ELSE -%]
           <li>
-            <a href="#wpContent">No Wikipedia article</a>
+            <a href="#wpContent">MAQ No Wikipedia article: [%titles%]</a>
           </li>
         [%- END %]
         <!-- pf -->

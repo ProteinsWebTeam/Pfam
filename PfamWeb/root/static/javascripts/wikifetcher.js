@@ -5,6 +5,10 @@ const URL = "http://en.wikipedia.org/w/api.php?action=parse&format=json&prop=tex
 
 
 document.addEventListener('DOMContentLoaded', (event) => {
+  console.log("loaded");
+  const titleTags = document.getElementsByClassName("wiki_title");
+  console.log(`TITLES: ${titleTags}`);
+  /*
   fetch(URL, {mode: 'cors'}).then(function(response) {
     console.log("STATUS: " + response.status);
     console.log("STATUS: " + response.type);
@@ -22,5 +26,5 @@ document.addEventListener('DOMContentLoaded', (event) => {
   }).catch (function(err) {
     console.log(`Failed to fetch data from wikipedia: ${err}`);
   })
-
+  */
 });
