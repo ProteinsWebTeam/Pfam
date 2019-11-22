@@ -74,4 +74,4 @@ unless (-e $linkDir && -l $linkDir) {
 
 $ENV{CATALYST_DEBUG} = 1;
 #$ENV{DBIC_TRACE} = 1;
-system("perl $pfamExe -p $port --follow_symlink");
+system("perl $pfamExe --restart -p $port --follow_symlink");
