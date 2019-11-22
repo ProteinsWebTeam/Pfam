@@ -289,12 +289,21 @@ else {
   until(-e "$status_dir/checked_out_families") {
     sleep 600;
   }
+}
 
-  my $seed_surgery_dir= "SeedSurgery";
-  mkdir($seed_surgery_dir, 0755) or $logger->logdie("Couldn't mkdir '$families_dir, $!");
 
-  $logger->info("Time to run seed surgery script on the login nodes:");
-  $logger->info("pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5");
+#Run seed surgery
+unless(-e "$status_dir/ran_seed_surgery") {
+
+   my $seed_surgery_dir= "SeedSurgery";
+   unless(-d $seed_surgery_dir) {
+     mkdir($seed_surgery_dir, 0755) or $logger->logdie("Couldn't mkdir '$seed_surgery_dir, $!");
+   }
+
+  $logger->info("Running seed surgery script");
+  system("pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5");
+  
+  system("touch $status_dir/ran_seed_surgery") and $logger->logdie("Couldn't touch $status_dir/ran_seed_surgery");
   exit;
 }
 
