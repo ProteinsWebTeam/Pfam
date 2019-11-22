@@ -48,20 +48,19 @@ PROCESS components/links.tt; %]
         <!-- wp -->
         [%- IF hasWikiTitles;
           FOREACH title IN titles %]
-          <li[% IF loop.first AND NOT ( is_duf AND title.get_column('title') == "Domain_of_unknown_function" ) %] class="selected"[% END %]>
+          <li id="wikipedia_tab" [% IF loop.first AND NOT ( is_duf AND title.get_column('title') == "Domain_of_unknown_function" ) %] class="selected"[% END %]>
             <a href="#wpContent[% loop.index %]">Wikipedia: [% title.get_column('title').replace( "_", " " ) | html %]</a>
-            <div hidden class="wiki_title" data_title="[%title%]">
           </li>
           [% END;
         ELSE -%]
-          <li>
-            <a href="#wpContent">MAQ No Wikipedia article: [%titles%]</a>
+          <li id="wikipedia_tab">
+            <a href="#wpContent">No Wikipedia article: [%titles%]</a>
           </li>
         [%- END %]
         <!-- pf -->
-        <li[% IF ( NOT hasWikiTitles ) OR ( is_duf AND title.get_column('title') == "Domain_of_unknown_function" ) %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
+        <li id="pfam_tab" [% IF ( NOT hasWikiTitles ) OR ( is_duf AND title.get_column('title') == "Domain_of_unknown_function" ) %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
         <!-- ip -->
-        <li[% ' class="disabled"' UNLESS pfam.interpros %]>
+        <li id="interpro_tab" [% ' class="disabled"' UNLESS pfam.interpros %]>
           <a href="#interproContent">InterPro</a>
         </li>
    <!-- <li><a href="#topsanContent">TopSan</a></li> -->
@@ -198,7 +197,7 @@ PROCESS components/links.tt; %]
                     <span class="btn-inner">Edit Wikipedia article</span></a>
                 </h1>
 
-                <span id="wikipedia" />
+                <span class="wikipedia" data-wikipedia-title="[% title.get_column('title') %]"/>
               </div>
               <p id="wpLicense">
                 This page is based on a

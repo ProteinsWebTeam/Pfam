@@ -2289,10 +2289,10 @@ sub get_wikipedia_title_role : Private {
 
   return unless scalar @articles;
 
-  $c->log->debug( 'Family::get_wikipedia: found ' . scalar @articles . ' articles' )
+  $c->log->debug( 'Family::get_wikipedia_title_role: found ' . scalar @articles . ' articles' )
     if $c->debug;
 
-  $c->stash->{articles} = \@articles;
+  $c->stash->{titles} = \@articles;
 }
 #-------------------------------------------------------------------------------
 
