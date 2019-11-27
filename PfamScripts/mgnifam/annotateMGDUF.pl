@@ -22,6 +22,8 @@ my ($directory, $author);
 GetOptions('directory' => \$directory,
              'author=s' => \$author);
 
+
+#Check inputs           
 unless($directory) {
   print STDERR "No directory specified, will look for families in current working directory\n";
   $directory = ".";
@@ -31,11 +33,6 @@ unless($author) {
   exit;
 }
 
-opendir(DIR, $directory) or die "Can't open dir $directory, $!";
-my @families = grep { /^MGYP/ } readdir DIR;
-closedir DIR;
-
-
 #Set up db connection
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new(%{$config->pfamliveAdmin});
@@ -44,9 +41,17 @@ unless($pfamDB and $pfamDB->{database} eq "mgnifam") {
   die "Need to use the config for mgnifam\n";
 }
 
+#Read in MGYP families
+opendir(DIR, $directory) or die "Can't open dir $directory, $!";
+my @families = grep { /^MGYP/ } readdir DIR;
+closedir DIR;
+
+#Get next MGDUF number
 my $next_MGDUF_number=Bio::Pfam::MGnifam::next_MGDUF_number($pfamDB);
 
 my $n=0;
+my $list = "annotated_list";
+open(LIST, ">$list") or die "Couldn't open fh to $list, $!";
 foreach my $family (@families) {
   print STDERR "Working on $family\n";
   $n++;
@@ -76,7 +81,10 @@ foreach my $family (@families) {
   close NEWDESC;
 
   $next_MGDUF_number++;
+  print LIST "$family\n";
 }
+close LIST;
+
 if($n) {
   print STDERR "Annotated $n DESC files\n";
 }
