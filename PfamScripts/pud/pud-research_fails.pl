@@ -27,6 +27,7 @@ unless($dir and -e $dir) {
 opendir(DIR, $dir) or $logger->logdie("Cannot open directory [$dir] $!");
 
 my $config = Bio::Pfam::Config->new;
+my $farm_queue=$config->{farm}->{lsf}->{queue};
 
 my $fail=0;
 chdir($dir) or $logger->logdie("Couldn't chdir into $dir, $!");
@@ -107,7 +108,7 @@ foreach (readdir(DIR))  {
   unless($check{"ALIGN"}) {	
     $logger->info("$_ is missing the ALIGN file, running pfmake on family"); 
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
-    system("pfmake") and $logger->logdie("pfmake on $_ failed:[$!]");
+    pfmake($_, $memory_gb, $farm_queue);
     chdir("../");
     $fail++;
     next; 
@@ -116,7 +117,7 @@ foreach (readdir(DIR))  {
   if(-M "$_/PFAMOUT" < -M "$_/ALIGN") {
     $logger->info("$_ has an ALIGN file that is younger than PFAMOUT, running pfmake on family"); 
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
-    system("pfmake") and $logger->logdie("pfmake on $_ failed:[$!]");
+    pfmake($_, $memory_gb, $farm_queue);
     chdir("../");
     $fail++;
     next; 
@@ -125,7 +126,7 @@ foreach (readdir(DIR))  {
   unless($check{"scores"}) {
     $logger->info("$_ has no scores file, running pfmake on family"); 
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
-    system("pfmake") and $logger->logdie("pfmake on $_ failed:[$!]");
+    pfmake($_, $memory_gb, $farm_queue);
     chdir("../");
     $fail++;
     next; 
@@ -154,5 +155,15 @@ Options:
         
 EOF
   exit(1);
+
+}
+
+
+sub pfmake {
+  
+  my ($fam, $memory_gb, $queue) = @_;
+  
+  $memory_gb=4 unless($memory_gb);
+  system("bsub -q $queue -o pfmake.log -J$fam 0M $memory_gb -R \"rusuage[mem=$memory_gb]\" pfmake");
 
 }
