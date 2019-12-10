@@ -23,13 +23,13 @@ __PACKAGE__->table("dead_mgnifam");
 
 =head1 ACCESSORS
 
-=head2 mgnify_acc
+=head2 mgnifam_acc
 
   data_type: 'varchar'
   is_nullable: 1
   size: 9
 
-=head2 mgnify_id
+=head2 mgnifam_id
 
   data_type: 'varchar'
   is_nullable: 0
@@ -63,9 +63,9 @@ __PACKAGE__->table("dead_mgnifam");
 =cut
 
 __PACKAGE__->add_columns(
-  "mgnify_acc",
+  "mgnifam_acc",
   { data_type => "varchar", is_nullable => 1, size => 9 },
-  "mgnify_id",
+  "mgnifam_id",
   { data_type => "varchar", is_nullable => 0, size => 40 },
   "comment",
   { data_type => "mediumtext", is_nullable => 1 },
@@ -89,17 +89,17 @@ __PACKAGE__->add_columns(
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<mgnify_acc>
+=head2 C<mgnifam_acc>
 
 =over 4
 
-=item * L</mgnify_acc>
+=item * L</mgnifam_acc>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("mgnify_acc", ["mgnify_acc"]);
+__PACKAGE__->add_unique_constraint("mgnifam_acc", ["mgnifam_acc"]);
 
 
 # Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-11 09:45:24
