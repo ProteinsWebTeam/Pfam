@@ -27,7 +27,7 @@ my @mgnifams = $pfamDB->getSchema->resultset('Mgnifam')->search({});
 
 #Loop through and compare all against all
 my (%done, $header);
-my $outfile = "";
+my $outfile = "jaccard.txt";
 open(OUT, ">$outfile") or die "Couldn't open fh to $outfile, $!";
 foreach my $mgnifam1 (@mgnifams) {
 
@@ -38,7 +38,7 @@ foreach my $mgnifam1 (@mgnifams) {
   my %regs;
   foreach my $reg1 (@regions1) {
     my $midpoint1 = ($reg1->seq_end - $reg1->seq_start) / 2 + $reg1->seq_start;
-    push(@{$regs{$reg1->pfamseq_acc}}, { start => $reg1->seq_start, end => $reg1->seq_end, midpoint => $midpoint1 });
+    push(@{$regs{$reg1->mgnifam_acc}}, { start => $reg1->seq_start, end => $reg1->seq_end, midpoint => $midpoint1 });
   }
 
   #Count the regions in family1
@@ -62,7 +62,7 @@ foreach my $mgnifam1 (@mgnifams) {
     #Look for midpoint overlaps
     my $intersection=0;
     foreach my $reg2 (@regions2) {
-      my ($acc, $start2, $end2) = ($reg2->pfamseq_acc, $reg2->seq_start, $reg2->seq_end);
+      my ($acc, $start2, $end2) = ($reg2->mgnifam_acc, $reg2->seq_start, $reg2->seq_end);
       my $midpoint2 = ($end2 - $start2)/2 + $start2;
 
       if(exists($regs{$acc})) {
