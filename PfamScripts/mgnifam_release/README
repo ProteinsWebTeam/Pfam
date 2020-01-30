@@ -7,7 +7,7 @@ The profile-HMMs are built using the HMMER3 software [3].
 
 
 Release   # Entries
-   1.0            6
+   0.1            128
 
 MGnifam is freely available under the Creative commons Zero (CC0) licence.
 http://creativecommons.org/publicdomain/zero/1.0/
