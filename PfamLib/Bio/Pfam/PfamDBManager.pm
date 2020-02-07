@@ -612,7 +612,7 @@ sub findLowerEvalueRegion {
                                AND r.pfamA_acc = ?");
     $sthE->execute($seqAcc, $region->{from}, $region->{to}, $region->{family});
     my $row = $sthE->fetchrow_arrayref;
-    unless(defined( $row ) and $row->[0]){
+    unless(defined( $row ) and exists($row->[0])){
       die "Failed to get evalue for $seqAcc\n";  
     }
     $evalue = $row->[0];
