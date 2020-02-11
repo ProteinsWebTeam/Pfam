@@ -53,6 +53,12 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 #Create array of families to work on
 if($all) {
+
+  #Set uniprot_competed to 0 for all families
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $st = $dbh->prepare("update clan set uniprot_competed=0");
+  $st->execute() or die "Couldn't execute statement ".$st->errstr."\n";
+
   #First do the clan families
   my @clanData = $pfamDB->getSchema->resultset("ClanMembership")->search();
 
