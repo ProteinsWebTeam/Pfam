@@ -1,0 +1,28 @@
+# Global section
+set daemon 30
+set log /nfs/production/xfam/pfam-prod/monit-log/monit.log
+set pidfile /nfs/production/xfam/pfam-prod/monit-files/monit.pid
+set idfile /nfs/production/xfam/pfam-prod/monit-files/monit.id
+set statefile /nfs/production/xfam/pfam-prod/monit-files/monit.state
+
+# Email alerts
+set mailserver localhost
+set alert maq@ebi.ac.uk
+#set alert apetrov@ebi.ac.uk
+set mail-format {
+     from: monit@$HOST
+  subject: monit -- $HOST / $SERVICE: $EVENT
+  message: monit event "$EVENT" on service $SERVICE at $DATE
+
+Date:         $DATE
+Host:         $HOST
+Event:        $EVENT
+Description:  $DESCRIPTION
+Action taken: $ACTION
+}
+
+# web server
+set httpd port 2812
+  allow admin:monit
+
+INCLUDE /nfs/production/xfam/pfam/software/Pfam/PfamConfig/Monit/*.conf

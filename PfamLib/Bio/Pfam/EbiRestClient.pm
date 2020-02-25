@@ -160,7 +160,7 @@ has '_accepted_methods' => (
 # job ID
 has '_valid_id_re' => (
   is => 'ro',
-  default => sub { qr/^[a-z_]+-[A-Z]\d{8}-(\d+-)+(hx|oy|pg|es)$/ }
+  default => sub { qr/^[a-z_]+-[A-Z]\d{8}-(\d+-)+(hx|oy|pg|es|p1m|p2m)$/ }
 );
 
 #-------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ sub search {
   # make sure the result of the query is a job ID that looks something like
   # pfamscan-R20130823-140719-0253-70482578-oy
   croak "ERROR: did not receive a job ID (got '$content')"
-    unless $content =~ m/^[a-z_]+-[\w+\-]+(oy|pg|hx|es)/;
+    unless $content =~ m/^[a-z_]+-[\w+\-]+(oy|pg|hx|es|p1m|p2m)/;
 
   return $content;
 }
@@ -319,7 +319,10 @@ sub _request {
           uc $method_params->{method} eq 'PUT' ) {
     $self->_log->debug( "sending 'POST' request to |$url|" );
     $start = Time::HiRes::gettimeofday();
-    $response = $self->_ua->post(
+	#use Data::Dumper;
+	#print Dumper $url;
+	#print Dumper $method_params->{request_params};
+	$response = $self->_ua->post(
       $url,
       $method_params->{request_params},
       'Accept-Encoding' => $self->_can_accept

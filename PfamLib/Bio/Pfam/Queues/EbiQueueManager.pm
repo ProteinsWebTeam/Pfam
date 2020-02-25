@@ -577,8 +577,7 @@ sub _submit_interactive_job {
   my ( $self, $job, $search_options ) = @_;
 
   my $sequence = $job->job_stream->stdin;
-  # SCP - EBI Tools version of pfam_scan fails with some sequences if they do not include a fasta header
-  my $sequence = ">seq\n$sequence" unless substr($sequence, 0, 1) eq '>';
+  $sequence = ">seq\n$sequence" unless substr($sequence, 0, 1) eq '>';
   $self->_log->debug( "sequence to search: $sequence" );
 
   $search_options->{sequence} = $sequence;
