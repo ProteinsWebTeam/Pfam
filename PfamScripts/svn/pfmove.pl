@@ -129,6 +129,9 @@ if($oldName eq $newName){
 }
 
 if($descObj->PI){
+  if($descObj->PI =~ /^(.+)\s+$/) {  #To remove any trailing whitespace 
+    $descObj->PI($1);
+  }
   $descObj->PI( $descObj->PI." $oldName;");
 }else{
   $descObj->PI("$oldName;");
