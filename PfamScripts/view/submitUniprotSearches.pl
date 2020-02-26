@@ -140,7 +140,7 @@ sub uniprotSearch {
     else {
       my $cpu=4;
       $memory_gb = ceil(($pfamA->model_length * 40000 * 48 * $cpu)/1000000000);
-      $memory_gb++; 
+      $memory_gb+=2; #Add an extra 2gb as the formula underestimated memory for many families for Pfam 33.0
     }
     my $memory_mb=$memory_gb*1000;  
     
