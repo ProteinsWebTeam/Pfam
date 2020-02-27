@@ -586,7 +586,8 @@ unless ( -d "$thisRelDir/SeqInfo" ){
 unless(-e "$logDir/submitted_coverage_job") {
   $logger->info("Submitting job to calculate coverage for ncbi, metaseq and uniprot databases to the farm");
   chdir($thisRelDir) or $logger->logdie("Couldn't chdir into $thisRelDir, $!");
-  system("bsub -q production-rh7 -o $pwd/coverage_stats.log -Jstats -M 70000 -R \"rusage[mem=70000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
+  my $queue = $config->{farm}->{lsf}->{queue};
+  system("bsub -q $queue -o $pwd/coverage_stats.log -Jstats -M 70000 -R \"rusage[mem=70000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
   chdir($pwd);
   touch("$logDir/submitted_coverage_job");
 }
