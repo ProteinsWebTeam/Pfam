@@ -54,10 +54,11 @@ unless($memory_gb) {
 my $memory_mb=$memory_gb*1000;
 
 #Loop through each pfamA and run searches
+my $queue = $config->{farm}->{lsf}->{queue};
 foreach my $pfamA (@pfamA) {
   my $pfamA_acc=$pfamA->pfama_acc;
 
   #Submit to farm
   print STDERR "$pfamA_acc\n";
-  system("bsub -q production-rh6 -J$pfamA_acc -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group 'pdbPfamAReg.pl -pfamA $pfamA_acc'");
+  system("bsub -q queue -J$pfamA_acc -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group 'pdbPfamAReg.pl -pfamA $pfamA_acc'");
 }
