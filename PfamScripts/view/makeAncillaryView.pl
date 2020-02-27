@@ -102,7 +102,8 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 	        }
         }
         my $touch_dir = $archView->options->{statusdir};
-        system("bsub -q production-rh7 -R \"rusage[mem=20000]\" -M 20000 -o $touch_dir/arch3.log 'make_Architecture_new_part3.pl && touch $touch_dir/doneArch") and die $logger->logdie("Can't run make_Architecture_new_part3.pl, $!");
+        my $queue = $view->{config}->{farm}->{lsf}->{queue};
+        system("bsub -q $queue -R \"rusage[mem=20000]\" -M 20000 -o $touch_dir/arch3.log 'make_Architecture_new_part3.pl && touch $touch_dir/doneArch'") and die $logger->logdie("Can't run make_Architecture_new_part3.pl, $!");
         my $x=0;
         until($x==1) {
           sleep(600);
@@ -129,7 +130,8 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $logger->debug("Done clan architectures");
   }
 
-
+  #$logger->logdie("done Architecture");
+  
   #Now make the storables.
   if(! $storableView->statusCheck('doneStorables')){
     $logger->debug("Making storables"); 
