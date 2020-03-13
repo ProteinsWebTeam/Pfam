@@ -46,6 +46,7 @@ foreach my $clan (sort{$a->clan_id cmp $b->clan_id} @$clans){
   }
   close(D);
   print P "//\n";  
+  unlink("$$.tmp");
 }
 close(P);
 
