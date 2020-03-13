@@ -393,6 +393,10 @@ unless ( -e "$thisRelDir/Pfam.version" ) {
 
 unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   $logger->info("Making Pfam-A.regions.tsv");
+
+  mkdir("Regions") or $logger->logdie("Could not make 'Regions' directory $!");
+  chdir("Regions") or die "Couldn't chdir into 'Regions, $!";
+
   my $host = $pfamDB->{host};
   my $user = $pfamDB->{user};
   my $password = $pfamDB->{password};
@@ -400,6 +404,8 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   my $db = $pfamDB->{database};
   my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select pfamseq_acc, pfamA_acc, seq_start, seq_end from pfamA_reg_full_significant where in_full=1\" > regions";
   system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
+
+
   #split regions file
   system("split -d -l 1000000 regions regions_") and $logger->logdie("Could not split regions file");
   my $dir = getcwd;
@@ -417,48 +423,39 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
 
   #submit jobs to farm
   my $queue = $config->{farm}->{lsf}->{queue};
+  my $job_name = "regions";
   foreach my $number (keys %filenames){
-      my $fh         = IO::File->new();
-       $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Jregions") or $logger->logdie("Couldn't open file handle [$!]\n");
-       $fh->print( "get_regions.pl -num $number\n"); 
-       $fh->close;        
+    my $fh         = IO::File->new();
+    my $group = "/PfamViewGroup";
+    $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -o regions_$number.log -M 2000 -g $group -J$job_name") or $logger->logdie("Couldn't open file handle [$!]\n");
+    $fh->print( "get_regions.pl -num $number\n"); 
+    $fh->close;        
   }
+  
+  #Touch file in log dir when regions jobs have finished
+  system("bsub -q $queue -o touch.log -Jregions_done -w 'done($job_name)' touch $logDir/finishedregions");
+ 
   #have jobs finished?
-    if (-e "$logDir/finishedregions"){
-	$logger->info("Already checked regions farm jobs have finished\n");
-    } else {
-	    my $fin = 0;
-    	while (!$fin){
-	        open( FH, "bjobs -Jregions|" );
-	        my $jobs;
-	        while (<FH>){
-		    if (/^\d+/){
-		        $jobs++;
-		    }
-	        }
-	        close FH;
-	        if ($jobs){
-		        $logger->info("Regions farm jobs still running - checking again in 10 minutes\n");
-		        sleep(600);
-	        } else {
-		        $fin = 1;
-		        open( FH, "> $logDir/finishedregions" ) or $logger->logdie("Can not write to file");
-		        close(FH);
-	        }
-	    }
-    }
+  until(-e "$logDir/finishedregions"){
+    $logger->info("Regions farm jobs still running - checking again in 10 minutes\n");
+    sleep(600);
+  }
+  $logger->info("Regions have finished running");
 
-    #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
-    open (REGIONS, ">$thisRelDir/Pfam-A.regions.tsv") or $logger->logdie("Can't open file to write");
-    print REGIONS "pfamseq_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
-    close (REGIONS);
+  #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
+  chdir("../") or $logger->logdie("Couldn't chdir up from Regions, $!");
+  open (REGIONS, ">$thisRelDir/Pfam-A.regions.tsv") or $logger->logdie("Can't open file to write");
+  print REGIONS "pfamseq_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
+  close (REGIONS);
 
-    system("cat regionsout_* >> $thisRelDir/Pfam-A.regions.tsv") and $logger->logdie("Failed to concatenate regions files");
-
+  system("cat Regions/regionsout_* >> $thisRelDir/Pfam-A.regions.tsv") and $logger->logdie("Failed to concatenate regions files");
 }
 
 unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
-  $logger->info("Making Pfam-A.unkprot.tsv");
+  $logger->info("Making Pfam-A.uniprot.tsv");
+
+  chdir("Regions") or die "Couldn't chdir into 'Regions, $!";
+
   my $host = $pfamDB->{host};
   my $user = $pfamDB->{user};
   my $password = $pfamDB->{password};
@@ -466,6 +463,7 @@ unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
   my $db = $pfamDB->{database};
   my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select uniprot_acc, pfamA_acc, seq_start, seq_end from uniprot_reg_full where in_full=1\" > uniprot_regions";
   system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
+
   #split regions file
   system("split -d -l 1000000 uniprot_regions uniprot_regions_") and $logger->logdie("Could not split uniprot regions file");
   my $dir = getcwd;
@@ -483,43 +481,33 @@ unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
 
   #submit jobs to farm
   my $queue = $config->{farm}->{lsf}->{queue};
+  my $job_name = "uniprot_regions";
   foreach my $number (keys %filenames){
       my $fh         = IO::File->new();
-       $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Juniprotregions") or $logger->logdie("Couldn't open file handle [$!]\n");
+      my $group = "/PfamViewGroup";
+       $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -o uniprot_regions_$number.log -M 2000 -g $group -J$job_name") or $logger->logdie("Couldn't open file handle [$!]\n");
        $fh->print( "get_regions.pl -uniprot -num $number\n"); 
        $fh->close;     
   }
+
+  #Touch file in log dir when uniprot regions jobs have finished
+  system("bsub -q $queue -o touch.log -Jregions_done -w 'done($job_name)' touch $logDir/finisheduniprotregions");
+
   #have jobs finished?
-    if (-e "$logDir/finisheduniprotregions"){
-      $logger->info("Already checked uniprot regions farm jobs have finished\n");
-    } else {
-      my $fin = 0; 
-      while (!$fin){
-          open( FH, "bjobs -Juniprotregions|" );
-          my $jobs;
-          while (<FH>){
-            if (/^\d+/){
-              $jobs++;
-            }    
-          }    
-          close FH;
-          if ($jobs){
-            $logger->info("Uniprot regions farm jobs still running - checking again in 10 minutes\n");
-            sleep(600);
-          } else {
-            $fin = 1; 
-            open( FH, "> $logDir/finisheduniprotregions" ) or $logger->logdie("Can not write to file");
-            close(FH);
-          }    
-      }    
-    }    
+   until(-e "$logDir/finisheduniprotregions"){
+     $logger->info("Uniprot regions farm jobs still running - checking again in 10 minutes\n");
+     sleep(600);
+   }
+   $logger->info("Regions have finished running");
+   
 
-    #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
-    open (REGIONS, ">$thisRelDir/Pfam-A.regions.uniprot.tsv") or $logger->logdie("Can't open file to write");
-    print REGIONS "uniprot_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
-    close (REGIONS);
+  #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
+  chdir("../") or $logger->logdie("Couldn't chdir up from Regions, $!");
+  open (REGIONS, ">$thisRelDir/Pfam-A.regions.uniprot.tsv") or $logger->logdie("Can't open file to write");
+  print REGIONS "uniprot_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
+  close (REGIONS);
 
-    system("cat uniprot_regionsout_* >> $thisRelDir/Pfam-A.regions.uniprot.tsv") and $logger->logdie("Failed to concatenate uniprot regions files");
+  system("cat Regions/uniprot_regionsout_* >> $thisRelDir/Pfam-A.regions.uniprot.tsv") and $logger->logdie("Failed to concatenate uniprot regions files");
 }
 
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
@@ -587,7 +575,7 @@ unless(-e "$logDir/submitted_coverage_job") {
   $logger->info("Submitting job to calculate coverage for ncbi, metaseq and uniprot databases to the farm");
   chdir($thisRelDir) or $logger->logdie("Couldn't chdir into $thisRelDir, $!");
   my $queue = $config->{farm}->{lsf}->{queue};
-  system("bsub -q $queue -o $pwd/coverage_stats.log -Jstats -M 70000 -R \"rusage[mem=70000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
+  system("bsub -q $queue -o $pwd/coverage_stats.log -Jstats -M 100000 -R \"rusage[mem=100000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
   chdir($pwd);
   touch("$logDir/submitted_coverage_job");
 }
@@ -655,7 +643,7 @@ unless(-d "$thisRelDir/ftp/database_files") {
 $logger->info("Made database files");
 
 
-#Make MD5 checksum files for ftp files, proteome files and database files
+#Make MD5 checksum files for ftp files and database files
 unless(-e "$thisRelDir/ftp/md5_checksums") {
   $logger->info("Generating checksums for ftp files");
   chdir("$thisRelDir/ftp") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp, $!");
@@ -668,13 +656,17 @@ unless(-e "$thisRelDir/ftp/database_files/md5_checksums") {
   system("MD5checksum.pl -dir .") and $logger->logdie("Couldn't run 'MD5checksum.pl -dir .', $!");
   chdir($pwd);
 }
-unless(-e "$thisRelDir/ftp/proteomes/md5_checksums") {
-  $logger->info("Generating checksums for ftp/proteome files");
-  chdir("$thisRelDir/ftp/proteomes") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp/proteomes, $!");
-  system("MD5checksum.pl -dir .") and $logger->logdie("Couldn't run 'MD5checksum.pl -dir .', $!");
-  chdir($pwd);
-}  
 $logger->info("Made checksum files");
+
+#Generate data for InterPro
+unless(-e "$logDir/done_interpro") {
+  $logger->info("Submitting interpro job");
+  mkdir("InterPro") or $logger->logdie("Could not make 'InterPro' directory $!");
+  chdir("InterPro") or $logger->logdie("Couldn't chdir into InterPro, $!");
+  my $queue = $config->{farm}->{lsf}->{queue};
+  system("bsub -q $queue -o interpro.log -JInterpro  -M 10000 -R \"rusage[mem=10000]\" data_for_interpro.pl");
+  touch("$logDir/done_interpro");
+}
 
 ###################################################################################################################
 
