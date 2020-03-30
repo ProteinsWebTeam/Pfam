@@ -2023,80 +2023,86 @@ sub makeNonRedundantFasta {
   
   $identity = $identity / 100;
 
-  
-  #This section uses cd-hit to make the 90% redundant fasta file
-  #esl-weight was previously used
-  #
-  #Get mapping of id to acc (esl-weight took this from ALIGN.ann, but now we use cd-hit we need to get the mapping)
-  my %id2acc;
-  foreach my $seq ( $ali->each_seq ) {
-    my $seq_ver=$seq->acc.".".$seq->seq_version;
-    $id2acc{$seq->id}=$seq_ver;
+  #esl-weight was previously used for all families, but it was very very slow for big families,
+  #so now use cd-hit for most families. A few small families (usually short repeats) fail with cd-hit, 
+  #so use esl-weight for these 
+ 
+  my $pfamA_acc=$self->pfam->pfama_acc;
+
+  #Families which fail using cd-hit have been hard-coded to use esl-weight
+  if($pfamA_acc eq 'PF00220' or $pfamA_acc eq 'PF00446' or $pfamA_acc eq 'PF02757' or $pfamA_acc eq 'PF03373' or $pfamA_acc eq 'PF03991' or $pfamA_acc eq 'PF08257' or $pfamA_acc='PF08258' or $pfamA_acc='PF08261') {
+
+    #This section uses esl-weight to make the 90% redundant fasta file
+ 
+    my $system_command = $self->config->binLocation . "/esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann 2> /dev/null";
+    system( $system_command ) == 0
+      or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
+
+    $system_command = $self->config->binLocation . '/esl-reformat fasta ALIGN.90 2> /dev/null |';
+    open( BEL, $system_command )
+      or $self->mailUserAndFail( "Could not open command ($system_command): [$!]\n" );
+
+    open( FAMFA, '>family.fa' )
+      or $self->mailUserAndFail( "Failed to open family.fa:[$!]" );
+
+    #Parse the output, remove gap charcaters and put the family accessions and name as part of the
+    #header line for each sequence.
+    while (<BEL>) {
+      if (/\>(\S+\/\d+\-\d+)/) {
+        chomp;
+        print FAMFA "$_ "
+        . $self->pfam->pfama_acc . "."
+        . $self->pfam->version . ";"
+        . $self->pfam->pfama_id . ";\n";
+      }
+      else {
+        chomp;
+        s/[\.-]//g;
+        print FAMFA uc($_) . "\n";
+      }
+    }
+    close(BEL);
+    close(FAMFA);
   }
+  else {
+    #This section uses cd-hit to make the 90% redundant fasta file
+    
+    #Get mapping of id to acc (esl-weight took this from ALIGN.ann, but now we use cd-hit we need to get the mapping)
+    my %id2acc;
+    foreach my $seq ( $ali->each_seq ) {
+      my $seq_ver=$seq->acc.".".$seq->seq_version;
+      $id2acc{$seq->id}=$seq_ver;
+    }
 
-  #Reformat the alignment to aligned fasta
-  my $system_command =  $self->config->binLocation . "/esl-reformat fasta ALIGN > ALIGN.afa";
-  system( $system_command ) == 0 or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
+    #Reformat the alignment to aligned fasta
+    my $system_command =  $self->config->binLocation . "/esl-reformat fasta ALIGN > ALIGN.afa";
+    system( $system_command ) == 0 or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
 
-  #Use cd-hit to reduce redundancy to $identity
-  $system_command = "cd-hit -i ALIGN.afa -c $identity -o ALIGN.90";
-  system( $system_command ) == 0 or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
+    #Use cd-hit to reduce redundancy to $identity
+    $system_command = "cd-hit -i ALIGN.afa -c $identity -o ALIGN.90";
+    system( $system_command ) == 0 or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
 
-  #Parse the output, remove gap charcaters and put the family accessions and name as part of the
-  #header line for each sequence.
-  open( FAMFA, '>family.fa' )
-    or $self->mailUserAndFail( "Failed to open family.fa:[$!]" );
+    #Parse the output, remove gap charcaters and put the family accessions and name as part of the
+    #header line for each sequence.
+    open( FAMFA, '>family.fa' )
+      or $self->mailUserAndFail( "Failed to open family.fa:[$!]" );
 
-  open(ALN, "ALIGN.90") or $self->mailUserAndFail( "Failed top open ALIGN.90, $!");
-  while (<ALN>) {
-    if (/\>(\S+)\/\d+\-\d+/) {
-      chomp;
-      #A0A0J5QF43_9RHOB/67-502 A0A0J5QF43.1 PF00115.20;COX1;
-      print FAMFA "$_ $id2acc{$1} ". $self->pfam->pfama_acc . "." . $self->pfam->version . ";". $self->pfam->pfama_id . ";\n";
-    }    
-    else {
-      chomp;
-      s/[\.-]//g;
-      print FAMFA uc($_) . "\n";
-    }    
+    open(ALN, "ALIGN.90") or $self->mailUserAndFail( "Failed top open ALIGN.90, $!");
+    while (<ALN>) {
+      if (/\>(\S+)\/\d+\-\d+/) {
+        chomp;
+        #A0A0J5QF43_9RHOB/67-502 A0A0J5QF43.1 PF00115.20;COX1;
+        print FAMFA "$_ $id2acc{$1} ". $self->pfam->pfama_acc . "." . $self->pfam->version . ";". $self->pfam->pfama_id . ";\n";
+      }    
+      else {
+        chomp;
+        s/[\.-]//g;
+        print FAMFA uc($_) . "\n";
+      }    
+    }
+    close(ALN);
+    close(FAMFA); 
   }
-  close(ALN);
-  close(FAMFA); 
-
- # Swapped to use cd-hit as esl-weight was very slow for big families
- #
- # my $system_command = $self->config->binLocation . "/esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann 2> /dev/null";
- # system( $system_command ) == 0
- #   or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
-
- # $system_command = $self->config->binLocation . '/esl-reformat fasta ALIGN.90 2> /dev/null |';
- # open( BEL, $system_command )
- #   or $self->mailUserAndFail( "Could not open command ($system_command): [$!]\n" );
-
- # open( FAMFA, '>family.fa' )
- #   or $self->mailUserAndFail( "Failed to open family.fa:[$!]" );
-
- # #Parse the output, remove gap charcaters and put the family accessions and name as part of the
- # #header line for each sequence.
- # while (<BEL>) {
- #   if (/\>(\S+\/\d+\-\d+)/) {
- #     chomp;
- #     print FAMFA "$_ "
- #       . $self->pfam->pfama_acc . "."
- #       . $self->pfam->version . ";"
- #       . $self->pfam->pfama_id . ";\n";
- #   }
- #   else {
- #     chomp;
- #     s/[\.-]//g;
- #     print FAMFA uc($_) . "\n";
- #   }
- # }
- # close(BEL);
- # close(FAMFA);
-
-
-
 
   #gzip the file and add it to the database!
    open( GZFA, "gzip -c family.fa |" )

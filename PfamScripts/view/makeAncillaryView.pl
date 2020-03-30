@@ -102,7 +102,8 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 	        }
         }
         my $touch_dir = $archView->options->{statusdir};
-        system("bsub -q production-rh7 -R \"rusage[mem=20000]\" -M 20000 -o $touch_dir/arch3.log 'make_Architecture_new_part3.pl && touch $touch_dir/doneArch") and die $logger->logdie("Can't run make_Architecture_new_part3.pl, $!");
+        my $queue = $view->{config}->{farm}->{lsf}->{queue};
+        system("bsub -q $queue -R \"rusage[mem=20000]\" -M 20000 -o $touch_dir/arch3.log 'make_Architecture_new_part3.pl && touch $touch_dir/doneArch'") and die $logger->logdie("Can't run make_Architecture_new_part3.pl, $!");
         my $x=0;
         until($x==1) {
           sleep(600);
@@ -129,7 +130,8 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $logger->debug("Done clan architectures");
   }
 
-
+  #$logger->logdie("done Architecture");
+  
   #Now make the storables.
   if(! $storableView->statusCheck('doneStorables')){
     $logger->debug("Making storables"); 
@@ -206,7 +208,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 
     #Insert species, ncbi_taxid, num_proteins, total_aa_length from pfamseq
     $logger->debug("Inserting into complete_proteomes");
-    my $st_proteome = $protDbh->prepare("insert into complete_proteomes (species, ncbi_taxid, num_proteins, total_genome_proteins, total_aa_length) select species, ncbi_taxid, count(pfamseq_acc), count(pfamseq_acc), sum(length) from pfamseq group by ncbi_taxid");
+    my $st_proteome = $protDbh->prepare("insert into complete_proteomes (species, ncbi_taxid, num_proteins, total_genome_proteins, total_aa_length) select species, ncbi_taxid, count(pfamseq_acc), count(pfamseq_acc), sum(length) from pfamseq where ncbi_taxid !=0 group by ncbi_taxid");
     $st_proteome->execute or $logger->logdie("Couldn't execute statement ".$st_proteome->errstr);
 
     my $st_proteome_taxid=$protDbh->prepare("select ncbi_taxid from complete_proteomes");

@@ -289,12 +289,24 @@ else {
   until(-e "$status_dir/checked_out_families") {
     sleep 600;
   }
+}
 
-  my $seed_surgery_dir= "SeedSurgery";
-  mkdir($seed_surgery_dir, 0755) or $logger->logdie("Couldn't mkdir '$families_dir, $!");
 
-  $logger->info("Time to run seed surgery script on the login nodes:");
-  $logger->info("pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5");
+#Run seed surgery
+if(-e "$status_dir/ran_seed_surgery") {
+  $logger->info("Already done seed_surgery");
+}
+else {
+  $logger->info("Running seed surgery script");
+   my $seed_surgery_dir= "SeedSurgery";
+   unless(-d $seed_surgery_dir) {
+     mkdir($seed_surgery_dir, 0755) or $logger->logdie("Couldn't mkdir '$seed_surgery_dir, $!");
+   }
+
+  $logger->info("Running seed surgery script");
+  system("pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5");
+  
+  system("touch $status_dir/ran_seed_surgery") and $logger->logdie("Couldn't touch $status_dir/ran_seed_surgery");
   exit;
 }
 
@@ -306,7 +318,7 @@ if(-e "$status_dir/ncbi_database") {
 else {
   $logger->info("Getting ncbi database");
 
-  my $ncbi = LSF::Job->submit(-q => $queue, -o => "$logs_dir/ncbi.log", -J => 'ncbi', -M => 16000, -R => 'rusage[mem=16000]', "pud-ncbi.pl");
+  my $ncbi = LSF::Job->submit(-q => $queue, -o => "$logs_dir/ncbi.log", -J => 'ncbi', -M => 32000, -R => 'rusage[mem=32000]', "pud-ncbi.pl");
   my $ncbi2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/ncbi.log", -J => 'ncbi_done', -w => "done($ncbi)", "touch $status_dir/ncbi_database");
 
   $logger->info("Waiting for ncbi database scripts to finish");
@@ -323,7 +335,7 @@ if(-e "$status_dir/other_regions") {
 else {
   $logger->info("Going to populate other_reg table");
 
-  my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 20000, -R => 'rusage[mem=20000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
+  my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 32000, -R => 'rusage[mem=32000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
   my $other_reg2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg_done', -w => "done($other_reg)", "touch $status_dir/other_regions");
 
   $logger->info("Waiting for other_reg table to finish populating");

@@ -35,7 +35,15 @@ if($all and $memory_gb) {
 my @extra_mem = qw(PF00004 PF00005 PF00069 PF00072 PF00078 PF00083 PF00096 PF00106 PF00115 PF00501 PF00512 PF00528 PF00561 PF01370 PF013649 PF013855 PF01926 PF02518 PF06709 PF07679 PF07690 PF07714 PF08659 PF13561);
 my %memory;
 foreach my $f (@extra_mem) {
-  $memory{$f}=16;
+  if($f eq "PF00005" or $f eq "PF07690") { #These families need a lot more memory
+    $memory{$f}=64;
+  }
+  elsif($f eq "PF00069" or $f eq "PF07714" or $f eq "PF00115") {
+    $memory{$f}=32;
+  }
+  else {
+    $memory{$f}=16;
+  }
 }
 #If user has defined how much memory to use, add this to hash
 if($memory_gb) {
@@ -53,6 +61,12 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 #Create array of families to work on
 if($all) {
+
+  #Set uniprot_competed to 0 for all families
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $st = $dbh->prepare("update clan set uniprot_competed=0");
+  $st->execute() or die "Couldn't execute statement ".$st->errstr."\n";
+
   #First do the clan families
   my @clanData = $pfamDB->getSchema->resultset("ClanMembership")->search();
 
@@ -126,7 +140,7 @@ sub uniprotSearch {
     else {
       my $cpu=4;
       $memory_gb = ceil(($pfamA->model_length * 40000 * 48 * $cpu)/1000000000);
-      $memory_gb++; 
+      $memory_gb+=2; #Add an extra 2gb as the formula underestimated memory for many families for Pfam 33.0
     }
     my $memory_mb=$memory_gb*1000;  
     
