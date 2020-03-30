@@ -80,7 +80,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
    jumpUri    = "${searchBase}/jump";
    %]
 
-   [% INSERT components/warning.txt %]
+   [% INSERT components/homepage_warning.html %]
 
   <div id="controlPanel">
     <ul>
