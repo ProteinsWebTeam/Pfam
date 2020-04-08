@@ -16,6 +16,7 @@ META fullPage = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "index.css" );
+requirements.css.push( "pfam.css" );
 requirements.cssIeAll.push( "index_all_ie.css" );
 
 #-------------------------------------------------------------------------------
@@ -78,6 +79,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
    searchBase = c.secure_uri_for( "/search" );
    jumpUri    = "${searchBase}/jump";
    %]
+
+   [% INSERT components/homepage_warning.html %]
 
   <div id="controlPanel">
     <ul>

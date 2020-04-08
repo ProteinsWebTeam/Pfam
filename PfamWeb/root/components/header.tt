@@ -88,6 +88,8 @@ sharedUri = c.secure_uri_for( "/shared" );
 
 <div class="cleaner"><!-- empty --></div>
 
+[% INSERT components/sitewide_warning.html %]
+
 [%-
 # a warning message for users who dont have javascript turned on. The 
 # message should be hidden immediately after its displayed, but if 
