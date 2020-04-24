@@ -401,7 +401,7 @@ sub family_page : Chained( 'family' )
     $c->forward( 'get_db_xrefs' );
     $c->forward( 'get_interactions' );
     #$c->forward( 'get_pseudofam' );
-    $c->forward( 'get_wikipedia_title' );
+    $c->forward( 'get_wikipedia' );
 
     return;
 
@@ -645,7 +645,7 @@ sub get_db_xrefs : Private {
 
    push(@ataSCOOP, @ataSCOOP2);
    my @sortedSCOOP = sort { lc($a->get_column('r_pfama_id')) cmp lc($b->get_column('r_pfama_id'))  } @ataSCOOP;
-
+   
    foreach my $ref ( @sortedSCOOP ) {
     if ( $ref->get_column('l_pfama_acc') ne $ref->get_column('r_pfama_acc') ) {
       push @{ $xRefs->{scoop} }, $ref;
@@ -863,31 +863,6 @@ sub get_wikipedia : Private {
 
   $c->stash->{articles} = \@articles;
 }
-
-=head2 get_wikipedia_title : Private
-
-Retrieves the wikipedia titles, if any, for this family.
-
-=cut
-
-sub get_wikipedia_title : Private {
-  my ( $this, $c ) = @_;
-
-  my @articles;
-  eval {
-    @articles = $c->model('WebUser::ArticleMapping')
-      ->search( { accession => $c->stash->{acc} },
-                { join      => [ 'wikitext' ], prefetch => [ 'wikitext' ] } );
-  };
-
-  return unless scalar @articles;
-
-  $c->log->debug( 'Family::get_wikipedia_title: found ' . scalar @articles . ' articles' )
-    if $c->debug;
-
-  $c->stash->{titles} = \@articles;
-}
-
 
 #-------------------------------------------------------------------------------
 
