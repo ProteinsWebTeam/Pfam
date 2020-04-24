@@ -105,7 +105,7 @@ while (1) {
 
       #Step 2 - build up the LSF resource requirements
       $memory = '24000';
-      $resource = "rusage[mem=24000]"; 
+      $resource = "rusage[mem=24000, scratch=4000]"; 
       $tmpDir   = $qsout->tmpDir;
 
       #Step 3 - Build up the command that we want to run

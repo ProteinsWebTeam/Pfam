@@ -219,7 +219,7 @@ print C "STOCKHOLM 1.0\n";
 foreach my $line (@clandesc){
   print C "#=GF ".$line;  
 }
-print C "//";
+print C "//\n";
 close(C);
 
 open( STO, "gzip -c CLANDESC.sto|" );
