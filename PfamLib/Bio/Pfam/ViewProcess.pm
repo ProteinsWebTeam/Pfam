@@ -2030,10 +2030,17 @@ sub makeNonRedundantFasta {
   my $pfamA_acc=$self->pfam->pfama_acc;
 
   #Families which fail using cd-hit have been hard-coded to use esl-weight
-  if($pfamA_acc eq 'PF00220' or $pfamA_acc eq 'PF00446' or $pfamA_acc eq 'PF02757' or $pfamA_acc eq 'PF03373' or $pfamA_acc eq 'PF03991' or $pfamA_acc eq 'PF08257' or $pfamA_acc='PF08258' or $pfamA_acc='PF08261') {
+  my %fail;
+  my @fail = qw(PF00220 PF00446 PF02757 PF03373 PF03991 PF08257 PF08258 PF08261);  #These families fail with cd-hit
+  foreach my $f (@fail) {
+    $fail{$f}=1;
+  }
+
+  if(exists($fail{$pfamA_acc})) {
 
     #This section uses esl-weight to make the 90% redundant fasta file
- 
+    $self->logger->debug("Using esl-weight to make the fasta file redundant"); 
+
     my $system_command = $self->config->binLocation . "/esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann 2> /dev/null";
     system( $system_command ) == 0
       or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
@@ -2066,7 +2073,8 @@ sub makeNonRedundantFasta {
   }
   else {
     #This section uses cd-hit to make the 90% redundant fasta file
-    
+    $self->logger->debug("Using cd-hit to make fasta file redundant");
+
     #Get mapping of id to acc (esl-weight took this from ALIGN.ann, but now we use cd-hit we need to get the mapping)
     my %id2acc;
     foreach my $seq ( $ali->each_seq ) {
