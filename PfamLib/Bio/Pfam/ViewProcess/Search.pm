@@ -39,8 +39,7 @@ has 'databaseList' => (
 has 'databaseToTag' => (
   is => 'ro',
   isa     => 'HashRef',
-  default => sub{ { metaseq => 'meta',
-                    ncbi    => 'ncbi' } },
+  default => sub{  { metaseq => 'meta', ncbi => 'ncbi' } },
 );
 
 has 'cpus' => (
@@ -58,6 +57,8 @@ sub search {
   unless(-d $tmpdir){
     $self->logger->logdie("Failed to get a temporary directory.");
   }
+
+  $self->logger->info("The tmpdir is [$tmpdir]");
   my $pfam = $self->pfamdb->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
   unless($pfam){
     $self->logger->logdie("Failed to get a Pfam row for $acc.");
@@ -79,19 +80,28 @@ sub search {
     $pfam->$field(0);
     $pfam->update;
   }else{
-  $pfam->searchmethod('hmmsearch --cut_ga HMM '.$self->database); 
-  $self->pfam($pfam);
-  my $GFAnn = $self->getGFAnnotations();
-  my ($filename, $noSeqs) = $self->writeAnnotateAlignment("$alifile", $GFAnn);
-  
-  if($self->upload){
-    #Due to a slight annoyance, strip off the trailing .ann
-    $self->uploadTreesAndAlign($filename, $self->databaseToTag->{$self->database});
-    #This may seem a bit of a waste, but I have modified 
+    $pfam->searchmethod('hmmsearch --cut_ga HMM '.$self->database); 
+    $self->pfam($pfam);
+    my $GFAnn = $self->getGFAnnotations();
+    my ($filename, $noSeqs) = $self->writeAnnotateAlignment("$alifile", $GFAnn);
+
+    #Update number_[meta|ncbi] in pfamA table
     $pfam = $self->pfamdb->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
     $pfam->$field($noSeqs);
     $pfam->update;
-  }
+
+    if($self->upload){ #Upload alignment
+      #Due to a slight annoyance, strip off the trailing .ann
+      $self->uploadTreesAndAlign($filename, $self->databaseToTag->{$self->database});
+    }
+    else {
+      my $annotated_file = $alifile.".ann";
+      my $local_file = $acc.".".$self->database;
+      $self->logger->info("Copying $annotated_file to cwd/$local_file");
+      copy($annotated_file, $local_file) or $self->logger->logdie("Failed to copy $annotated_file to $local_file, $!"); 
+      $self->logger->info("Gzipping $local_file");
+      system("gzip $local_file") and $self->logger->logdie("Couldn't gzip $local_file, $!");
+    }
   }
 }
 
@@ -291,6 +301,10 @@ sub searchRange {
   }
   foreach my $a (@pfamA){
     next if(exists($done{$a->pfama_acc}));
+    if($a->pfama_acc eq "PF07690") {
+      $self->logger->info( "Skipping PF07690");
+      next;
+    }
     $self->logger->debug("Working on ".$a->pfama_acc);
     $self->options->{acc} = $a->pfama_acc;
     $self->searchAll();
