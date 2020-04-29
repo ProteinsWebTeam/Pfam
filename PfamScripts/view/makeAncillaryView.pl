@@ -130,8 +130,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $logger->debug("Done clan architectures");
   }
 
-  #$logger->logdie("done Architecture");
-  
   #Now make the storables.
   if(! $storableView->statusCheck('doneStorables')){
     $logger->debug("Making storables"); 
@@ -141,6 +139,8 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $storableView->touchStatus('doneStorables');
   }
   
+  #$logger->logdie("Done architectures and storables. Run the rest of the code from the login nodes");
+
   #Now make the structure images
   if(! $pdbImageView->statusCheck('donePdbImages')){
     $logger->debug("Making structure images"); 
