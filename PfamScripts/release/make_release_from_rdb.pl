@@ -102,26 +102,13 @@ my $noUnFinishedJobs = $jobsDB->getSchema->resultset('JobHistory')->search(
 );
 
 if ( $noUnFinishedJobs != 0 ) {
-  $logger->warn("There are currently $noUnFinishedJobs in the jobs database");
+    $logger->warn("There are currently $noUnFinishedJobs jobs in the jobs database");
 
   if ( -e $logDir . "/overrideView" ) {
-
+    $logger->info("$logDir/overrideView exists, continuing");
   }
   else {
-    print STDERR "\nDo you want to continue [y/n]:";
-
-    while (<STDIN>) {
-      if (/y/i) {
-        $logger->info("User confirmed all view processes are complete!");
-        open( O, ">" . $logDir . "/overrideView" )
-          or die "Could not open $logDir/overrideView:[$!]\n";
-        close(O);
-        last;
-      }
-      else {
-        exit;
-      }
-    }
+    $logger->logdie("Exiting as there are still $noUnFinishedJobs jobs in the jobs database");
   }
 }
 else {
@@ -210,7 +197,7 @@ unless ( -e "$logDir/checkedseqsize" ){
     touch("$logDir/checkedseqsize");
 }
 
-unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" ) {
+unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full.ncbi" ) {
     makePfamAFlat( $thisRelDir, $pfamDB );
 }
 
@@ -371,8 +358,12 @@ unless ( -e "$thisRelDir/pdbmap" ) {
   $stpdb->execute() or die "Can't executre statement\n";
   my $arrayref = $stpdb->fetchall_arrayref();
     open (PDBFILE, ">$thisRelDir/pdbmap") or die "Can't open file to write\n";
-   foreach my$row (@$arrayref){
-       print PDBFILE $row->[0] . "\t" . $row->[1] . "\t" . $row->[2] . "\t" . $row->[3] . "\t" . $row->[4] . "\t" . $row->[5] . "\t" . $row->[6] . "\n";
+    foreach my $row (@$arrayref){
+      my $st_en_icode=""; #To prevent unitialised warning
+      if($row->[2]) {
+        $st_en_icode=$row->[2];
+      }
+       print PDBFILE $row->[0] . "\t" . $row->[1] . "\t" . $st_en_icode . "\t" . $row->[3] . "\t" . $row->[4] . "\t" . $row->[5] . "\t" . $row->[6] . "\n";
    }
    close PDBFILE;
 }
@@ -516,11 +507,17 @@ unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
   my $stcl = $dbh->prepare("select a.pfamA_acc, m.clan_acc, clan_id, pfamA_id, description from pfamA a left join clan_membership m on a.pfamA_acc=m.pfamA_acc left join clan c on m.clan_acc=c.clan_acc ") or die "Can't prepare statement\n";
     $stcl->execute() or die "Can't executre statement\n";
   my $arrayref = $stcl->fetchall_arrayref();
-    open (CLFILE, ">$thisRelDir/Pfam-A.clans.tsv") or die "Can't open file to write\n";
-   foreach my$row (@$arrayref){
-       print CLFILE $row->[0] . "\t" . $row->[1] . "\t" . $row->[2] . "\t" . $row->[3] . "\t" . $row->[4] . "\n";
-   }
-   close CLFILE;
+  open (CLFILE, ">$thisRelDir/Pfam-A.clans.tsv") or die "Can't open file to write\n";
+
+  foreach my $row (@$arrayref){
+    my $clan_acc=""; #This can be null, so initialise it to prevent warnings when printing
+    $clan_acc = $row->[1] if($row->[1]);
+
+    my $clan_id="";
+    $clan_id = $row->[2] if($row->[2]);
+    print CLFILE $row->[0] . "\t" . $clan_acc . "\t" . $clan_id . "\t" . $row->[3] . "\t" . $row->[4] . "\n";
+  }
+  close CLFILE;
 
 }
 
@@ -537,7 +534,7 @@ unless ( -d "$thisRelDir/ftp" ) {
 }
 
 
-#make keyword indices
+#make SeqInfo
 unless ( -d "$thisRelDir/SeqInfo" ){
     $logger->info("Making SeqInfo");
     my $seqinfo_dir = $thisRelDir . "/SeqInfo";
@@ -1012,7 +1009,7 @@ sub makePfamAFlatSeed {
     #Check the tree file and write to disk
     my $sTree = Compress::Zlib::memGunzip( $row->tree );
     unless ( length($sTree) > 10 ) {
-      $logger->warn('The tree file has no size');
+      $logger->warn('The '.$family->pfama_acc.' tree file has no size');
       push(
         @errors,
         {
@@ -1042,10 +1039,29 @@ sub checkStockholmFile {
 
   my @errors;
 
-  #Put the seed alignment into a local file so that we can QC it.
-  my $fileContent = Compress::Zlib::memGunzip( $row->alignment );
+  my ( $fileContent, $fileCount, $fileSQCount );
+  open( TMP, "+>/tmp/$$.ali" ) or $logger->logdie("Could not open /tmp/$$.ali:[$!]");
+  print TMP $row->alignment; #This will print it in gzipped format 
+  close TMP;
+
+  open(TMP, "gunzip -c /tmp/$$.ali |" ) or $logger->logdie("Could not open 'gunzip -c /tmp/$$.ali |':[$!]");
+  while(<TMP>) {
+    if (/^#=GF\s+SQ\s+(\d+)/) {
+      $fileSQCount = $1;
+    }
+    $fileContent .= $_;
+
+    next if(/^$/);
+
+    #This should be the raw lines in the file
+    unless (/^(#|\/\/)/) {
+      $fileCount++;
+    }
+  }
+  close TMP;
+
   unless ( length($fileContent) > 10 ) {
-    $logger->warn('The seed alignment has inappropriate size');
+    $logger->warn("The $type alignment has inappropriate size");
     push(
       @errors,
       {
@@ -1056,54 +1072,32 @@ sub checkStockholmFile {
     );
   }
 
-  my ( $fileCount, $fileSQCount );
-  open( TMP, "+>/tmp/$$.ali" )
-    or $logger->logdie("Could not open /tmp/$$.ali:[$!]");
-
-  #Print out the stockholm file
-  print TMP $fileContent;
-  seek( TMP, 0, 0 );
-  while (<TMP>) {
-    unless ($fileSQCount) {
-      if (/^#=GF\s+SQ\s+(\d+)/) {
-        $fileSQCount = $1;
-      }
-    }
-    next if(/^$/);
-    #This should be the raw lines in the file
-    unless (/^(#|\/\/)/) {
-      $fileCount++;
-    }
-  }
-  close(TMP);
 
   #Now cross reference all of these numbers!
   if ( $fileCount != $exptCount ) {
-    $logger->warn( "The number of sequences in the flat file [$acc] and "
-        . "the number of $type regions do not match" );
+    $logger->warn( "The number of sequences in the $acc $type flat file and "
+        . "the number of $type regions do not match (file count is [$fileCount], expected count is [$exptCount])" );
     push(
       @errors,
       {
         family  => $acc,
         file    => $type,
-        message => "The number of sequences in the flat file ["
-          . $acc
-          . "] and "
-          . " the number of $type regions do not match"
+        message => "The number of sequences in the $acc $type flat file and "
+          . " the number of $type regions do not match (file count is [$fileCount], expected count is [$exptCount])"
       }
     );
   }
 
   if ( $fileSQCount != $exptCount ) {
-    $logger->warn( "The number of sequences in #=GF line [$acc]"
-        . " and the number of $type regions do not match" );
+    $logger->warn( "The number of sequences in $acc $type #=GF line "
+        . " and the number of $type regions do not match (file SQ count is [$fileSQCount], expected count is [$exptCount])" );
     push(
       @errors,
       {
         family => $acc,
-        file   => 'seed',
+        file   => $type,
         message =>
-'The number of sequences in the flat file and the number in the seed regions do not match'
+"The number of sequences in the $type flat file and the number of $type regions do not match, (file SQ count is [$fileSQCount], expected count is [$exptCount])"
       }
     );
 
@@ -1111,15 +1105,15 @@ sub checkStockholmFile {
 
   if ($dbCount) {
     if ( $dbCount != $exptCount ) {
-      $logger->warn( "The number of sequences in db region table for [$acc]"
-          . " and the number of $type regions do not match" );
+      $logger->warn( "The number of sequences in db region table for $acc"
+          . " and the number of $type regions do not match ([$dbCount] vs [$exptCount])" );
       push(
         @errors,
         {
           family  => $acc,
-          file    => 'seed',
-          message => "The number of sequences in db region table for [$acc]"
-            . " and the number of $type regions do not match"
+          file    => $type,
+          message => "The number of sequences in db region table for $acc"
+            . " and the number of $type regions do not match ([$dbCount] vs [$exptCount])"
         }
       );
     }
@@ -1541,8 +1535,25 @@ my ( $thisRelDir, $pfamDB, $families ) = @_;
       }
 
     }
+    elsif($family->pfama_acc eq "PF07960") {
+      if(-s "PF07690.ncbi.gz") {  #This alignment won't fit in the db, and should have been run separately and put in the cwd
+        open(FAM, "gunzip -c PF07690.ncbi.gz |") or $logger->logdie("Couldn't open fh to 'gunzip -c PF07690.ncbi.gz |', $!");
+        while(<FAM>) {
+          print PFAMANCBI $_;
+        }
+        close FAM;
+      }
+      else {
+        $logger->warn("PF07690.ncbi.gz doesn't exist in cwd, so will be unable to add it to the ncbi flatfile") ;
+        push(@errors, { family  => $family->pfama_acc,
+                        file    => 'ncbiAli',
+                        message => 'No row from database and alignment not in cwd'
+                                                                        }
+                                                                              );
+      }
+    }
     else {
-      $logger->warn("Failed to get NCBI row");
+      $logger->warn("Failed to get NCBI row for ".$family->acc);
       push(
         @errors,
         {
