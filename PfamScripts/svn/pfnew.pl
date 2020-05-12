@@ -207,7 +207,7 @@ unless ($ignore) {
     #Check if the pfamA id is already being used
     my $row = $pfamDB->getSchema->resultset('PfamA')->find({ pfamA_id => $newFamObj->DESC->ID });
     if($row) {
-      print "pfnew: There is already a family in the database called ".$newFamObj->DESC->ID." (".$row->pfama_acc.")\n";
+      print "pfnew: Unable to commit your family as there is already a family in the database called ".$newFamObj->DESC->ID." (".$row->pfama_acc.")\n";
       exit;
     }
   }
