@@ -193,7 +193,7 @@ unless ($ignore) {
 
     my $overlaps =
       &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $newFamObj, undef, undef); 
- 
+
     if ($overlaps) {
       print "Looks like your family contains overlaps.\n";
       exit(1);
@@ -202,6 +202,13 @@ unless ($ignore) {
     unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj, $pfamDB ) ) { 
       print "pfnew: $family contains errors.  You should rebuild this family.\n";
       exit(1);
+    }
+    
+    #Check if the pfamA id is already being used
+    my $row = $pfamDB->getSchema->resultset('PfamA')->find({ pfamA_id => $newFamObj->DESC->ID });
+    if($row) {
+      print "pfnew: There is already a family in the database called ".$newFamObj->DESC->ID." (".$row->pfama_acc.")\n";
+      exit;
     }
   }
 
