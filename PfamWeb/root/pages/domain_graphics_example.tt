@@ -28,7 +28,7 @@ META naked = 1;
     <title>Domain graphics test page</title>
 
     <!-- load the prototype library from google -->
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="//www.google.com/jsapi"></script>
     <script type="text/javascript">google.load("prototype", "1.7");</script>
 
     <!-- the following libraries are all hosted on the Pfam site, but can obviously be
