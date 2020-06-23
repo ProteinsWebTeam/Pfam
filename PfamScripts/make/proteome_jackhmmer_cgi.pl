@@ -55,11 +55,16 @@ use Bio::Pfam::PfamLiveDBManager;
 
 #-------------------------------------------------------------------------------
 #Check options and expected input
-my ($ncbi_taxid);
+my ($ncbi_taxid, $help);
 
 &GetOptions(
-  "ncbi_taxid=i" => \$ncbi_taxid) or exit;
+  "ncbi_taxid=i" => \$ncbi_taxid,
+   "help"        => \$help);
 
+if($help or !$ncbi_taxid) {
+  print STDERR "Need to supply ncbi taxid on the command line\nE.g. $0 -ncbi_taxid 9606\n";
+  help();
+}
 
 #-------------------------------------------------------------------------------
 # Create a user agent object
@@ -67,6 +72,7 @@ my $ua = LWP::UserAgent->new;
 $ua->agent("ProteomeJackhmmer/0.1 ");
 
 print STDERR "Querying pfam database to find out which sequences have Pfam domains\n"; 
+
 #Set any proxy
 my $config = Bio::Pfam::Config->new;
 if ( $config->proxy and $config->proxy =~ /http/ ) {
@@ -87,7 +93,11 @@ my $res = $ua->request(
 );
 
 #-------------------------------------------------------------------------------
-# Check the outcome of the response, if successful create directories for each sequence that doesn't have a Pfam
+# Check the outcome of the response, if successful create directories that contain a fasta file
+# for each sequence that doesn't have a Pfam domain
+# Also print a summary file containing the number of proteins in the proteome that have a Pfam
+# domain
+
 my $number_seqs;
 my $jackhmmer_dir = "Jackhmmer";
 if ( $res->is_success ) {
@@ -133,7 +143,10 @@ chdir($jackhmmer_dir) or die "Couldn't chdir into $jackhmmer_dir, $!";
 foreach my $sequence (@dirs) {
   chdir($sequence) or die "Couldn't chdir into $sequence, $!";
   print STDERR "Running pfjbuild on $sequence\n";
-  system("pfjbuild -local -N 3 -fa seq.fasta -chk chk -gzip") and die "Failed to run 'pfjbuild -local -N 3 -fa seq.fasta -chk chk -gzip' on $sequence, $!";
+  system("pfjbuild -local -N 3 -fa seq.fasta -chk chk -gzip -noOverlap") and die "Failed to run 'pfjbuild -local -N 3 -fa seq.fasta -chk chk -gzip' on $sequence, $!";
+  if(-s "align") {  #Check for overlaps 
+    system("pfjbuild_overlap_cgi -align align");
+  }
   chdir("../") or die "Couldn't chdir up from $sequence, $!";
 }
 
@@ -144,24 +157,17 @@ exit;
 sub help {
   print STDERR << "EOF";
 
-This script runs checks for overlaps between a Pfam family and the
-current Pfam database (pfamlive). It is brokered through the pfamsvn 
+This script takes an ncbi taxid as a command line arguent. It looks in
+current Pfam database (pfamlive) to see which sequences in the proteome
+do not have a Pfam domain. The script is brokered through the pfamsvn 
 and should be used by those who can not get direct connection to 
 the database. The proxy is taken from PFAM_CONFIG file or environment 
 settings.
 
+
 Usage:
 
-    $0 <family>
-
-Addional options:
-
-   -i <family_name>       :Ignore this family (-i can occur multiple times)
-   -compete               :Compete family before checking for overlaps
-   -no_sigP               :Do not check whether family overlaps with signal peptide
-   -filter                :Filter overlaps (small overlaps are sometimes permitted,
-                           use this option to remove such overlaps from the output)
-
+    $0 -ncbi_taxid
 EOF
 
   exit(0);
