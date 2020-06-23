@@ -31,6 +31,18 @@ unless($ncbi_tax) {
 
 }
 
+my $config = Bio::Pfam::Config->new;
+
+#If running outside of EBI, use the cgi script
+unless($config->location eq 'EBI') {
+  warn "Location is not EBI, running cgi script\n";
+  if($max_jobs) {
+    die "max_jobs option cannot be used outside of EBI\n";
+  }
+  system("proteome_jackhmmer_cgi -ncbi_taxid $ncbi_tax");
+  exit;
+}
+
 if($max_jobs) {
   unless($max_jobs >0) {
     $logger->logdie("max_jobs needs to be a number greater than 0");
@@ -43,7 +55,6 @@ else {
 open(SUMMARY, ">$ncbi_tax.txt") or die "Couldn't open fh to $ncbi_tax.txt, $!";
 
 
-my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 my $dbh = $pfamDB->getSchema->storage->dbh;
