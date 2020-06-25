@@ -58,11 +58,11 @@ use Bio::Pfam::PfamLiveDBManager;
 my ($ncbi_taxid, $help);
 
 &GetOptions(
-  "ncbi_taxid=i" => \$ncbi_taxid,
+  "ncbi_tax=i" => \$ncbi_taxid,
    "help"        => \$help);
 
 if($help or !$ncbi_taxid) {
-  print STDERR "Need to supply ncbi taxid on the command line\nE.g. $0 -ncbi_taxid 9606\n";
+  print STDERR "Need to supply ncbi taxid on the command line\nE.g. $0 -ncbi_tax <ncbi_taxid>\n";
   help();
 }
 
@@ -108,7 +108,7 @@ if ( $res->is_success ) {
   my $acc;
   foreach my $l (split(/\n/, $res->content)){
     if($fasta_flag) {
-      if($l =~ /^>(\S+)/) {
+      if($l =~ /^>(\S+)\.\d+/) {
         $acc = $1;
         $number_seqs++;
         my $dir = "$jackhmmer_dir/$acc";
