@@ -39,7 +39,7 @@ unless($config->location eq 'EBI') {
   if($max_jobs) {
     die "max_jobs option cannot be used outside of EBI\n";
   }
-  system("proteome_jackhmmer_cgi -ncbi_taxid $ncbi_tax");
+  system("proteome_jackhmmer_cgi -ncbi_tax $ncbi_tax");
   exit;
 }
 
