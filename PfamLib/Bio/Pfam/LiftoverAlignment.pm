@@ -126,10 +126,10 @@ sub make_database_from_hmmsearch {
   _make_fasta($database, $tmp_file, $mini_db);
 }
 
-=head2 make_alignment_from_phmmer
+=head2 transform_alignment
 
- Title    : make_alignment_from_phmmer
- Usage    : Bio::Pfam::LiftoverAlignment::make_alignment_from_phmmer($alignment, $hmm_file, $evalue_threshold, $database_to_phmmer_against)
+ Title    : transform_alignment
+ Usage    : Bio::Pfam::LiftoverAlignment::transform_alignment($alignment, $hmm_file, $evalue_threshold, $database_to_phmmer_against)
  Function : Runs a phmmer search of each sequence in the alignment againt the database using the E-value 
             suppplied. The top hit for each phmmer is aligned to the HMM supplied.
  Returns  : Nothing
@@ -137,7 +137,7 @@ sub make_database_from_hmmsearch {
 
 =cut
 
-sub make_alignment_from_phmmer {
+sub transform_alignment {
 
   my ($alignment, $hmm_file, $evalue_threshold, $mini_db) = @_;
 
