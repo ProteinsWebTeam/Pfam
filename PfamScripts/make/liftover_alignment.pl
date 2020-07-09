@@ -92,6 +92,8 @@ sequence accession for each sequence in the input alignment.
 
 Usage: $0 -alignment <alignment>
 
+Additional options:
+
   -scores                       Use scores file in current directory
   -hmm    <hmm_file>            To specify a HMM file
   -evalue <E-value threshold>   To specify an E-value threshold (default 1e-10)
