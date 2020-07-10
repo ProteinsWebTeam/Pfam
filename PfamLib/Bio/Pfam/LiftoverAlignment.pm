@@ -33,11 +33,11 @@ sub make_hmm {
 =head2 make_database_from_scores
 
  Title    : make_database_from_scores
- Usage    : Bio::Pfam::LiftoverAlignment::make_database_from_scores($scores_file, $evalue_threshold, $mini_db_name) 
+ Usage    : Bio::Pfam::LiftoverAlignment::make_database_from_scores($scores_file, $evalue_threshold, $database, $mini_db_name) 
  Function : Makes a fasta file of all sequences that are present in the scores file and satisfy the 
             E-value threshold supplied
  Returns  : Nothing
- Args     : Scores file, E-value threshold, outfile name for fasta file
+ Args     : Scores file, E-value threshold, database to retrive sequences from, outfile name for fasta file
 
 =cut
 
@@ -78,7 +78,7 @@ sub make_database_from_scores {
 =head2 make_database_from_hmmsearch
 
  Title    : make_database_from_hmmsearch
- Usage    : Bio::Pfam::LiftoverAlignment::make_database_from_hmmsearch
+ Usage    : Bio::Pfam::LiftoverAlignment::make_database_from_hmmsearch($hmm_file, $evalue_threshold, $mini_db, $database, $db_size)
  Function : Runs hmmsearch with HMM against database using E-value threshold supplied. Makes a fasta file 
             of all sequences in the hmmsearch outfile.
  Returns  : Nothing
@@ -129,17 +129,17 @@ sub make_database_from_hmmsearch {
 =head2 transform_alignment
 
  Title    : transform_alignment
- Usage    : Bio::Pfam::LiftoverAlignment::transform_alignment($alignment, $hmm_file, $evalue_threshold, $database_to_phmmer_against)
- Function : Runs a phmmer search of each sequence in the alignment againt the database using the E-value 
-            suppplied. The top hit for each phmmer is aligned to the HMM supplied.
+ Usage    : Bio::Pfam::LiftoverAlignment::transform_alignment($alignment, $hmm_file, $database_to_phmmer_against)
+ Function : Runs a phmmer search of each sequence in the alignment againt the database. The top hit for each 
+            phmmer is aligned to the HMM supplied.
  Returns  : Nothing
- Args     : Alignment, HMM, E-value threshold, database to phmmer against
+ Args     : Alignment, HMM, database to phmmer against
 
 =cut
 
 sub transform_alignment {
 
-  my ($alignment, $hmm_file, $evalue_threshold, $mini_db) = @_;
+  my ($alignment, $hmm_file, $mini_db) = @_;
 
   my $best_hit_fasta = "phmmer_best_hit.fa";
   my $change_log = "change.log";
@@ -172,7 +172,7 @@ sub transform_alignment {
       close F;
 
       #phmmer against mini database
-      system("phmmer -A $acc.aln --incE $evalue_threshold -o /dev/null $acc.fa $mini_db") and die "Couldn't run 'phmmer -A $acc.aln --incE $evalue_threshold -o /dev/null $acc.fa $mini_db', $!";
+      system("phmmer -A $acc.aln -o /dev/null $acc.fa $mini_db") and die "Couldn't run 'phmmer -A $acc.aln -o /dev/null $acc.fa $mini_db', $!";
       open(PHMMER, "$acc.aln") or die "Couldn't open fh to $acc.aln, $!";
 
       #Add best hit to fasta file
@@ -182,15 +182,17 @@ sub transform_alignment {
         if(/(\S+)\s+(\S+)/) {
           ($best_seq_acc, $best_seq) = ($1, $2);
           print CL "$acc_se => $best_seq_acc\n";  #Keep a log of what was changed
-
-          last if(exists($added{$best_seq_acc})); #Don't add things more than once
-
+          $count++;
+          if(exists($added{$best_seq_acc})) {  #Don't add things more than once
+            print STDERR "Already added $best_seq_acc to alignment, will not add duplicate\n";
+            last;
+          }
+        
           $added{$best_seq_acc}=1;
           $best_seq =~ s/[-.]//g; #Remove gaps
           $best_seq = uc($best_seq); #Make uppercase
 
           print PF ">$best_seq_acc\n$best_seq\n";
-          $count++;
           last;
         }
       }
@@ -248,7 +250,7 @@ sub _run_hmmalign {
  Usage    : Bio::Pfam::_make_fasta($database, $file_of_seq_accessions. $outfile_name)
  Function : Creates a fasta file from a list of sequence accessions 
  Returns  : Nothing
- Args     : Database to retrived sequences from, list of accessions, name of outfile to write to
+ Args     : Database to retrive sequences from, list of accessions, name of outfile to write to
 
 =cut
 
@@ -264,7 +266,7 @@ sub _make_fasta {
 =head _convert_to_pfam_format
 
  Title    : _convert_to_pfam_format
- Usage    : Bio::Pfam::AlignmentLiftover::_convert_to_pfam_format
+ Usage    : Bio::Pfam::AlignmentLiftover::_convert_to_pfam_format(($alignment, $outfile_name)
  Function : Reformats stockholm format to Pfam style alignment (ie one line per sequence)
  Returns  : Nothing
  Args     : Alignment, name of output alignment
