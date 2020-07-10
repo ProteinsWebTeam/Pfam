@@ -11,7 +11,7 @@ my $scores_file = "scores";
 
 my ($alignment, $hmm_file, $scores, $local, $help);
 
-&GetOptions("alignment=s" => \$alignment,
+&GetOptions("align=s" => \$alignment,
   "hmm=s"    => \$hmm_file,
   "scores"   => \$scores,
   "evalue=f" => \$evalue_threshold,
@@ -52,7 +52,7 @@ if($local) {
   }
 
   #Make mini database from scores file or via a hmmsearch against pfamseq
-  if($scores_file) {
+  if($scores) {
     Bio::Pfam::LiftoverAlignment::make_database_from_scores($scores_file, $evalue_threshold, $db, $mini_db);
   }
   else {
@@ -61,14 +61,14 @@ if($local) {
   }
 
   #Run phmmer on each seq in aligment, and align the top hit using hmmalign
-  Bio::Pfam::LiftoverAlignment::transform_alignment($alignment, $hmm_file, $evalue_threshold, $mini_db);
+  Bio::Pfam::LiftoverAlignment::transform_alignment($alignment, $hmm_file, $mini_db);
 }
 else {
   my $queue = $config->{farm}->{lsf}->{queue};
   my $memory_mb = 4000;
 
   my $job_name = "Liftover_$alignment";
-  system("bsub -q $queue -M 4000 -R \"rusage[mem=$memory_mb]\" -o liftover.log -J$job_name $0 -align $alignment -local");
+  system("bsub -q $queue -M 4000 -R \"rusage[mem=$memory_mb]\" -o liftover.log -J$job_name $0 -align $alignment -local -evalue $evalue_threshold");
 }
 
 sub help {
@@ -90,7 +90,7 @@ a HMM file and an E-value threshold. The steps in the script are as follow:
 The script also creates a file called change.log which shows the replacement
 sequence accession for each sequence in the input alignment.
 
-Usage: $0 -alignment <alignment>
+Usage: $0 -align <alignment>
 
 Additional options:
 
