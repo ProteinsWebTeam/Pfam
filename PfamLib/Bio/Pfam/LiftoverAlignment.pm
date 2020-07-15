@@ -173,14 +173,23 @@ sub transform_alignment {
 
       #phmmer against mini database
       system("phmmer -A $acc.aln -o /dev/null $acc.fa $mini_db") and die "Couldn't run 'phmmer -A $acc.aln -o /dev/null $acc.fa $mini_db', $!";
-      open(PHMMER, "$acc.aln") or die "Couldn't open fh to $acc.aln, $!";
+      if(-s "$acc.aln") {
+        _convert_to_pfam_format("$acc.aln", "$acc.pfam.aln");
+      }
+      else {
+        print CL "$acc_se => no phmmer match to mini database\n";
+        unlink("$acc.aln");
+        unlink("$acc.fa");
+        next;
+      }
+
+      open(PHMMER, "$acc.pfam.aln") or die "Couldn't open fh to $acc.pfam.aln, $!";
 
       #Add best hit to fasta file
-      my ($best_seq_acc, $best_seq) = ("", "");
       while(<PHMMER>) {
         next if(/^#/ or /^\s+/);
         if(/(\S+)\s+(\S+)/) {
-          ($best_seq_acc, $best_seq) = ($1, $2);
+          my ($best_seq_acc, $best_seq) = ($1, $2);
           print CL "$acc_se => $best_seq_acc\n";  #Keep a log of what was changed
           $count++;
           if(exists($added{$best_seq_acc})) {  #Don't add things more than once
@@ -198,11 +207,9 @@ sub transform_alignment {
       }
       close PHMMER;
 
-      unless($best_seq) {
-        print CL "$acc_se => no phmmer match to mini database\n";
-      }
       unlink("$acc.aln");
       unlink("$acc.fa");
+      unlink("$acc.pfam.aln");
     }
   }
   close ALN;
@@ -279,21 +286,19 @@ sub _convert_to_pfam_format {
 
   my ($original_alignment, $new_alignment) = @_;
 
-  my %reformat;
+  my (%reformat, @order); #Keep sequences in the same order
   my $maxlength = 0;
   open(A1, $original_alignment) or die "Couldn't open $original_alignment, $!";
   open(A2, ">$new_alignment") or die "Couldn't open $new_alignment, $!";
 
   while(<A1>){
-    if(/^(\S+)\s+(\S+)$/){
+    if(/^#/ or /\/\// or /^$/){
+      next;
+    }
+    elsif(/^(\S+)\s+(\S+)$/){
       $maxlength = length($1) if ($maxlength < length($1));
+      push(@order, $1) unless(exists($reformat{$1}));
       $reformat{$1} .= $2;
-    }elsif(/^#/){
-      next;
-    }elsif(/\/\//){
-      next;
-    }elsif(/^$/){
-      next;
     }else{
       warn "Did not parse $_ from the stockholm format\n";
     }
@@ -301,7 +306,7 @@ sub _convert_to_pfam_format {
   close(A1);
 
   $maxlength += 2;
-  foreach my $nse (keys %reformat){
+  foreach my $nse (@order){
     print A2 sprintf("%-".$maxlength."s", $nse);
     print A2 $reformat{$nse}."\n";
   }
