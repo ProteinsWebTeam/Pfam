@@ -146,7 +146,7 @@ $0
 Options:
   -num <integer>: The number of top scoring proteins to add to the arch file
                   if no Swiss-Prot Pfam matches are found (default=5)
-
+  -help         : Shows this help
 EOF
 
   exit;
