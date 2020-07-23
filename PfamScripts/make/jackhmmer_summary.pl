@@ -6,6 +6,8 @@ use Getopt::Long;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::CompositionalBias;
+use LWP::UserAgent;
+use HTTP::Request::Common;
 use Log::Log4perl qw(:easy);
 
 
@@ -13,12 +15,13 @@ use Log::Log4perl qw(:easy);
 #create a file called summary.txt in each direcotory with the
 #following info:
 #
-#seq_id  totalseq:     <num seq>  overlaps:      <num overlaps>  Gain:      <gain>  Frac gained: <frac gained> <List of overlapping fam>
+#seq_id  totalseq:     <num seq>  overlaps:      <num overlaps>  Gain:      <gain>  Frac gained: <frac gained>  Bias: <bias><List of overlapping fam>
 #
 #totalseq=number of sequences (not domains) in the align file
 #overlaps=number of sequences (not domains) in the overlaps file
 #gain=total_seq-overlaps
 #frac gained=gain/totalseq*100
+#bias=proportion (%) of residues that are predicted to be low complexity or disordered
 #
 #The list of overlapping families/clans is given if overlaps are present
 #
@@ -149,11 +152,11 @@ foreach my $dir (@dirs) {
     $prop_bias = Bio::Pfam::CompositionalBias::calculate_compositional_bias("$full_dir/$aln");
   }
   $prop_bias= sprintf("%.1f", $prop_bias);
-  
+
   open(OUT, ">$full_dir/summary.txt") or $logger->logdie("Couldn't open fh to $full_dir/summary.txt, $!");
 
   print OUT sprintf ("%-10s totalseq:%7s  overlaps:%7s  Gain: %7s  Frac gained: %4s  Bias: %4s  ", $dir, $align, $overlap, $gain, $frac_gain, $prop_bias);
-  
+
   if($clan_fam) {
     print OUT "$clan_fam\n";
   }
@@ -172,7 +175,7 @@ print ALL "#totalseq=number of sequences (not domains) in the align file\n";
 print ALL "#overlaps=number of sequences (not domains) in the overlaps file\n";
 print ALL "#gain=total_seq-overlaps\n";
 print ALL "#frac gained=gain/totalseq\n";
-print ALL "#bias=proportion of residues in align file predicted to be disordered or low complexity\n";
+print ALL "#bias=proportion (%) of residues in align file predicted to be disordered or low complexity\n";
 print ALL "#Overlapping clans and families are given at the end of the line (if any)\n";
 close ALL;
 
@@ -186,22 +189,61 @@ system("cat $directory/*/summary.txt | sort -k5n -k7nr >> alldata") and die "Cou
 sub clan_mapping {
 
   my $hash = shift;
-  $logger->info("Getting clan membership from rdb");
+
   my $config = Bio::Pfam::Config->new;
 
-  my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+  if($config->location eq 'EBI') {
+    $logger->info("Getting clan membership from rdb");
+    my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
-  my $array_ref = $pfamDB->getAllClanData;
+    my $array_ref = $pfamDB->getAllClanData;
 
-  foreach my $clan (@$array_ref){
-    my $membership_ref = $pfamDB->getClanMembership($clan->clan_acc);
-    foreach my $pfamA (@$membership_ref){               
-      $hash->{$pfamA->pfama_acc->pfama_id}=$clan->clan_acc;
+    foreach my $clan (@$array_ref){
+      my $membership_ref = $pfamDB->getClanMembership($clan->clan_acc);
+      foreach my $pfamA (@$membership_ref){
+        $hash->{$pfamA->pfama_acc->pfama_id}=$clan->clan_acc;
+      }
+    }
+  }
+  else {
+    #Need to use cgi script to get clan info
+    $logger->info("Getting clan membership from Pfam database");
+
+    # Create a user agent object
+    my $ua = LWP::UserAgent->new;
+    $ua->agent("JackhmmerSummary/0.1 ");
+
+    #Set any proxy
+    if ( $config->proxy and $config->proxy =~ /http/ ) {
+      print STDERR "Setting proxy\n";
+      $ua->proxy( [ 'http', 'ftp', 'https' ], $config->proxy );
+    }
+    elsif ( $ENV{http_proxy} ) {
+      $ua->env_proxy;
+    }
+
+    #A little insurance
+    $ua->timeout(600);
+
+    #Pass request to the user agent and get a response back
+    my $res = $ua->request(
+      POST 'https://xfamsvn.ebi.ac.uk/cgi-bin/clan_mapping.cgi',
+      Content      => []
+    );
+
+    if ( $res->is_success ) {
+      foreach my $l (split(/\n/, $res->content)){
+        if($l =~ /(\S+)\s+(\S+)/) {
+          $hash->{$1}=$2;
+        }
+      }
+    }
+    else {
+      print $res->status_line, "\n";
     }
   }
   $logger->info("Got clan membership");
 }
-
 
 sub help {
 
@@ -211,7 +253,7 @@ This program should be run after proteome_jackhmmer.pl.  It loops over
 each directory of Jackhmmer searches and creates a file called
 summary.txt in each directory with the following info:
 
-seq_id  totalseq:     <num seq>  overlaps:      <num overlaps>  Gain:      <gain>  Frac gained: <frac gained> <List of overlapping fam>
+seq_id  totalseq:     <num seq>  overlaps:      <num overlaps>  Gain:      <gain>  Frac gained: <frac gained>  Bias:  <bias> <List of overlapping fam>
 
 The script concatenates all these files together in a file called
 alldata in the cwd.
