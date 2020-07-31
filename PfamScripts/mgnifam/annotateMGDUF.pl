@@ -19,7 +19,7 @@ use Bio::Pfam::FamilyIO;
 
 my ($directory, $author);
 
-GetOptions('directory' => \$directory,
+GetOptions('directory=s' => \$directory,
              'author=s' => \$author);
 
 
