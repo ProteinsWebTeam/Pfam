@@ -90,7 +90,7 @@ my $guard = $pfamDB->getSchema->txn_scope_guard;
 #This will create the necessary row in the Pfam-A table.
 $pfamDB->createPfamA($famObj, $pfamDB, $whoami);
 #Delete the dead family data.
-$pfamDB->getSchema->resultset("DeadFamilies")->search({pfama_acc => $accession})->delete;
+$pfamDB->getSchema->resultset("DeadFamily")->search({pfama_acc => $accession})->delete;
 $guard->commit;
 
 #Commit back into the repository.  With this tag, it should trigger the pfci 

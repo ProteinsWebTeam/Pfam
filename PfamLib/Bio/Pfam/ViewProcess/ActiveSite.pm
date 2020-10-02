@@ -69,7 +69,7 @@ sub active_site_prediction {
   #Shouldn't be any old data to delete when doing a new release. This part results in lots of time outs when running
   #the view process so commented it out.
   #Delete old data, if any
-  #$self->{database}->getSchema->resultset('ActiveSiteHmmPosition')->search( { pfamA_acc => $self->{pfama_acc}} )->delete;
+  $self->{database}->getSchema->resultset('ActiveSiteHmmPosition')->search( { pfamA_acc => $self->{pfama_acc}} )->delete;
   #my $dbh = $self->{database}->getSchema->storage->dbh;
   #$dbh->do("delete from pfamseq_markup where pfamA_acc='".$self->{pfama_acc}."';");
 
