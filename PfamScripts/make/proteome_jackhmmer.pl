@@ -35,11 +35,7 @@ my $config = Bio::Pfam::Config->new;
 
 #If running outside of EBI, use the cgi script
 unless($config->location eq 'EBI') {
-  warn "Location is not EBI, running cgi script\n";
-  if($max_jobs) {
-    die "max_jobs option cannot be used outside of EBI\n";
-  }
-  system("proteome_jackhmmer_cgi -ncbi_tax $ncbi_tax");
+  warn "This script will not work outside of EBI\n";
   exit;
 }
 
