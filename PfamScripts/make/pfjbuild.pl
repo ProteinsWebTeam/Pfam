@@ -32,6 +32,10 @@ sub main {
     die
     "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
+  unless($config->location eq 'EBI') {
+    warn "This script will not work outside of EBI\n";
+    exit;
+  }
   unless ( -d $config->hmmer3bin ) {
     die "Could not find the HMMER3 bin directory," . $config->hmmer3bin . "\n";
   }
@@ -65,13 +69,6 @@ sub main {
     "M=i"       => \$memory,	      
     "help"      => \$help
   ) or help();
-
- unless($config->location eq 'EBI') {
-   unless($noOverlap) {
-     warn "The overlap check in this script will not work outside of EBI. If you want to run this script outside of EBI, please use the -noOverlap option\n";
-     exit;
-   }
- }
 
   my %optCmds;
   unless ($noIts) {
