@@ -92,7 +92,12 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       relationship may be defined by similarity of sequence, structure or
       profile-HMM.
     </p>
-
+    <br />
+    <h2>Pfam Read The Docs</h2>
+    <p>This Pfam help documentation is also available at <a class="ext" 
+       href="https://pfam-docs.readthedocs.io/en/latest/">readthedocs</a>,
+       where it can be searched, printed or downloaded for offline reading.
+    </p>
     [%# the links to the individual questions used to be real links, using
       # anchors in the page to move around. However, that seems to interfere
       # with the new tab manager, so we have to work around it. This snippet
