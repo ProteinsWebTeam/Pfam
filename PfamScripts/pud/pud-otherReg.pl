@@ -30,7 +30,7 @@ $split = 500;
   "statusdir=s"  => \$statusdir,
   "pfamseqdir=s" => \$pfamseqDir,
   "split=i"      => \$split
-  ) or $logger->logdie("Invalid option!");
+) or $logger->logdie("Invalid option!");
 
 #Get the connection to the pfam database.
 my $config = Bio::Pfam::Config->new;
@@ -83,7 +83,7 @@ unless ( -e "$statusdir/otherReg/doneSplit" ) {
     my $rs = $pfamDB->getSchema->resultset('Pfamseq')->search({});
     $dbsize = $rs->count;
   }
-  
+
   my $bit = int( ( $dbsize ) / $split );
   $bit++;
 
@@ -132,9 +132,9 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
 
   #Set up the job and copy the files over;
   $fh->open( "| bsub -q "
-      . $farmConfig->{lsf}->{queue}
-      . " -R \"select[mem>4000] rusage[mem=4000]\" -M 2000000 -o $statusdir/otherReg/$uuid.log  -JotherRegs\"[1-$n]\" " );
- 
+    . $farmConfig->{lsf}->{queue}
+    . " -R \"select[mem>4000] rusage[mem=4000]\" -M 2000000 -o $statusdir/otherReg/$uuid.log  -JotherRegs\"[1-$n]\" " );
+
   #Change into the directory containing the shattered pfamseq files
   $fh->print("cd $pfamseqDir/otherReg\n");
 
@@ -143,14 +143,14 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
 #ncoils - This needs the environment variable COILSDIR to be set. Done via cshrc.pfam
 #phobius
 #iupred - This needs the environment variable IUPred_PATH to be set. Done via cshrc.pfam
- 
+
   $fh->print(
     "ncoils -f < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
   $fh->print("segmasker -in pfamseq.\$\{LSB_JOBINDEX\} -out seg.\$\{LSB_JOBINDEX\}\n");
   $fh->print(
     "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
   $fh->print(
-"iupred_multifasta pfamseq.\$\{LSB_JOBINDEX\} long > iupred.\$\{LSB_JOBINDEX\}\n"
+    "iupred_multifasta pfamseq.\$\{LSB_JOBINDEX\} long > iupred.\$\{LSB_JOBINDEX\}\n"
   );
   $fh->close;
 
@@ -163,48 +163,48 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
 if(-e "$statusdir/otherReg/doneFarmCheck"){
   $logger->info("Already checked the all jobs have completed successfully");
 }else{
-$logger->info("Waiting for jobs to finish on the farm");
-my $finished = 0;
-while ( !$finished ) {
-  open( FH, "bjobs -JotherRegs|" );
-  my $jobnum;
-  while (<FH>) {
-    if (/^\d+/) {
-      $jobnum++;
+  $logger->info("Waiting for jobs to finish on the farm");
+  my $finished = 0;
+  while ( !$finished ) {
+    open( FH, "bjobs -JotherRegs|" );
+    my $jobnum;
+    while (<FH>) {
+      if (/^\d+/) {
+        $jobnum++;
+      }
+    }
+    close FH;
+
+    if ($jobnum) {
+      $logger->info(
+        "Will not continue until your $jobnum outstanding jobs have completed."
+        . "Will check again in ten minutes" );
+      sleep(600);
+    }
+    else {
+      $finished = 1;
     }
   }
-  close FH;
-
-  if ($jobnum) {
-    $logger->info(
-      "Will not continue until your $jobnum outstanding jobs have completed."
-        . "Will check again in ten minutes" );
-    sleep(600);
-  }
-  else {
-    $finished = 1;
-  }
-}
 
 
 #-------------------------------------------------------------------------------
 
 
 #Now we should have every thing back to be joined together and uploaded.
-$logger->info("Checking all of the files have been retieved from the farm");
-my $error;
-for ( my $i = 1 ; $i <= $n ; $i++ ) {
-  foreach my $f (keys %subs) {
-    unless ( -s "$pfamseqDir/otherReg/$f.$i" ) {
-      $logger->warn("$pfamseqDir/otherReg/$f.$i is missing");
-      $error++;
+  $logger->info("Checking all of the files have been retieved from the farm");
+  my $error;
+  for ( my $i = 1 ; $i <= $n ; $i++ ) {
+    foreach my $f (keys %subs) {
+      unless ( -s "$pfamseqDir/otherReg/$f.$i" ) {
+        $logger->warn("$pfamseqDir/otherReg/$f.$i is missing");
+        $error++;
+      }
     }
   }
-}
 
   $logger->logdie('Some of the files are other region files are missing')
-    if ($error);
-  
+  if ($error);
+
   system("touch $statusdir/otherReg/doneFarmCheck");
 }
 
@@ -224,10 +224,10 @@ if(-e "$orDir/allOtherReg.dat"){
 
   for ( my $m = 1 ; $m <= $n ; $m++ ) {
 #    my $pfamseq = getAutos($m, $orDir, $dbh);
-      foreach my $f (keys %subs) {
-	  $logger->info("Parsing $f.$m");
-	  $subs{$f}( $orDir, "$f.$m", $fhOut );
-      }
+    foreach my $f (keys %subs) {
+      $logger->info("Parsing $f.$m");
+      $subs{$f}( $orDir, "$f.$m", $fhOut );
+    }
   }
   close $fhOut;
 }
@@ -249,12 +249,12 @@ if(-e "$statusdir/otherReg/doneUpload"){
   $dbh->do("delete from other_reg");
 
   my $sthInsert = $dbh->prepare("INSERT INTO other_reg (pfamseq_acc, 
-                                                seq_start, 
-                                                seq_end, 
-                                                type_id, 
-                                                source_id, 
-                                                score, 
-                                                orientation) VALUES ( ?,?,?,?,?,?,?)"); #mySQL statement updated due to db schema change - replaced auto_pfamseq with pfamseq_acc
+    seq_start, 
+    seq_end, 
+    type_id, 
+    source_id, 
+    score, 
+    orientation) VALUES ( ?,?,?,?,?,?,?)"); #mySQL statement updated due to db schema change - replaced auto_pfamseq with pfamseq_acc
 
   _loadTable($dbh, "$orDir/allOtherReg.dat" , $sthInsert, 7);
 
@@ -270,8 +270,8 @@ if(-e "$statusdir/otherReg/doneUpload"){
 sub getAutos {
   my ($m, $orDir, $dbh) = @_;  
   my $sth = $dbh->prepare("select pfamseq_acc from pfamseq where pfamseq_acc=?") or
-          $logger->logdie("Error preparing statement:". $dbh->errstr); #updated mySQL statement for db schema change - I assume this should still be used as a sanity check
-  
+  $logger->logdie("Error preparing statement:". $dbh->errstr); #updated mySQL statement for db schema change - I assume this should still be used as a sanity check
+
   my $pfamseq = {};
   open(P, "<", $orDir."/pfamseq.".$m) or $logger->logdie("Failed to open $orDir/pfamseq.$m :[$!]");
   while(<P>){
@@ -287,7 +287,7 @@ sub getAutos {
 
 
 sub parseNcoils {
-    my ($dir, $file, $fh) = @_;
+  my ($dir, $file, $fh) = @_;
   #print STDERR scalar(@{$coilsAR})."$dir, $file\n";
 
   $/ = "\n>";
@@ -304,7 +304,7 @@ sub parseNcoils {
       else {
 
         #print STDERR "Finding coil\n";
-	  &findCoils( $acc, $seq, $fh );
+        &findCoils( $acc, $seq, $fh );
       }
     }
 
@@ -341,97 +341,99 @@ sub findCoils {
 }
 
 sub parseSeg {
-    my ( $dir, $file, $fh ) = @_;
+  my ( $dir, $file, $fh ) = @_;
 #split on \n>
-    $/ = "\n>";
-    open ( SEG, "$dir/$file" ) or $logger->logdie("Could not open $dir/$file:[$!]\n");
-    while (<SEG>) {
-	my @entry = split( /\n/, $_ );
+  $/ = "\n>";
+  open ( SEG, "$dir/$file" ) or $logger->logdie("Could not open $dir/$file:[$!]\n");
+  while (<SEG>) {
+    my @entry = split( /\n/, $_ );
 #parse out acc
-	my $acc;
-	if ($entry[0] =~ /(\w{6,10})\.\d+/){
-	    $acc = $1;
-	} else {
-	    print "parseSeg: can't parse acc\n"
-	}
-	foreach my $line (@entry){
-	    if ($line =~/\w{6,10}\.\d+/){
-		next;
-	    }
-	    if ($line =~/^(\d+)\s+-\s+(\d+)/){
-		my $start = $1;
-		my $end = $2;
-		print $fh "\\N\t$acc\t$start\t$end\tlow_complexity\tsegmasker\t\\N\t\\N\n";
-	    } 
-
-	}
+    my $acc;
+    if ($entry[0] =~ /(\w{6,10})\.\d+/){
+      $acc = $1;
+    } else {
+      print "parseSeg: can't parse acc\n"
+    }
+    foreach my $line (@entry){
+      if ($line =~/\w{6,10}\.\d+/){
+        next;
+      }
+      if ($line =~/^(\d+)\s+-\s+(\d+)/){
+        my $start = $1;
+        my $end = $2;
+        $start++;  #segmasker results are 0 indexed so add one to start and end
+        $end++; 
+        print $fh "\\N\t$acc\t$start\t$end\tlow_complexity\tsegmasker\t\\N\t\\N\n";
+      } 
 
     }
-    close (SEG);
+
+  }
+  close (SEG);
 }
 
 sub parsePhobius {
-    my ( $dir, $phobius_file, $fh ) = @_;
+  my ( $dir, $phobius_file, $fh ) = @_;
 #split on //\n
-    $/ = "//\n";
-    open( PHOB, "$dir/$phobius_file" ) or $logger->logdie("Could not open $dir/$phobius_file:[$!]\n");
-    while (<PHOB>){
-	my @entry = split( /\n/, $_ );
+  $/ = "//\n";
+  open( PHOB, "$dir/$phobius_file" ) or $logger->logdie("Could not open $dir/$phobius_file:[$!]\n");
+  while (<PHOB>){
+    my @entry = split( /\n/, $_ );
 #parse out acc
-	my $acc;
-	if ($entry[0] =~ /ID\s+(\w{6,10})\.\d+/){
-	    $acc = $1;
-	} else {
-	    print "parsePhobius: can't parse acc\n"
-	}
-	foreach my $line (@entry){
-	    if ($line =~/ID\s+\w{6,10}\.\d+/){
-		next;
-	    }
-	    if ($line =~ /^FT\s+SIGNAL\s+(\d+)\s+(\d+)/){
-		my $start = $1;
-		my $end   = $2;
-		print $fh "\\N\t" . $acc . "\t$start\t$end\tsig_p\tPhobius\t\\N\t\\N\n";
-	    } elsif ($line =~ /^FT\s+TRANSMEM\s+(\d+)\s+(\d+)/){
-		my $start = $1;
-		my $end   = $2;
-		print $fh "\\N\t" . $acc . "\t$start\t$end\ttransmembrane\tPhobius\t\\N\t\\N\n";
-	    }
-	}
-
+    my $acc;
+    if ($entry[0] =~ /ID\s+(\w{6,10})\.\d+/){
+      $acc = $1;
+    } else {
+      print "parsePhobius: can't parse acc\n"
     }
-    close (PHOB);
+    foreach my $line (@entry){
+      if ($line =~/ID\s+\w{6,10}\.\d+/){
+        next;
+      }
+      if ($line =~ /^FT\s+SIGNAL\s+(\d+)\s+(\d+)/){
+        my $start = $1;
+        my $end   = $2;
+        print $fh "\\N\t" . $acc . "\t$start\t$end\tsig_p\tPhobius\t\\N\t\\N\n";
+      } elsif ($line =~ /^FT\s+TRANSMEM\s+(\d+)\s+(\d+)/){
+        my $start = $1;
+        my $end   = $2;
+        print $fh "\\N\t" . $acc . "\t$start\t$end\ttransmembrane\tPhobius\t\\N\t\\N\n";
+      }
+    }
+
+  }
+  close (PHOB);
 }
 
 sub parseIupred {
-    my ( $dir, $iupred_file, $fh, $pfamseq_auto ) = @_;
+  my ( $dir, $iupred_file, $fh, $pfamseq_auto ) = @_;
 #split on // and new line
-    $/ = "//\n";
-    open( DIS, "<", "$dir/$iupred_file" )  or $logger->logdie("Failed to open $dir/$iupred_file for reading:[$!]");
-    while (<DIS>) {
-	my @entry_c = split( /\n/, $_ );
+  $/ = "//\n";
+  open( DIS, "<", "$dir/$iupred_file" )  or $logger->logdie("Failed to open $dir/$iupred_file for reading:[$!]");
+  while (<DIS>) {
+    my @entry_c = split( /\n/, $_ );
 #get rid of comments
-	my @entry = grep {!/^#/} @entry_c;
-	my $acc;
-	if ($entry[0] =~ /ID\s+(\w{6,10})\.\d+/){
-	    $acc = $1;
-	} else {
-	    print "parseIupred: can't parse acc\n";
-	}
-	foreach my $line (@entry){
-	    if ($line =~/ID\s+\w{6,10}\.\d+/){
-		next;
-	    }
- 	    if ($line =~ /^FT\s+IUPred\s+(\d+)\s+(\d+)/){
-		my $start = $1;
-		my $end = $2;
-		print $fh "\\N\t" . $acc . "\t$start\t$end\tdisorder\tIUPred\t\\N\t\\N\n";
-	    }
-	}
-
+    my @entry = grep {!/^#/} @entry_c;
+    my $acc;
+    if ($entry[0] =~ /ID\s+(\w{6,10})\.\d+/){
+      $acc = $1;
+    } else {
+      print "parseIupred: can't parse acc\n";
+    }
+    foreach my $line (@entry){
+      if ($line =~/ID\s+\w{6,10}\.\d+/){
+        next;
+      }
+      if ($line =~ /^FT\s+IUPred\s+(\d+)\s+(\d+)/){
+        my $start = $1;
+        my $end = $2;
+        print $fh "\\N\t" . $acc . "\t$start\t$end\tdisorder\tIUPred\t\\N\t\\N\n";
+      }
     }
 
-    close (DIS);
+  }
+
+  close (DIS);
 }
 
 sub _loadTable {

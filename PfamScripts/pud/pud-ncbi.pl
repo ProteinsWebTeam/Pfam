@@ -39,7 +39,10 @@ $logger->debug( "Ncbi file will be copied to $nfs_ncbi_dir");
 my $file = "$store_dir/nr.gz";
 unless($skip){
   $logger->info("Removing old files in $store_dir");
-  unlink(glob "$store_dir/*");
+  foreach my $file ("GB_Release_Number", "nr", "nr.ssi") {
+    unlink("$store_dir/$file");
+  }
+
   $logger->info( "Downloading file release number.....[ $store_dir]");
   getstore( $NCBI_PATH."/GB_Release_Number","$store_dir/GB_Release_Number" ) 
     || $logger->logdie( "cant store the file GB_Release_Number in $store_dir/GB_Release_Number");   

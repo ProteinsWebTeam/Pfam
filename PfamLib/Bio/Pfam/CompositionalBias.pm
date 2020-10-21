@@ -42,14 +42,20 @@ sub count_residues {
 
   open(OUT, ">$fasta") or die "Couldn't open fh to $fasta, $!";
   open(FA, "esl-reformat -u fasta $aln_or_fasta |") or die "Couldn't open fh to 'esl-reformat -u fasta $aln_or_fasta |', $!";
+  my $n = 1; #Used to make ids unique (mobidb_lite doesn't like duplicates)
   while(<FA>) {
     if(/^>/) {
       if(/^>(\S+)\//) {     #modbidb_lite doesn't like accessions in the form A0A1Y4TGR4.1/136-354, so strip out co-ordinates
-        print OUT ">$1\n";
+        print OUT ">$n:$1\n";
+      }
+      elsif(/^>(\S+)/) {
+        print OUT ">$n:$1\n";
       }
       else {
-        print OUT $_;
+        chomp $_;
+        die "Unable to parse fasta header [$_]\n";
       }
+      $n++;
     } 
     else {
       chomp($_);

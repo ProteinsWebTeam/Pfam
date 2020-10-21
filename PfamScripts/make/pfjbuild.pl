@@ -32,8 +32,9 @@ sub main {
     die
     "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
-  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) {
-    warn "Unknown location... things will probably break\n";
+  unless($config->location eq 'EBI') {
+    warn "This script will not work outside of EBI\n";
+    exit;
   }
   unless ( -d $config->hmmer3bin ) {
     die "Could not find the HMMER3 bin directory," . $config->hmmer3bin . "\n";
@@ -68,7 +69,6 @@ sub main {
     "M=i"       => \$memory,	      
     "help"      => \$help
   ) or help();
-
 
   my %optCmds;
   unless ($noIts) {
