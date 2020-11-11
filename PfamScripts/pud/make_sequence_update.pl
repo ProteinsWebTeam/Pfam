@@ -132,7 +132,7 @@ if(-e "$status_dir/added_fk_pfamseq") {
 }
 else { 
   $logger->info("Adding back ncbi foreign key to pfamseq table");
-  my $command="mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{user}." -p". $pfamDB->{password}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." -e ";
+  my $command="mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{adminuser}." -p". $pfamDB->{adminpassword}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." -e ";
   $command.="'alter table pfamseq add constraint FK_pfamseq_1 foreign key (ncbi_taxid) references ncbi_taxonomy (ncbi_taxid) on delete cascade on update no action'";
   
   system("$command") and $logger->logdie("Couldn't add FK to pfamseq table, $!");
