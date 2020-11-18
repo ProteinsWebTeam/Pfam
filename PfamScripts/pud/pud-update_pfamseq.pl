@@ -159,7 +159,7 @@ else {
         }
         elsif( $line =~ /^ID\s+(\S+)\s+(\S+)/){
           $record{'ID'} = $1;  
-          if($2 eq 'Reviewed') {
+          if($2 eq 'Reviewed;') {
             $record{'SWISSPROT'}=1;
           }
           else {
