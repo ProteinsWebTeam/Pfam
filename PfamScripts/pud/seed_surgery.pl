@@ -7,7 +7,7 @@ use File::Copy;
 
 #Script used to check seeds during seed surgery
 #If the user is happy with the seed, it will get moved to a directory called Done in cwd
-#Else there will be options to extend/wholeseq/create_alignment
+#Else there will be options to extend/wholeseq/create_alignment/pad_ends/go back to original seed
 
 my ($list, $help);
 GetOptions('list=s' => \$list,
@@ -75,6 +75,7 @@ sub pfamA_id {
     return $pfamA_id;
 }
 
+
 sub parse_seed_surgery_log {
     my ($seed_surgery_log) = @_;
 
@@ -96,22 +97,24 @@ sub parse_seed_surgery_log {
 
 }
 
+
 sub user_response {
     my ($pfamA_acc) = @_;
 
     #Ask the user what to do
-    print STDERR "\nIs the family done, or do you want to edit it further (enter y/n/c/e/w/o):\n\n";
+    print STDERR "\nIs the family done, or do you want to edit it further (enter y/n/q/c/e/o/p/w):\n\n";
     print STDERR "  y: yes family is done, move to the 'Done' directory\n";
-    print STDERR "  n: no family is not done, leave it where it is and move on to next family\n\n";
+    print STDERR "  n: no family is not done, leave it where it is and move on to next family\n";
+    print STDERR "  q: quit the script\n\n";
 
     print STDERR "  c: run create_alignment.pl on the family\n";
     print STDERR "  e: run extend.pl on the family\n";
-    print STDERR "  w: run wholeseq.pl on the family\n";
     print STDERR "  o: go back to original seed (SEED.original)\n";
+    print STDERR "  p: run pad_ends.pl on the family\n";
+    print STDERR "  w: run wholeseq.pl on the family\n";
 
     my $reply = <STDIN>;
     chomp $reply;
-
 
     if($reply eq "y") {
         print STDERR "Moving $pfamA_acc to $done_dir\n";
@@ -120,11 +123,9 @@ sub user_response {
     elsif($reply eq "n") {
         print STDERR "Leaving $pfamA_acc in current working directory and moving on to next family\n";
     }
-    elsif($reply eq "e") {
-        extend($pfamA_acc);
-        print STDERR "Opening $pfamA_acc/SEED in belvu";
-        system("belvu $pfamA_acc/SEED");
-        user_response($pfamA_acc);
+    elsif($reply eq "q") {
+        print STDERR "Exiting the script\n";
+        exit;
     }
     elsif($reply eq "c") {
         create_alignment($pfamA_acc);
@@ -132,8 +133,8 @@ sub user_response {
         system("belvu $pfamA_acc/SEED");
         user_response($pfamA_acc);
     }
-    elsif($reply eq "w") {
-        wholeseq($pfamA_acc);
+    elsif($reply eq "e") {
+        extend($pfamA_acc);
         print STDERR "Opening $pfamA_acc/SEED in belvu";
         system("belvu $pfamA_acc/SEED");
         user_response($pfamA_acc);
@@ -145,11 +146,25 @@ sub user_response {
         system("belvu $pfamA_acc/SEED");
         user_response($pfamA_acc);
     }
+    elsif($reply eq "p") {
+        pad_ends($pfamA_acc);
+        print STDERR "Opening $pfamA_acc/SEED in belvu";
+        system("belvu $pfamA_acc/SEED");
+        user_response($pfamA_acc);
+
+    }
+    elsif($reply eq "w") {
+        wholeseq($pfamA_acc);
+        print STDERR "Opening $pfamA_acc/SEED in belvu";
+        system("belvu $pfamA_acc/SEED");
+        user_response($pfamA_acc);
+    }
     else {
         print STDERR "Need to enter a valid option, try again!\n";
         user_response($pfamA_acc);
     }
 }
+
 
 sub extend {
 
@@ -205,6 +220,35 @@ sub create_alignment {
 }
 
 
+sub pad_ends {
+
+    my $pfamA_acc = shift;
+    my $original_seed = "SEED.b4_pad_ends";
+
+    print STDERR "Moving $pfamA_acc/SEED to $pfamA_acc/$original_seed\n";
+    move("$pfamA_acc/SEED", "$pfamA_acc/$original_seed") or die "Couldn't move $pfamA_acc/SEED to $pfamA_acc/$original_seed, $!";
+
+    my $max_pad = -1;
+    until($max_pad >= 0) {
+        print STDERR "What do you want to set max_pad to [default 10]\n";
+        my $ans = <STDIN>;
+        chomp $ans;
+        $ans = 10 unless($ans);
+        #$max_pad = 10 unless($ans);
+        if($ans =~ /^(\d+)$/) {
+            $max_pad = $1;
+        }
+        else {
+            print STDERR "Need to pass in a positive integer, try again!\n";
+        }
+    }
+
+    my $command = "pad_ends.pl -align $pfamA_acc/$original_seed -max_pad $max_pad > $pfamA_acc/SEED";
+    print STDERR "Running '$command'\n";
+    system("$command") and die "Couldn't run '$command', $!";
+}
+
+
 sub wholeseq {
     
     my $pfamA_acc = shift;
@@ -229,13 +273,16 @@ The families should be present in the current working directory.
 The script will open each SEED alignment in belvu.
 After closing the alignment you will be asked the following:
 
-Is the family done, or do you want to edit it further:
+Is the family done, or do you want to edit it further (enter y/n/q/c/o/e/p/w):
 
   y: yes family is done, move to the 'Done' directory
   n: no family is not done, leave it where it is and move on to next family
+  q: quit the script
 
   c: run create_alignment.pl on the family
   e: run extend.pl on the family
+  o: go back to original seed (SEED.original)
+  p: run pad_ends.pl on the family
   w: run wholeseq.pl on the family
 
 If you choose y or n, the script will move onto the next family. If
@@ -244,7 +291,8 @@ script, and then you will be able to choose from the above options again.
 
 Before opening each SEED alignment, the script will make a copy of the
 SEED called SEED.original (unless SEED.orginal is already present). You
-can copy this file, but please do not edit SEED.original
+can copy this file, but please do not edit SEED.original. The 'o' option
+will copy SEED.original to SEED.
 
 The script will create the 'Done' directory if not already present.
 
