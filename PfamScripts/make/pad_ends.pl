@@ -33,6 +33,11 @@ open(ALN, $aln) or die "Couldn't open fh to $aln, $!";
 while(<ALN>) {
     if(/^((\S+)\/(\d+)-(\d+))\s+(.+)$/) {
         my ($acc_se, $seq_acc, $st, $en, $aligned_sequence) = ($1, $2, $3, $4, $5); 
+
+        #Removed annoying whitespace that is sometimes at the end of the alignment
+        if($aligned_sequence =~ /(\S+)\s+$/) {
+            $aligned_sequence = $1;
+        }
         
         #Get full length sequence
 		my $sequence = get_sequence($uniprot, $seq_acc);
@@ -65,7 +70,7 @@ while(<ALN>) {
             my $l = $en - $st + 1;
             my $seq2 = substr($sequence, $st-1, $l);
             unless($seq1 eq $seq2) {
-                die "Couldn't correctly get the sequence ($acc_se)\n1:$seq1\n2:$seq2\n";
+                die "Couldn't correctly get the sequence ($acc_se)\nGot:      [$seq1]\nExpected: [$seq2]\n";
             }
             $count++;
         }
@@ -133,7 +138,7 @@ sub n_terminal_pad {
     my ($aligned_sequence, $sequence, $start, $max_pad) = @_;
 
     my $new_start;
-    if($aligned_sequence =~ /^([.-]+)[.A-Za-z]/) {
+    if($aligned_sequence =~ /^([.-]+)[A-Za-z]/) {
         my $n_pad = length($1);
         if($n_pad <= $max_pad) {
             if($n_pad >= $start) {
@@ -163,7 +168,7 @@ sub c_terminal_pad {
 
     my ($aligned_sequence, $sequence, $end, $max_pad) = @_;
     my $new_end;
-    if($aligned_sequence =~ /[.A-Za-z]([-.]+)$/) {
+    if($aligned_sequence =~ /[A-Za-z]([.-]+)$/) {
         my $c_pad = length($1);
         if($c_pad <=  $max_pad) {
             if( ($c_pad + $end) > length($sequence)) {
@@ -180,7 +185,7 @@ sub c_terminal_pad {
             #Remove '-' at the C terminal
             my $i = length($aligned_sequence) - $c_pad;
             substr($aligned_sequence, $i, $c_pad, ""); 
-
+ 
             #Add the missing residues to the C terminal
             $aligned_sequence .= $c_res;  
             
