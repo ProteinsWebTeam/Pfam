@@ -135,7 +135,7 @@ else {
   my $command="mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{adminuser}." -p". $pfamDB->{adminpassword}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." -e ";
   $command.="'alter table pfamseq add constraint FK_pfamseq_1 foreign key (ncbi_taxid) references ncbi_taxonomy (ncbi_taxid) on delete cascade on update no action'";
   
-  system("$command") and $logger->logdie("Couldn't add FK to pfamseq table, $!");
+  system("$command");
 
   system("touch $status_dir/added_fk_pfamseq") and $logger->logdie("Could not touch $status_dir/added_fk_pfamseq");
 }
@@ -153,7 +153,7 @@ else {
   }
 
   unless(-e "$status_dir/update_uniprot") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 32000, -R => 'rusage[mem=32000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
+    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 64000, -R => 'rusage[mem=64000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
     my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot_done', -w => "done($uniprot_job)", "touch $status_dir/update_uniprot");
   }
 
@@ -200,6 +200,23 @@ else {
 }
 
 
+#Update pfamseq symbolic link to point to new pfamseq
+if(-e "$status_dir/pfamseq_sym_link") {
+    $logger->info("Already updated pfamseq symbolic link");
+}
+else {
+    $logger->info("Updating pfamseq symbolic link");
+    my $new_pfamseq = "pfamseq" . $new_release_num;
+    
+    chdir("/nfs/production/xfam/pfam/data/") or die "Couldn't chdir into /nfs/production/xfam/pfam/data/, $!";
+    system("rm -f pfamseq") and die "Couldn't remove old symbolic link, $!";
+    system("ln -s $new_pfamseq pfamseq") and $logger->logdie("Couldn't create new symbolic link for pfamseq, $!");
+
+    chdir($cwd) or die "Couldn't chdir into $cwd, $!";
+    system("touch $status_dir/pfamseq_sym_link") and $logger->logdie("Couldn't touch $status_dir/pfamseq_sym_link");
+}
+
+
 #Update pfamA_reg_seed table for any deleted sequences in pfamseq/uniprot
 if(-e "$status_dir/pfamA_reg_seed") {
   $logger->info("Already updated pfamA_reg_seed table");
@@ -227,7 +244,7 @@ else {
   chdir($pfamseq_dir) or $logger->logdie("Couldn't chdir into $pfamseq_dir, $!");
 
   my $shuffled_dir = $config_live->{shuffled}->{location};
-  my $shuffled_job = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled', -M => 5000, -R => 'rusage[mem=5000]', "esl-shuffle pfamseq > shuffled; esl-sfetch --index shuffled; cp shuffled* $shuffled_dir/.");
+  my $shuffled_job = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled', -M => 10000, -R => 'rusage[mem=10000]', "esl-shuffle pfamseq > shuffled; esl-sfetch --index shuffled; cp shuffled* $shuffled_dir/.");
   my $shuffled_job2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled_done', -w => "done($shuffled_job)", "touch $cwd/$status_dir/shuffled");
 
   chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
@@ -240,7 +257,7 @@ else {
 
 #To do - code this bit (it was done manually for 32.0)
 #Update config for pfamseq, uniprot and shuffled db size
-#Update /nfs/production/xfam/pfam/data/pfam_svn_server.conf with pfamseq, ncbi (do this after ncbi stuff has run), shuffled dbsize with values from $PFAM_CONFIG
+#Update /nfs/production/xfam/pfam/data/pfam_svn_server.conf with pfamseq and shuffled dbsize with values from $PFAM_CONFIG
 
 
 #Change config to point to pfam_live
@@ -259,7 +276,7 @@ if(-e "$status_dir/copied_pfam_release") {
 else {
   $logger->info("Backing up pfamlive and copying pfam_release to pfamlive");
 
-  my $copy_pfam_rel = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/mysqldump.log", -J => 'mysqldump', "pud-pfam_release_copy.pl -status_dir $status_dir -live_config $live_config -release_config $pfam_release_config");
+  my $copy_pfam_rel = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/mysqldump.log", -J => 'mysqldump', -M => 10000, -R => 'rusage[mem=10000]', "pud-pfam_release_copy.pl -status_dir $status_dir -live_config $live_config -release_config $pfam_release_config");
   my $copy_pfam_rel2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/mysqldump.log", -J => 'mysqldump_done', -w => "done($copy_pfam_rel)", "touch $status_dir/copied_pfam_release");
 
   $logger->info("Waiting for backup of pfamlive and copy of pfam_release data to pfamlive to finish");
@@ -274,7 +291,7 @@ if(-e "$status_dir/checked_out_families") {
   $logger->info("Already checked out families"); 
 }
 else {
-  $logger->info("Checking out all Pfam families. Going to lock the Pfam database");
+  $logger->info("Checking out all Pfam families");
 
   my $families_dir= "Families";
   mkdir($families_dir, 0755) or $logger->logdie("Couldn't mkdir '$families_dir, $!");
@@ -308,23 +325,6 @@ else {
   
   system("touch $status_dir/ran_seed_surgery") and $logger->logdie("Couldn't touch $status_dir/ran_seed_surgery");
   exit;
-}
-
-
-#Get ncbi database
-if(-e "$status_dir/ncbi_database") {
-  $logger->info("Already got ncbi database"); 
-}
-else {
-  $logger->info("Getting ncbi database");
-
-  my $ncbi = LSF::Job->submit(-q => $queue, -o => "$logs_dir/ncbi.log", -J => 'ncbi', -M => 32000, -R => 'rusage[mem=32000]', "pud-ncbi.pl");
-  my $ncbi2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/ncbi.log", -J => 'ncbi_done', -w => "done($ncbi)", "touch $status_dir/ncbi_database");
-
-  $logger->info("Waiting for ncbi database scripts to finish");
-  until(-e "$status_dir/ncbi_database") {
-    sleep 600;
-  }
 }
 
 
