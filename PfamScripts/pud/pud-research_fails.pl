@@ -162,8 +162,15 @@ EOF
 sub pfmake {
   
   my ($fam, $memory_gb, $queue) = @_;
-  
-  $memory_gb=4 unless($memory_gb);
-  system("bsub -q $queue -o pfmake.log -J$fam 0M $memory_gb -R \"rusuage[mem=$memory_gb]\" pfmake");
+
+
+  my $memory_mb;
+  if($memory_gb) {
+      $memory_mb=$memory_gb*1000;
+  }
+  else {
+      $memory_mb=4000;
+  }
+  system("bsub -q $queue -o pfmake.log -J$fam -M $memory_mb -R \"rusage[mem=$memory_mb]\" pfmake");
 
 }
