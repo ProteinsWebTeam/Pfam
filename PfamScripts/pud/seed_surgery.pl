@@ -102,11 +102,12 @@ sub user_response {
     my ($pfamA_acc) = @_;
 
     #Ask the user what to do
-    print STDERR "\nIs the family done, or do you want to edit it further (enter y/n/q/b/c/e/f/o/p/w):\n\n";
+    print STDERR "\nIs the family done, or do you want to edit it further (enter y/n/q/a/b/c/e/f/o/p/w):\n\n";
     print STDERR "  y: yes family is done, move to the 'Done' directory\n";
     print STDERR "  n: no family is not done, leave it where it is and move on to next family\n";
     print STDERR "  q: quit the script\n\n";
 
+    print STDERR "  a: add match states to SEED (use for families with nested domain)\n";
     print STDERR "  b: open SEED alignment again\n";
     print STDERR "  c: run create_alignment.pl on the family\n";
     print STDERR "  e: run extend.pl on the family\n";
@@ -128,6 +129,12 @@ sub user_response {
     elsif($reply eq "q") {
         print STDERR "Exiting the script\n";
         exit;
+    }   
+    elsif($reply eq "a") {
+        print STDERR "Adding match states\n";
+        add_match_states($pfamA_acc);
+        system("belvu $pfamA_acc/SEED");
+        user_response($pfamA_acc);
     }
     elsif($reply eq "b") {
         print STDERR "Opening $pfamA_acc/SEED in belvu";
@@ -275,6 +282,23 @@ sub wholeseq {
     system("$command") and die "Couldn't run '$command', $!";
 }
 
+sub add_match_states {
+
+    my $pfamA_acc = shift;
+    my $original_seed = "SEED.b4_add_match_states";    
+        
+    print STDERR "Moving $pfamA_acc/SEED to $pfamA_acc/$original_seed\n";
+    move("$pfamA_acc/SEED", "$pfamA_acc/$original_seed") or die "Couldn't move $pfamA_acc/SEED to $pfamA_acc/$original_seed, $!";
+
+    #add_match_states script will work on an alignment called SEED, but it doesnt't like the // at the end of alignments
+    #so remove this if present
+    system("grep -v \"//\" $pfamA_acc/$original_seed > $pfamA_acc/SEED") and die "grep -v \"//\" $pfamA_acc/$original_seed > $pfamA_acc/SEED', $!";
+
+    system("cd $pfamA_acc; add_match_states; cd ../") and die "Couldn't run add_match_states on $pfamA_acc, $!";
+
+}
+
+
 
 sub help {
     print<<EOF;
@@ -286,12 +310,13 @@ The families should be present in the current working directory.
 The script will open each SEED alignment in belvu.
 After closing the alignment you will be asked the following:
 
-Is the family done, or do you want to edit it further (enter y/n/q/b/c/f/o/e/p/w):
+Is the family done, or do you want to edit it further (enter y/n/q/a/b/c/f/o/e/p/w):
 
   y: yes family is done, move to the 'Done' directory
   n: no family is not done, leave it where it is and move on to next family
   q: quit the script
 
+  a: add match states to SEED (use for families with nested domain)
   b: open SEED alignment again
   c: run create_alignment.pl on the family
   e: run extend.pl on the family
