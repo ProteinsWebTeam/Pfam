@@ -164,6 +164,6 @@ sub pfmake {
   my ($fam, $memory_gb, $queue) = @_;
   
   $memory_gb=4 unless($memory_gb);
-  system("bsub -q $queue -o pfmake.log -J$fam 0M $memory_gb -R \"rusuage[mem=$memory_gb]\" pfmake");
+  system("bsub -q $queue -o pfmake.log -J$fam -M $memory_gb -R \"rusuage[mem=$memory_gb]\" pfmake");
 
 }
