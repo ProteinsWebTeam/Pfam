@@ -29,6 +29,7 @@ my $max_length = max_acc_length($aln);
 $max_length += 4; #Need to leave a gap between acc/st-en and aligned seq, and allow for st/en increasing in length by one digit
 
 my $count =0;
+my %done;
 open(ALN, $aln) or die "Couldn't open fh to $aln, $!";
 while(<ALN>) {
     if(/^((\S+)\/(\d+)-(\d+))\s+(.+)$/) {
@@ -41,17 +42,29 @@ while(<ALN>) {
         
         #Get full length sequence
 		my $sequence = get_sequence($uniprot, $seq_acc);
-
-		#Print sequence as is if not in current database
+		
+        #Print sequence as is if not in current database
 		unless($sequence) {
-			printf("%-${max_length}s"."$aligned_sequence\n", $acc_se);
+            if(exists($done{$acc_se})) {
+                print STDERR "Removing duplicate $acc_se\n";
+            }
+            else {
+                printf("%-${max_length}s"."$aligned_sequence\n", $acc_se);
+            }
+            $done{$acc_se}=1;
 			next;
 		}
 
-        #If pad the sequence at N and C terminal if required
+        #Pad the sequence at N and C terminal if required
         my ($new_start, $new_end);
-        ($new_start, $aligned_sequence) = n_terminal_pad($aligned_sequence, $sequence, $st, $max_pad);
-        ($new_end, $aligned_sequence) = c_terminal_pad($aligned_sequence, $sequence, $en, $max_pad);
+        my $full_length = length($sequence);
+
+        unless($st == 1) {
+            ($new_start, $aligned_sequence) = n_terminal_pad($aligned_sequence, $sequence, $st, $max_pad);
+        }
+        unless($en == $full_length) {
+            ($new_end, $aligned_sequence) = c_terminal_pad($aligned_sequence, $sequence, $en, $max_pad);
+        }
 
         if($new_start or $new_end) { #If the sequence was padded
             $st = $new_start if($new_start);
@@ -76,7 +89,13 @@ while(<ALN>) {
         }
         
         #Print out acc/st-en and aligned sequence
-        printf("%-${max_length}s"."$aligned_sequence\n", $acc_se);
+        if(exists($done{$acc_se})) {
+            print STDERR "Removing duplicate $acc_se\n";
+        }
+        else {
+            printf("%-${max_length}s"."$aligned_sequence\n", $acc_se);
+        }
+        $done{$acc_se}=1;
     }
     else {
         unless(/^\/\/$/) {
