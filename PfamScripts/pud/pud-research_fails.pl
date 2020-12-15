@@ -163,7 +163,6 @@ sub pfmake {
   
   my ($fam, $memory_gb, $queue) = @_;
 
-
   my $memory_mb;
   if($memory_gb) {
       $memory_mb=$memory_gb*1000;
