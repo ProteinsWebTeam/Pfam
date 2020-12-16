@@ -156,23 +156,6 @@ sub main {
       $db_location = $config->uniprotLoc . "/$db";
     }
   }
-  elsif ( $db eq "ncbi" ) {
-    if ( $dbsize and $dbsize ne $config->ncbi_dbsize ) {
-      warn
-      "\n***** Using effective database size [$dbsize] that is different to ncbi sequence db ["
-      . $config->ncbi_dbsize
-      . "] *****\n\n";
-    }
-    else {
-      $dbsize = $config->ncbi_dbsize;
-    }
-    if ( $config->location eq 'WTSI' ) {
-      $db_location = $config->pfamseqLustreLoc . "/$db";
-    }
-    else {
-      $db_location = $config->ncbiLoc . "/$db";
-    }
-  }
   elsif( $db eq "mgnify") {
     if ( $dbsize and $dbsize ne $config->{mgnify}->{dbsize} ) {   
       warn "\n***** Using effective database size [$dbsize] that is different to mgnify sequence db [" . $config->{mgnify}->{dbsize} . "] *****\n\n";
@@ -201,7 +184,7 @@ sub main {
   }
   else {
     die
-    "db must be either 'pfamseq', 'shuffled', 'ncbi' or 'mgnify', you specified [$db]\n";
+    "db must be either 'pfamseq', 'shuffled' or 'mgnify', you specified [$db]\n";
   }
   unless ( int($dbsize) == $dbsize and $dbsize > 0 ) {
     die "dbsize ($dbsize) must be an integer greater than 1\n";
@@ -725,7 +708,7 @@ Options that influence hmmbuild:
 
 Options that influence hmmsearch:
 
-  -db <x>     : Specify which database to search against (choose pfamseq||uniprot||mgnify||ncbi, default is pfamseq)
+  -db <x>     : Specify which database to search against (choose pfamseq||uniprot||mgnify, default is pfamseq)
 
   General wrapping options:
   -local      : Run the hmmsearch on the local machine rather than submitting 
