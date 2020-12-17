@@ -63,6 +63,8 @@ if($seq and $version and $end and $start and $family){
 }
 
 #Now check that te sequences in the nested locations hash are present in the seed alignment.
+#Remove the // at the end of the alignment first
+system("grep -v '^//' SEED > seed.$$ && mv seed.$$ SEED") and die "Coudln't run grep -v '^//' SEED > seed.$$ && mv seed.$$ SEED, $!";
 open(S, "SEED") or die "Could not open SEED alignment:[$!]\n";
 my $seed = Bio::Pfam::AlignPfam->new;
 $seed->read_selex(\*S);
