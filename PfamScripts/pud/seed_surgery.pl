@@ -287,12 +287,8 @@ sub add_match_states {
     my $pfamA_acc = shift;
     my $original_seed = "SEED.b4_add_match_states";    
         
-    print STDERR "Moving $pfamA_acc/SEED to $pfamA_acc/$original_seed\n";
-    move("$pfamA_acc/SEED", "$pfamA_acc/$original_seed") or die "Couldn't move $pfamA_acc/SEED to $pfamA_acc/$original_seed, $!";
-
-    #add_match_states script will work on an alignment called SEED, but it doesnt't like the // at the end of alignments
-    #so remove this if present
-    system("grep -v \"//\" $pfamA_acc/$original_seed > $pfamA_acc/SEED") and die "grep -v \"//\" $pfamA_acc/$original_seed > $pfamA_acc/SEED', $!";
+    print STDERR "Copying $pfamA_acc/SEED to $pfamA_acc/$original_seed\n";
+    copy("$pfamA_acc/SEED", "$pfamA_acc/$original_seed") or die "Couldn't copy $pfamA_acc/SEED to $pfamA_acc/$original_seed, $!";
 
     system("cd $pfamA_acc; add_match_states; cd ../") and die "Couldn't run add_match_states on $pfamA_acc, $!";
 
