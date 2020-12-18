@@ -326,7 +326,7 @@ you choose one of the other options, the script will run the relevant
 script, and then you will be able to choose from the above options again.
 
 Before opening each SEED alignment, the script will make a copy of the
-SEED called SEED.original (unless SEED.orginal is already present). You
+SEED called SEED.original (unless SEED.original is already present). You
 can copy this file, but please do not edit SEED.original. The 'o' option
 will copy SEED.original to SEED.
 
