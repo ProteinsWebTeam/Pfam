@@ -399,7 +399,6 @@ sub family_page : Chained( 'family' )
 
     $c->forward( 'get_summary_data' );
     $c->forward( 'get_db_xrefs' );
-    $c->forward( 'get_interactions' );
     #$c->forward( 'get_pseudofam' );
     $c->forward( 'get_wikipedia' );
 
@@ -567,16 +566,17 @@ sub get_summary_data : Private {
 
   # Number of species
   $summaryData->{numSpecies} = $c->stash->{pfam}->number_species;
-
-  # number of interactions
-  my $pfamA_acc = $c->stash->{pfam}->pfama_acc;
-  my $rs = $c->model('PfamDB::PfamaInteractions')
-             ->search( [ { pfama_acc_a => $pfamA_acc }, {pfama_acc_b => $pfamA_acc} ],
-                       { select => [ { count => 'pfama_acc_a' } ],
-                         as     => [ qw( numInts ) ] } )
-             ->first;
-  $summaryData->{numInt} = $rs->get_column( 'numInts' );
-
+  #
+  # # number of interactions
+  # my $pfamA_acc = $c->stash->{pfam}->pfama_acc;
+  # my $rs = $c->model('PfamDB::PfamaInteractions')
+  #            ->search( [ { pfama_acc_a => $pfamA_acc }, {pfama_acc_b => $pfamA_acc} ],
+  #                      { select => [ { count => 'pfama_acc_a' } ],
+  #                        as     => [ qw( numInts ) ] } )
+  #            ->first;
+  # $summaryData->{numInt} = $rs->get_column( 'numInts' );
+  #
+  $summaryData->{numInt} = 0;
   $c->stash->{summaryData} = $summaryData;
 }
 
@@ -642,10 +642,9 @@ sub get_db_xrefs : Private {
                                                     score ) ]
                              } );
 
-
    push(@ataSCOOP, @ataSCOOP2);
    my @sortedSCOOP = sort { lc($a->get_column('r_pfama_id')) cmp lc($b->get_column('r_pfama_id'))  } @ataSCOOP;
-   
+
    foreach my $ref ( @sortedSCOOP ) {
     if ( $ref->get_column('l_pfama_acc') ne $ref->get_column('r_pfama_acc') ) {
       push @{ $xRefs->{scoop} }, $ref;
@@ -684,24 +683,6 @@ sub get_db_xrefs : Private {
   }
 
   $c->stash->{xrefs} = $xRefs;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 get_interactions : Private
-
-Retrieves details of the interactions between this family and others.
-
-=cut
-
-sub get_interactions : Private {
-  my ( $this, $c ) = @_;
-
-  my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( [{ pfama_acc_a => $c->stash->{pfam}->pfama_acc }, {pfama_acc_b => $c->stash->{pfam}->pfama_acc}],
-                                 { prefetch => [ qw( pfama_acc_a pfama_acc_b ) ] } );
-
-  $c->stash->{interactions} = \@interactions;
 }
 
 #-------------------------------------------------------------------------------

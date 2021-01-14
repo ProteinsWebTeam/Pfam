@@ -298,7 +298,7 @@ sub family_page : Chained( 'family' )
 
     $c->forward( 'get_summary_data' );
     $c->forward( 'get_db_xrefs' );
-    $c->forward( 'get_interactions' );
+    #$c->forward( 'get_interactions' );
     #$c->forward( 'get_pseudofam' );
     $c->forward( 'get_wikipedia' );
 
@@ -1957,15 +1957,7 @@ sub get_summary_data : Private {
   # Number of species
   $summaryData->{numSpecies} = $c->stash->{pfam}->number_species;
 
-  # number of interactions
-  my $pfama_acc = $c->stash->{pfam}->pfama_acc;
-  my $rs = $c->model('PfamDB::PfamaInteractions')
-             ->search( { pfama_acc_a => $pfama_acc },
-                       { select => [ { count => 'pfama_acc_a' } ],
-                         as     => [ qw( numInts ) ] } )
-             ->first;
-  $summaryData->{numInt} = $rs->get_column( 'numInts' );
-
+  $summaryData->{numInt} = 0;
   $c->stash->{summaryData} = $summaryData;
 }
 
