@@ -356,7 +356,7 @@ else {
   my $interpro_go2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/interpro_go.log", -J => 'interpro_go_done', -w => "done($interpro_go)", "touch $status_dir/interpro_and_go");
 
   $logger->info("Waiting for interpro and gene_ontology tables to finish populating");
-  until(-e "$status_dir/other_regions") {
+  until(-e "$status_dir/interpro_and_go") {
     sleep 300;
   }
 }
@@ -371,7 +371,7 @@ if(-e "$status_dir/RP_done") {
 else {
   $logger->info("Going to populate RP field in uniprot table");
 
-  my $RP = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX', -M => 10000, -R => 'rusage[mem=10000]', "pud-getRepresentativeProteomes.pl -statusdir $status_dir");
+  my $RP = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX', -M => 20000, -R => 'rusage[mem=20000]', "pud-getRepresentativeProteomes.pl -statusdir $status_dir");
   my $RP2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX_done', -w => "done($RP)", "touch $status_dir/RP_done");
 
   $logger->info("Waiting for RP field to finish updating");
