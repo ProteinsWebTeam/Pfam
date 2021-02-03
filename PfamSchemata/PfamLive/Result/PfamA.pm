@@ -200,16 +200,6 @@ __PACKAGE__->table("pfamA");
   data_type: 'integer'
   is_nullable: 1
 
-=head2 number_ncbi
-
-  data_type: 'integer'
-  is_nullable: 1
-
-=head2 number_meta
-
-  data_type: 'integer'
-  is_nullable: 1
-
 =head2 average_length
 
   data_type: 'double precision'
@@ -355,10 +345,6 @@ __PACKAGE__->add_columns(
   "number_species",
   { data_type => "integer", is_nullable => 1 },
   "number_structures",
-  { data_type => "integer", is_nullable => 1 },
-  "number_ncbi",
-  { data_type => "integer", is_nullable => 1 },
-  "number_meta",
   { data_type => "integer", is_nullable => 1 },
   "average_length",
   { data_type => "double precision", is_nullable => 1, size => [6, 2] },
@@ -957,8 +943,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-06-21 16:04:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:as7eY546w3eKGL9NTXjzNQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-12-16 13:56:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lC0Di9Yfu7b9XJJ1eDp20A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

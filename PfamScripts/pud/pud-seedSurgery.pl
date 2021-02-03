@@ -221,6 +221,14 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
   }
   close NS;
 
+  if(-e "$surgeryDir/$fam/fixNestedLocation") {
+      $logger->debug("$fam needs its nested location fixed, moving to $surgeryDir/fixNested");
+      unless(-d "$surgeryDir/fixNested") {
+          mkdir("$surgeryDir/fixNested", 0755) or $logger->logdie("Cannot mkdir $surgeryDir/fixNested, $!");
+      }
+      system("mv $surgeryDir/$fam $surgeryDir/fixNested") and $logger->logdie("Failed to move $fam dir into $surgeryDir/fixNested");
+  }
+
 #-------------------------------------------------------------------------------
 #Need to double check these families.
   if ( defined( $descObj->NESTS ) ) {
@@ -240,7 +248,7 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
     else { #Seed is empty so move it to a separate dir
       $logger->debug("$fam has no sequences left in SEED, moving to $surgeryDir/noSEED");
       unless(-d "$surgeryDir/noSEED") {
-        mkdir("$surgeryDir/noSEED", 0755) or $logger->logdie("Cannot mkdir ../CHECKED_IN $!");
+        mkdir("$surgeryDir/noSEED", 0755) or $logger->logdie("Cannot mkdir $surgeryDir/noSEED, $!");
       }
       system("mv $surgeryDir/$fam $surgeryDir/noSEED") and $logger->logdie("Failed to move $fam dir into $surgeryDir/noSEED");
     }

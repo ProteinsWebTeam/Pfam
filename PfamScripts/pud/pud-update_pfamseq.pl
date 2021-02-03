@@ -159,7 +159,7 @@ else {
         }
         elsif( $line =~ /^ID\s+(\S+)\s+(\S+)/){
           $record{'ID'} = $1;  
-          if($2 eq 'Reviewed') {
+          if($2 eq 'Reviewed;') {
             $record{'SWISSPROT'}=1;
           }
           else {
@@ -483,7 +483,7 @@ if(-e "$status_dir/update_pfamseq_changed") {
 }
 else {
   $logger->info("Updating pfamseq with changed data\n");
-  my $changed_pfamseq = $dbh->prepare("update pfamseq, tmp_pfamseq set pfamseq.pfamseq_id = tmp_pfamseq.pfamseq_id, pfamseq.description = tmp_pfamseq.description, pfamseq.evidence = tmp_pfamseq.evidence,  pfamseq.species = tmp_pfamseq.species, pfamseq.taxonomy=tmp_pfamseq.taxonomy, pfamseq.is_fragment = tmp_pfamseq.is_fragment, pfamseq.updated = NOW(), pfamseq.ncbi_taxid = tmp_pfamseq.ncbi_taxid, pfamseq.auto_architecture=tmp_pfamseq.auto_architecture, pfamseq.treefam_acc=tmp_pfamseq.treefam_acc where tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc"); 
+  my $changed_pfamseq = $dbh->prepare("update pfamseq, tmp_pfamseq set pfamseq.pfamseq_id = tmp_pfamseq.pfamseq_id, pfamseq.description = tmp_pfamseq.description, pfamseq.evidence = tmp_pfamseq.evidence,  pfamseq.species = tmp_pfamseq.species, pfamseq.taxonomy=tmp_pfamseq.taxonomy, pfamseq.is_fragment = tmp_pfamseq.is_fragment, pfamseq.updated = NOW(), pfamseq.ncbi_taxid = tmp_pfamseq.ncbi_taxid, pfamseq.auto_architecture=tmp_pfamseq.auto_architecture, pfamseq.treefam_acc=tmp_pfamseq.treefam_acc, pfamseq.swissprot = tmp_pfamseq.swissprot where tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc"); 
   $changed_pfamseq->execute() or $logger->logdie("Failed to update pfamseq with changed data ".$changed_pfamseq->errstr."\n");
   system("touch $status_dir/update_pfamseq_changed") and $logger->logdie("Couldn't touch $status_dir/update_pfamseq_changed:[$!]\n"); 
 }
@@ -495,7 +495,7 @@ if(-e "$status_dir/pfamseq_new") {
 }
 else {
   $logger->info("Updating pfamseq with new data\n");
-  my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.evidence, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid, pfamseq.auto_architecture, pfamseq.treefam_acc) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.evidence, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid, tmp_pfamseq.auto_architecture, tmp_pfamseq.treefam_acc from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
+  my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.evidence, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid, pfamseq.auto_architecture, pfamseq.treefam_acc, pfamseq.swissprot) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.evidence, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid, tmp_pfamseq.auto_architecture, tmp_pfamseq.treefam_acc, tmp_pfamseq.swissprot from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
   $pfamseq_new->execute() or $logger->logdie("Failed to update pfamseq with new data ".$pfamseq_new->errstr."\n");
   system("touch $status_dir/pfamseq_new") and $logger->logdie("Couldn't touch $status_dir/pfamseq_new:[$!]\n"); 
 }

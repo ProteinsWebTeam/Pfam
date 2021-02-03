@@ -95,9 +95,8 @@ __PACKAGE__->table("pfamA_reg_full_insignificant");
 
 =head2 domain_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =head2 sequence_bits_score
 
@@ -108,9 +107,8 @@ __PACKAGE__->table("pfamA_reg_full_insignificant");
 
 =head2 sequence_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =cut
 
@@ -148,7 +146,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "domain_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
   "sequence_bits_score",
   {
     data_type => "double precision",
@@ -157,7 +155,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "sequence_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -205,8 +203,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2016-11-04 12:59:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jISFxgJi4fKR4SROKDsmVA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-12-16 13:56:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fhxq4Uk/G365XH8NfGcwsQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

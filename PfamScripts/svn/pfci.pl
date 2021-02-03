@@ -288,6 +288,12 @@ if ($onlydesc) {
 "You are only checking in the DESC file, yet the $tag line has change. You can not do this!\n";
     }
   }
+
+  #Check ascii only characters
+  unless(Bio::Pfam::PfamQC::onlyASCII($upFamObj->DESC, $family)) {
+      die "|$family|: desc file contains illegal characters\n";
+  }
+
 }
 
 #These are more sanity checks

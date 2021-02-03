@@ -51,7 +51,7 @@ __PACKAGE__->table("dead_family");
   data_type: 'varchar'
   default_value: 'anon'
   is_nullable: 0
-  size: 10
+  size: 20
 
 =head2 killed
 
@@ -81,7 +81,7 @@ __PACKAGE__->add_columns(
     data_type => "varchar",
     default_value => "anon",
     is_nullable => 0,
-    size => 10,
+    size => 20,
   },
   "killed",
   {
@@ -109,8 +109,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->add_unique_constraint("pfamA_acc", ["pfama_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k/drOE1CSyrNxLMGuO1p7A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-12-16 13:56:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uFXsPPbWxsn9+q0abmKGZA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
