@@ -144,7 +144,7 @@ END;
     <div id="domainTableNotes" style="display: none">
       <p>
         E-values are based on searching the Pfam-A family against UniProtKB
-        <a class="ext" href="ftp://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release-[% relData.swiss_prot_version %]/knowledgebase/">
+        <a class="ext" href="http://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release-[% relData.swiss_prot_version %]/knowledgebase/">
           [% relData.swiss_prot_version %]</a> using hmmsearch.
       </p>
       <hr />
