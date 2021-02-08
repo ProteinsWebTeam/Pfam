@@ -20,7 +20,7 @@ navLinks = {
   home   = c.secure_uri_for( "/" ),
   search = c.secure_uri_for( "/search" ),
   browse = c.secure_uri_for( "/browse" ),
-  ftp    = "ftp://ftp.ebi.ac.uk/pub/databases/Pfam",
+  ftp    = "http://ftp.ebi.ac.uk/pub/databases/Pfam",
   help   = c.secure_uri_for( "/help" ),
   about  = c.secure_uri_for( "/about" ) };
 
