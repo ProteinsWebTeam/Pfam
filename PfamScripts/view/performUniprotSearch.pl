@@ -147,6 +147,7 @@ if(scalar(@upload)) {
 
 #Update number_uniprot in pfamA table if family is not in a clan
 #If family is in clan, this step is done later after clan competition
+$dbh = $pfamDB->getSchema->storage->dbh; #Get the connection again to prevent server timed out errors for long searches
 my $st_clan_membership = $dbh->prepare("select clan_acc from clan_membership where pfamA_acc='$pfamA_acc'");
 $st_clan_membership->execute() or die "Couldn't execute statement ".$st_clan_membership->errstr."\n";
 my $clan=$st_clan_membership->fetchrow;
