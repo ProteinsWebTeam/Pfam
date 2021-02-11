@@ -31,20 +31,19 @@ if($all and $memory_gb) {
   die "Can't use -all and -M option together\n";
 }
 
-#Some families need more memory that is estimated by this script, so hard code them to request 16gb memory on farm
-my @extra_mem = qw(PF00004 PF00005 PF00069 PF00072 PF00078 PF00083 PF00096 PF00106 PF00115 PF00501 PF00512 PF00528 PF00561 PF01370 PF013649 PF013855 PF01926 PF02518 PF06709 PF07679 PF07690 PF07714 PF08659 PF13561);
+#Some families need more memory that is estimated by this script, so hard code them to request extra memory
+my @extra_mem = qw(PF00005 PF00069 PF00072 PF00083 PF00106 PF00115 PF00501 PF00528 PF07690 PF07714 PF13561);
 my %memory;
 foreach my $f (@extra_mem) {
   if($f eq "PF00005" or $f eq "PF07690") { #These families need a lot more memory
     $memory{$f}=64;
   }
-  elsif($f eq "PF00069" or $f eq "PF07714" or $f eq "PF00115") {
+  else {
     $memory{$f}=32;
   }
-  else {
-    $memory{$f}=16;
-  }
 }
+
+
 #If user has defined how much memory to use, add this to hash
 if($memory_gb) {
   if($clan) {
@@ -138,9 +137,15 @@ sub uniprotSearch {
       $memory_gb=$memory{$pfamA_acc};
     }
     else {
-      my $cpu=4;
-      $memory_gb = ceil(($pfamA->model_length * 40000 * 48 * $cpu)/1000000000);
-      $memory_gb+=2; #Add an extra 2gb as the formula underestimated memory for many families for Pfam 33.0
+        #Going to estimate how much memory will be needed using this equation:
+        #(Model length L * 40000 (longest sequence) * 48 (number of bytes in the dp) * number of cpus) /1,000,000
+        my $cpu=4;
+        $memory_gb = ceil(($pfamA->model_length * 40000 * 48 * $cpu)/1000000000);
+        $memory_gb+=2; #Add an extra 2gb as the formula underestimated memory for many families for Pfam 33.0
+
+        if($clan_acc and $memory_gb < 16) {
+            $memory_gb=16; #If it's in a clan, set it to at least 16Gb
+        }
     }
     my $memory_mb=$memory_gb*1000;  
     
