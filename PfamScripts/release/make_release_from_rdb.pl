@@ -1727,6 +1727,5 @@ sub help {
   
   
 EOF
-  print STDERR "Overrated!!!!\n";
   exit;
 }
