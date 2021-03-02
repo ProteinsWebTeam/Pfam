@@ -39,17 +39,20 @@ const addStructureTabToPage = function(accession) {
         //container.style.visibility = "visible";
         const content = document.getElementById("content").children;
         for (const section of content) {
-          console.log(`MAQ ${section.id}`);
           if (section.id != structureModelSelectorId) {
             section.classList.add("yui-hidden");
           }
         }
         structureModelSection.classList.remove("yui-hidden");
         structureModelSection.title = "active";
+        target.title= "active";
+        target.classList.add("selected");
       } else {
         //container.style.visibility = "hidden";
         structureModelSection.classList.add("yui-hidden");
         structureModelSection.title = null;
+        target.title= null;
+        target.classList.remove("selected");
       }
     });
   }
