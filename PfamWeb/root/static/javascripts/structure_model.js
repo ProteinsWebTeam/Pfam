@@ -75,7 +75,7 @@ const addStructureTabToPage = function(accession) {
     model in InterPro</a></li>
     <li><a href="${IP_PFAM_FAMILY_API}/${accession}/?model:structure"
     filename="${accession}_prediction.pdb" target="_blank">Download the model in PDB format</a></li>
-    <li><a href="http://ftp.ebi.ac.uk/pub/databases/Pfam" target="_blank">Download all the data from the Pfam FTP site</a></li>
+    <li><a href="http://ftp.ebi.ac.uk/pub/databases/Pfam/Baker/" target="_blank">Download all the data from the Pfam FTP site</a></li>
   </ul>`;
 
   const textContainer = document.createElement("DIV");
