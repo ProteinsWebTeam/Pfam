@@ -27,7 +27,7 @@ const addStructureTabToPage = function(accession) {
   structureModel.addEventListener("click", () => {
     const structureModelContainer = document.getElementById(structureModelId);
     structureModelContainer.classList.remove("yui-hidden");
-    //structureModelContainer.title = "active";
+    structureModelContainer.title = "active";
   });
 
   // add to navigation link
