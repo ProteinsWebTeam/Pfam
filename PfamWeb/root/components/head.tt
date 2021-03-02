@@ -84,6 +84,7 @@ IF refreshUri != "";
 <!-- local javascript -->
 <script type="text/javascript" src="[% sharedUri %]/javascripts/sharedFunctions.js"></script>
 <script type="text/javascript" src="[% staticUri %]/javascripts/pfFunctions.js"></script>
+<script type="text/javascript" src="[% staticUri %]/javascripts/structure_model.js"></script>
 
 <!-- ====================================================================== -->
 <!-- local stylesheets -->
