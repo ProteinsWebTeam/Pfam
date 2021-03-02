@@ -34,6 +34,7 @@ const addStructureTabToPage = function(accession) {
     sidebar.addEventListener("click", (e) => {
       e.preventDefault();
       const target = e.target.parentElement;
+      const selectors = target.parentElement.children;
       const structureModelSection = document.getElementById(structureModelId);
       if (target.id === structureModelSelectorId) {
         //container.style.visibility = "visible";
@@ -45,15 +46,21 @@ const addStructureTabToPage = function(accession) {
         }
         structureModelSection.classList.remove("yui-hidden");
         structureModelSection.title = "active";
-        target.title= "active";
-        target.classList.add("selected");
+        for (const selector of selectors) {
+            selector.classList.remove("selected");
+            selector.title = null;
+            target.title = "active";
+            target.classList.add("selected");
+        }
       } else {
         //container.style.visibility = "hidden";
         structureModelSection.classList.add("yui-hidden");
         structureModelSection.title = null;
-        target.title= null;
-        target.classList.remove("selected");
+        const selector = document.getElementById(structureModelSelectorId);
+        selector.classList.remove("selected");
+        selector.title = null;
       }
+
     });
   }
   const url = new URL(`${accession}/model`, IP_PFAM_FAMILY_WEB);
