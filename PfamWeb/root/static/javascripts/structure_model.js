@@ -16,25 +16,42 @@ const getInterProStructureModelLink = async function(accession) {
 };
 
 const addStructureTabToPage = function(accession) {
-  const structureModelId = "structureModelBlock";
+  const structureModelId = "tabview=tab9";
+  const structureModelSelectorId = "structureModelSelector"
   // create navigation link
-  const structureModel = document.createElement("LI");
-  structureModel.id = "structureModelSelector";
+  const structureModelSelector = document.createElement("LI");
+  structureModelSelector.id = structureModelSelectorId;
   const link = document.createElement("A");
-  link.href = "#" + structureModelId;
+  //link.href = "#" + structureModelId;
   link.text = "Structure Model";
-  structureModel.append(link);
-  structureModel.addEventListener("click", () => {
-    const structureModelContainer = document.getElementById(structureModelId);
-    structureModelContainer.classList.remove("yui-hidden");
-    structureModelContainer.title = "active";
-  });
+  structureModelSelector.append(link);
 
   // add to navigation link
   const structure = document.getElementById('pdbBlockSelector');
-  if (structure) {
-    structure.parentElement.appendChild(structureModel);
-
+  const sidebar = document.getElementById("sidebar");
+  if (structure && sidebar) {
+    structure.parentElement.appendChild(structureModelSelector);
+    sidebar.addEventListener("click", (e) => {
+      e.preventDefault();
+      const target = e.target.parentElement;
+      const structureModelSection = document.getElementById(structureModelId);
+      if (target.id === structureModelSelectorId) {
+        //container.style.visibility = "visible";
+        const content = document.getElementById("content").children;
+        for (const section of content) {
+          console.log(`MAQ ${section.id}`);
+          if (section.id != structureModelSelectorId) {
+            section.classList.add("yui-hidden");
+          }
+        }
+        structureModelSection.classList.remove("yui-hidden");
+        structureModelSection.title = "active";
+      } else {
+        //container.style.visibility = "hidden";
+        structureModelSection.classList.add("yui-hidden");
+        structureModelSection.title = null;
+      }
+    });
   }
   const url = new URL(`${accession}/model`, IP_PFAM_FAMILY_WEB);
 
@@ -54,12 +71,11 @@ const addStructureTabToPage = function(accession) {
   const links = document.createElement("P");
   links.innerHTML = `
   <ul>
-    <li><a href="${IP_PFAM_FAMILY_WEB}/${accession}/model">View the structural
+    <li><a href="${IP_PFAM_FAMILY_WEB}/${accession}/model" target="_blank">View the structural
     model in InterPro</a></li>
     <li><a href="${IP_PFAM_FAMILY_API}/${accession}/?model:structure"
-    filename="${accession}_prediction.pdb">Download the model in PDB format</a></li>
-    <li><a href="http://ftp.ebi.ac.uk/pub/databases/interpro/">View all the
-    structural models at the InterPro FTP site</a></li>
+    filename="${accession}_prediction.pdb" target="_blank">Download the model in PDB format</a></li>
+    <li><a href="http://ftp.ebi.ac.uk/pub/databases/Pfam" target="_blank">Download all the data from the Pfam FTP site</a></li>
   </ul>`;
 
   const textContainer = document.createElement("DIV");
@@ -71,7 +87,7 @@ const addStructureTabToPage = function(accession) {
   const structureModelContainer = document.createElement("DIV");
   structureModelContainer.id = structureModelId;
   structureModelContainer.classList.add("block");
-  structureModelContainer.classList.add("yui-hidden");
+
   structureModelContainer.appendChild(titleContainer);
   structureModelContainer.appendChild(textContainer);
 
@@ -80,7 +96,15 @@ const addStructureTabToPage = function(accession) {
   if (detailsContainer) {
     detailsContainer.appendChild(structureModelContainer);
   }
+  if (structureModelSelector.classList.contains("selected")) {
+    //structureModelContainer.style.visibility = "visible";
+    structureModelContainer.classList.remove("yui-hidden");
+  } else {
+    //structureModelContainer.style.visibility = "hidden";
+    structureModelContainer.classList.add("yui-hidden");
+  }
 };
+
 
 const fetchStructureModel = function(accession) {
 
