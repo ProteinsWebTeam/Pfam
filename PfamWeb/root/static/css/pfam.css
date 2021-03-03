@@ -259,6 +259,21 @@ img.h3PfamLogo {
   font-weight: bold;
 }
 
+/* a little info message */
+
+.messageBox {
+  background: #cbdced;
+  color: #333333;
+  margin: 0.4em auto;
+  width: 90%;
+  padding: 0.4em;
+}
+
+.messageBox a {
+  color: #000000;
+  font-weight: bold;
+}
+
 /* widgets in the jump box */
 
 .entryField {
@@ -1169,4 +1184,8 @@ a.btn:hover {
     color-stop(0.25, rgb(106,172,222)),
     color-stop(0.5, rgb(87,145,199))
   );
+}
+
+.text {
+  text-center;
 }
