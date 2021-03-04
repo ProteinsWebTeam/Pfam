@@ -94,7 +94,7 @@ const addStructureTabToPage = function(accession) {
     `https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/${accession}/?model%3Astructure=`,
     { "ext": "pdb" }
   ).then(function (component) {
-    component.addRepresentation('cartoon', { color: "chainid" });
+    component.addRepresentation('cartoon', { colorScheme: "chainid" });
     component.autoView();
   });
 };
@@ -172,6 +172,37 @@ const createContainer = function(accession) {
   return textContainer;
 }
 
-const fetchStructureModel = function(accession) {
+const showStructure = function(accession) {
+  console.log(`showStructure(${accession})`);
+  const container = document.getElementById('ngl-container');
+  container.style.display = "block";
 
+  const viewer = document.createElement("div");
+  viewer.id = "viewport";
+  viewer.style.width = "90%";
+  viewer.style.minWidth = "400px";
+  viewer.style.minHeight = "800px";
+  viewer.style.minHeight = "300px";
+  const nglContainer = document.getElementById("ngl-viewport");
+  nglContainer.replaceChildren(viewer);
+
+  var stage = new NGL.Stage("viewport");
+  stage.setParameters({ backgroundColor: "white"});
+  // Handle window resizing
+  window.addEventListener( "resize", function( event ){
+      stage.handleResize();
+  }, false );
+  stage.loadFile(
+    `https://mmtf.rcsb.org/v1.0/full/${accession}`,
+    { "ext": "mmtf" }
+  ).then(function (component) {
+    component.addRepresentation('cartoon', { colorScheme: "chainid" });
+    component.autoView();
+  });
+};
+
+const hideStructure = function() {
+  console.log(`hideStructure()`);
+  const container = document.getElementById('ngl-container');
+  container.style.display = "none";
 };
