@@ -91,7 +91,7 @@ const addStructureTabToPage = function(accession) {
       stage.handleResize();
   }, false );
   stage.loadFile(
-    "https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/PF12890/?model%3Astructure=",
+    `https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/${accession}/?model%3Astructure=`,
     { "ext": "pdb" }
   ).then(function (component) {
     component.addRepresentation('cartoon', { color: "chainid" });
