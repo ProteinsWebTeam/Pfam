@@ -83,15 +83,20 @@ const addStructureTabToPage = function(accession) {
     //structureModelContainer.style.visibility = "hidden";
     structureModelContainer.classList.add("yui-hidden");
   }
-  /*
+
   var stage = new NGL.Stage("viewport");
+  stage.setParameters({ backgroundColor: "white"});
+  // Handle window resizing
+  window.addEventListener( "resize", function( event ){
+      stage.handleResize();
+  }, false );
   stage.loadFile(
-    "https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/PF12890/?model%3Astructure="
+    "https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/PF12890/?model%3Astructure=",
+    { "ext": "pdb" }
   ).then(function (component) {
-    component.addRepresentation('cartoon');
+    component.addRepresentation('cartoon', { color: "chainid" });
     component.autoView();
   });
-*/
 };
 
 const addStructureModelContent = function(structureModelContainer, accession) {
@@ -119,12 +124,12 @@ const createContainer = function(accession) {
   <a href="https://www.bakerlab.org/">Baker</a> group with the trRosetta
   software using the Pfam uniprot multiple sequence alignment`;
 
-  /*
   const viewer = document.createElement("div");
   viewer.id = "viewport";
-  viewer.style.width = "400px";
-  viewer.style.height = "300px";
-  */
+  viewer.style.width = "90%";
+  viewer.style.minWidth = "400px";
+  viewer.style.minHeight = "800px";
+  viewer.style.minHeight = "300px";
 
   const links = document.createElement("P");
   links.innerHTML = `
@@ -157,7 +162,7 @@ const createContainer = function(accession) {
   const textContainer = document.createElement("DIV");
   textContainer.classList.add("blockContent");
   textContainer.appendChild(intro);
-  //textContainer.appendChild(viewer);
+  textContainer.appendChild(viewer);
   textContainer.appendChild(links);
   return textContainer;
 }
