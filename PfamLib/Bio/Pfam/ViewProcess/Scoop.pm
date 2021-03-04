@@ -23,8 +23,8 @@ sub submitToFarm {
 
   #Now submit the jobs
   my $queue = $self->{config}->{farm}->{lsf}->{queue};
-  my $resource = "rusage[mem=32000]";
-  my $memory = 32000;  
+  my $resource = "rusage[mem=64000]";
+  my $memory = 64000;
   $self->logger->debug("Running scoop on the farm");
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue -M $memory -R \"$resource\" -o ".$self->options->{statusdir}."/scoop.log -JSCOOP ");
