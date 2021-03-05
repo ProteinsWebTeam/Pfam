@@ -126,10 +126,7 @@ const createContainer = function(accession) {
 
   const viewer = document.createElement("div");
   viewer.id = "viewport";
-  viewer.style.width = "90%";
-  viewer.style.minWidth = "400px";
-  viewer.style.minHeight = "800px";
-  viewer.style.minHeight = "300px";
+  viewer.style.margin = "auto";
 
   const links = document.createElement("P");
   links.innerHTML = `
@@ -172,17 +169,18 @@ const createContainer = function(accession) {
   return textContainer;
 }
 
-const showStructure = function(accession) {
-  console.log(`showStructure(${accession})`);
+const showStructure = function(accession, chain, start, end) {
+  console.log(`showStructure(${accession}, ${chain}, ${start}, ${end})`);
   const container = document.getElementById('ngl-container');
   container.style.display = "block";
+  const title = document.getElementById("ngl-title");
+  title.innerHTML = `<h1>${accession}</h1>`;
 
   const viewer = document.createElement("div");
   viewer.id = "viewport";
-  viewer.style.width = "90%";
-  viewer.style.minWidth = "400px";
-  viewer.style.minHeight = "800px";
+  viewer.style.margin = "auto";
   viewer.style.minHeight = "300px";
+  viewer.style.minWidth = "300px";
   const nglContainer = document.getElementById("ngl-viewport");
   nglContainer.replaceChildren(viewer);
 
@@ -196,8 +194,16 @@ const showStructure = function(accession) {
     `https://mmtf.rcsb.org/v1.0/full/${accession}`,
     { "ext": "mmtf" }
   ).then(function (component) {
-    component.addRepresentation('cartoon', { colorScheme: "chainid" });
+    const highlight = NGL.ColormakerRegistry.addSelectionScheme([
+      ["yellow", `:${chain} and ${start}-${end}`],
+      ["blue", "*"]
+    ], `$accession`);
+    component.addRepresentation('cartoon', { color: highlight });
     component.autoView();
+
+    // hide spinner
+    const spinner = document.getElementById("ngl-spinner");
+    spinner.style.display = "none";
   });
 };
 
