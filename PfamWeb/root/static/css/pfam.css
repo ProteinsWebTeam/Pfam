@@ -1206,7 +1206,9 @@ a.btn:hover {
 }
 
 /* Modal Content/Box */
-#ngl-button {
+.ngl-button {
+  color: 0000EE;
+  text-decoration: underline;
 
 }
 
