@@ -16,87 +16,91 @@ const getInterProStructureModelLink = async function(accession) {
 };
 
 const addStructureTabToPage = function(accession) {
-  const structureModelId = "tabview=tab9";
-  const structureModelSelectorId = "structureModelSelector"
-  // create navigation link
-  const structureModelSelector = document.createElement("LI");
-  structureModelSelector.id = structureModelSelectorId;
-  const link = document.createElement("A");
-  //link.href = "#" + structureModelId;
-  link.text = "Structural Model";
-  structureModelSelector.append(link);
+  try {
+    const structureModelId = "tabview=tab9";
+    const structureModelSelectorId = "structureModelSelector"
+    // create navigation link
+    const structureModelSelector = document.createElement("LI");
+    structureModelSelector.id = structureModelSelectorId;
+    const link = document.createElement("A");
+    //link.href = "#" + structureModelId;
+    link.text = "Structural Model";
+    structureModelSelector.append(link);
 
-  // add to navigation link
-  const structure = document.getElementById('pdbBlockSelector');
-  const sidebar = document.getElementById("sidebar");
-  if (structure && sidebar) {
-    structure.parentElement.appendChild(structureModelSelector);
-    sidebar.addEventListener("click", (e) => {
-      e.preventDefault();
-      const target = e.target.parentElement;
-      const selectors = target.parentElement.children;
-      const structureModelSection = document.getElementById(structureModelId);
-      if (target.id === structureModelSelectorId) {
-        //container.style.visibility = "visible";
-        const content = document.getElementById("content").children;
-        for (const section of content) {
-          if (section.id != structureModelSelectorId) {
-            section.classList.add("yui-hidden");
+    // add to navigation link
+    const structure = document.getElementById('pdbBlockSelector');
+    const sidebar = document.getElementById("sidebar");
+    if (structure && sidebar) {
+      structure.parentElement.appendChild(structureModelSelector);
+      sidebar.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = e.target.parentElement;
+        const selectors = target.parentElement.children;
+        const structureModelSection = document.getElementById(structureModelId);
+        if (target.id === structureModelSelectorId) {
+          //container.style.visibility = "visible";
+          const content = document.getElementById("content").children;
+          for (const section of content) {
+            if (section.id != structureModelSelectorId) {
+              section.classList.add("yui-hidden");
+            }
           }
+          structureModelSection.classList.remove("yui-hidden");
+          structureModelSection.title = "active";
+          for (const selector of selectors) {
+              selector.classList.remove("selected");
+              selector.title = null;
+              target.title = "active";
+              target.classList.add("selected");
+          }
+        } else {
+          //container.style.visibility = "hidden";
+          structureModelSection.classList.add("yui-hidden");
+          structureModelSection.title = null;
+          const selector = document.getElementById(structureModelSelectorId);
+          selector.classList.remove("selected");
+          selector.title = null;
         }
-        structureModelSection.classList.remove("yui-hidden");
-        structureModelSection.title = "active";
-        for (const selector of selectors) {
-            selector.classList.remove("selected");
-            selector.title = null;
-            target.title = "active";
-            target.classList.add("selected");
-        }
-      } else {
-        //container.style.visibility = "hidden";
-        structureModelSection.classList.add("yui-hidden");
-        structureModelSection.title = null;
-        const selector = document.getElementById(structureModelSelectorId);
-        selector.classList.remove("selected");
-        selector.title = null;
-      }
 
+      });
+    }
+    const url = new URL(`${accession}/model`, IP_PFAM_FAMILY_WEB);
+
+    // create container for structure model divs
+    const structureModelContainer = document.createElement("DIV");
+    structureModelContainer.id = structureModelId;
+    structureModelContainer.classList.add("block");
+    addStructureModelContent(structureModelContainer, accession);
+
+    // add to doc
+    const detailsContainer = document.getElementById("content");
+    if (detailsContainer) {
+      detailsContainer.appendChild(structureModelContainer);
+    }
+    if (structureModelSelector.classList.contains("selected")) {
+      //structureModelContainer.style.visibility = "visible";
+      structureModelContainer.classList.remove("yui-hidden");
+    } else {
+      //structureModelContainer.style.visibility = "hidden";
+      structureModelContainer.classList.add("yui-hidden");
+    }
+
+    var stage = new NGL.Stage("viewport");
+    stage.setParameters({ backgroundColor: "white"});
+    // Handle window resizing
+    window.addEventListener( "resize", function( event ){
+        stage.handleResize();
+    }, false );
+    stage.loadFile(
+      `https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/${accession}/?model%3Astructure=`,
+      { "ext": "pdb" }
+    ).then(function (component) {
+      component.addRepresentation('cartoon', { colorScheme: "chainid" });
+      component.autoView();
     });
+  } catch (e) {
+    console.log("Error:" + e);
   }
-  const url = new URL(`${accession}/model`, IP_PFAM_FAMILY_WEB);
-
-  // create container for structure model divs
-  const structureModelContainer = document.createElement("DIV");
-  structureModelContainer.id = structureModelId;
-  structureModelContainer.classList.add("block");
-  addStructureModelContent(structureModelContainer, accession);
-
-  // add to doc
-  const detailsContainer = document.getElementById("content");
-  if (detailsContainer) {
-    detailsContainer.appendChild(structureModelContainer);
-  }
-  if (structureModelSelector.classList.contains("selected")) {
-    //structureModelContainer.style.visibility = "visible";
-    structureModelContainer.classList.remove("yui-hidden");
-  } else {
-    //structureModelContainer.style.visibility = "hidden";
-    structureModelContainer.classList.add("yui-hidden");
-  }
-
-  var stage = new NGL.Stage("viewport");
-  stage.setParameters({ backgroundColor: "white"});
-  // Handle window resizing
-  window.addEventListener( "resize", function( event ){
-      stage.handleResize();
-  }, false );
-  stage.loadFile(
-    `https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/${accession}/?model%3Astructure=`,
-    { "ext": "pdb" }
-  ).then(function (component) {
-    component.addRepresentation('cartoon', { colorScheme: "chainid" });
-    component.autoView();
-  });
 };
 
 const addStructureModelContent = function(structureModelContainer, accession) {
@@ -127,6 +131,8 @@ const createContainer = function(accession) {
   const viewer = document.createElement("div");
   viewer.id = "viewport";
   viewer.style.margin = "auto";
+  viewer.style.height = "40vh";
+  viewer.style.width = "70vw";
 
   const links = document.createElement("P");
   links.innerHTML = `
@@ -170,45 +176,52 @@ const createContainer = function(accession) {
 }
 
 const showStructure = function(accession, chain, start, end) {
-  console.log(`showStructure(${accession}, ${chain}, ${start}, ${end})`);
-  const container = document.getElementById('ngl-container');
-  container.style.display = "block";
-  const title = document.getElementById("ngl-title");
-  title.innerHTML = `<h1>${accession}</h1>`;
+  try {
+    const container = document.getElementById('ngl-container');
+    container.style.display = "block";
+    const title = document.getElementById("ngl-title");
+    title.innerHTML = `<h1>${accession}</h1>`;
 
-  const viewer = document.createElement("div");
-  viewer.id = "viewport";
-  viewer.style.margin = "auto";
-  viewer.style.minHeight = "300px";
-  viewer.style.minWidth = "300px";
-  const nglContainer = document.getElementById("ngl-viewport");
-  nglContainer.replaceChildren(viewer);
+    const viewer = document.createElement("div");
+    viewer.id = "viewport";
+    viewer.style.margin = "auto";
+    viewer.style.minHeight = "300px";
+    viewer.style.minWidth = "300px";
 
-  var stage = new NGL.Stage("viewport");
-  stage.setParameters({ backgroundColor: "white"});
-  // Handle window resizing
-  window.addEventListener( "resize", function( event ){
-      stage.handleResize();
-  }, false );
-  stage.loadFile(
-    `https://mmtf.rcsb.org/v1.0/full/${accession}`,
-    { "ext": "mmtf" }
-  ).then(function (component) {
-    const highlight = NGL.ColormakerRegistry.addSelectionScheme([
-      ["yellow", `:${chain} and ${start}-${end}`],
-      ["blue", "*"]
-    ], `$accession`);
-    component.addRepresentation('cartoon', { color: highlight });
-    component.autoView();
+    const nglContainer = document.getElementById("ngl-viewport");
+    nglContainer.replaceChildren(viewer);
 
-    // hide spinner
-    const spinner = document.getElementById("ngl-spinner");
-    spinner.style.display = "none";
-  });
+    var stage = new NGL.Stage("viewport");
+    stage.setParameters({ backgroundColor: "white"});
+    // Handle window resizing
+    window.addEventListener( "resize", function( event ){
+        stage.handleResize();
+    }, false );
+    stage.loadFile(
+      `https://mmtf.rcsb.org/v1.0/full/${accession}`,
+      { "ext": "mmtf" }
+    ).then(function (component) {
+      const highlight = NGL.ColormakerRegistry.addSelectionScheme([
+        ["yellow", `:${chain} and ${start}-${end}`],
+        ["blue", "*"]
+      ], `$accession`);
+      component.addRepresentation('cartoon', { color: highlight });
+      component.autoView();
+
+      // hide spinner
+      const spinner = document.getElementById("ngl-spinner");
+      spinner.style.display = "none";
+    });
+  } catch(e) {
+    console.log("Error: " + e);
+  }
 };
 
 const hideStructure = function() {
-  console.log(`hideStructure()`);
-  const container = document.getElementById('ngl-container');
-  container.style.display = "none";
+  try {
+    const container = document.getElementById('ngl-container');
+    container.style.display = "none";
+  } catch (e) {
+    console.log("Error: " + e);
+  }
 };
