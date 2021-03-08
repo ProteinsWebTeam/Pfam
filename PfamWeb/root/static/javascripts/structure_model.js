@@ -1,5 +1,6 @@
 const IP_PFAM_FAMILY_API = "https://www.ebi.ac.uk/interpro/wwwapi/entry/pfam/";
 const IP_PFAM_FAMILY_WEB = "https://www.ebi.ac.uk/interpro/entry/pfam/";
+const VIEWPORT_ID = "viewport";
 
 const getInterProStructureModelLink = async function(accession) {
   const url = new URL(accession, IP_PFAM_FAMILY_API);
@@ -85,7 +86,8 @@ const addStructureTabToPage = function(accession) {
       structureModelContainer.classList.add("yui-hidden");
     }
 
-    var stage = new NGL.Stage("viewport");
+    // attach NGL structure viewer to initialised page
+    var stage = new NGL.Stage(VIEWPORT_ID);
     stage.setParameters({ backgroundColor: "white"});
     // Handle window resizing
     window.addEventListener( "resize", function( event ){
@@ -97,7 +99,30 @@ const addStructureTabToPage = function(accession) {
     ).then(function (component) {
       component.addRepresentation('cartoon', { colorScheme: "chainid" });
       component.autoView();
+      // Prevent scrolling when touching the canvas
+      const canvas = document.getElementById(VIEWPORT_ID).firstChild;
+      document.body.addEventListener("wheel", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
+      document.body.addEventListener("touchstart", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
+      document.body.addEventListener("touchend", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
+      document.body.addEventListener("touchmove", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
     });
+
   } catch (e) {
     console.log("Error:" + e);
   }
@@ -129,10 +154,10 @@ const createContainer = function(accession) {
   software using the Pfam UniProt multiple sequence alignment.`;
 
   const viewer = document.createElement("div");
-  viewer.id = "viewport";
+  viewer.id = VIEWPORT_ID;
   viewer.style.margin = "auto";
-  viewer.style.height = "40vh";
-  viewer.style.width = "70vw";
+  viewer.style.height = "50vh";
+  viewer.style.width = "75vw";
 
   const links = document.createElement("P");
   links.innerHTML = `
@@ -183,7 +208,7 @@ const showStructure = function(accession, chain, start, end) {
     title.innerHTML = `<h1>${accession}</h1>`;
 
     const viewer = document.createElement("div");
-    viewer.id = "viewport";
+    viewer.id = VIEWPORT_ID;
     viewer.style.margin = "auto";
     viewer.style.minHeight = "300px";
     viewer.style.minWidth = "300px";
@@ -191,7 +216,7 @@ const showStructure = function(accession, chain, start, end) {
     const nglContainer = document.getElementById("ngl-viewport");
     nglContainer.replaceChildren(viewer);
 
-    var stage = new NGL.Stage("viewport");
+    var stage = new NGL.Stage(VIEWPORT_ID);
     stage.setParameters({ backgroundColor: "white"});
     // Handle window resizing
     window.addEventListener( "resize", function( event ){
@@ -211,6 +236,29 @@ const showStructure = function(accession, chain, start, end) {
       // hide spinner
       const spinner = document.getElementById("ngl-spinner");
       spinner.style.display = "none";
+
+      // Prevent scrolling when touching the canvas
+      const canvas = document.getElementById(VIEWPORT_ID).firstChild;
+      document.body.addEventListener("wheel", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
+      document.body.addEventListener("touchstart", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
+      document.body.addEventListener("touchend", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
+      document.body.addEventListener("touchmove", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, {passive: false});
     });
   } catch(e) {
     console.log("Error: " + e);
