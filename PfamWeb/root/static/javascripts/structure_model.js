@@ -210,7 +210,7 @@ const showStructure = function(accession, chain, start, end) {
     const viewer = document.createElement("div");
     viewer.id = VIEWPORT_ID;
     viewer.style.margin = "auto";
-    viewer.style.minHeight = "300px";
+    viewer.style.minHeight = "400px";
     viewer.style.minWidth = "300px";
 
     const nglContainer = document.getElementById("ngl-viewport");
