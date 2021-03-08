@@ -200,8 +200,11 @@ const createContainer = function(accession) {
   return textContainer;
 }
 
-const showStructure = function(accession, chain, start, end) {
+const showStructure = function(accession, chain, pdbResKey) {
   try {
+    const [start, end] = pdbResKey.split(" - ");
+
+
     const container = document.getElementById('ngl-container');
     container.style.display = "block";
     const title = document.getElementById("ngl-title");
