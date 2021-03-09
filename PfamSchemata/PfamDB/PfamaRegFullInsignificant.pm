@@ -95,9 +95,8 @@ __PACKAGE__->table("pfamA_reg_full_insignificant");
 
 =head2 domain_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =head2 sequence_bits_score
 
@@ -108,9 +107,8 @@ __PACKAGE__->table("pfamA_reg_full_insignificant");
 
 =head2 sequence_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =cut
 
@@ -148,7 +146,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "domain_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
   "sequence_bits_score",
   {
     data_type => "double precision",
@@ -157,7 +155,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "sequence_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -199,8 +197,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2017-02-02 14:37:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iikYXxBxV3lDua4XaBcQUQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2021-03-09 10:30:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3O0JZgeXBsEQbWlc5R7iQA
 
 
 =head1 COPYRIGHT

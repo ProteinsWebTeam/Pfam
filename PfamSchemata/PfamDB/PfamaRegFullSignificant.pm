@@ -89,9 +89,8 @@ __PACKAGE__->table("pfamA_reg_full_significant");
 
 =head2 domain_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =head2 sequence_bits_score
 
@@ -102,9 +101,8 @@ __PACKAGE__->table("pfamA_reg_full_significant");
 
 =head2 sequence_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =head2 cigar
 
@@ -161,7 +159,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "domain_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
   "sequence_bits_score",
   {
     data_type => "double precision",
@@ -170,7 +168,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "sequence_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
   "cigar",
   { data_type => "text", is_nullable => 1 },
   "in_full",
@@ -220,8 +218,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-22 11:23:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gR1/JIiSFQ3l8DbfQ7Bptg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2021-03-09 10:30:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U7Xhqd1zSqIVhK9DxwCALQ
 
 __PACKAGE__->has_one( pfamseq =>  'PfamDB::Pfamseq',
                       { 'foreign.pfamseq_acc'  => 'self.pfamseq_acc' },
