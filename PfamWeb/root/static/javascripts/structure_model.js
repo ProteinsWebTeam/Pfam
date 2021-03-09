@@ -264,6 +264,10 @@ const showStructure = function(accession, chain, pdbResKey) {
       }, {passive: false});
     });
   } catch(e) {
+    const errorContainer = document.getElementById("ngl-viewport");
+    errorContainer.innerHTML = `<p>Something went wrong whilst fetching structure
+    data. Please try again later, or if the problem persists contact us on
+    pfam-help@ebi.ac.uk.</p>`;
     console.log("Error: " + e);
   }
 };

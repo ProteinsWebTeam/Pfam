@@ -149,6 +149,8 @@ END -%]
   <div class="ngl-content">
     <span class="ngl-close" onclick="hideStructure()">&times;</span>
     <div id="ngl-title" class="handle"></div>
+    <p>The parts of the structure corresponding to the Pfam family are 
+    highlighted in yellow.</p>
     <p id="ngl-spinner" class="loading">Loading Structure Data</p>
     <div id="ngl-viewport">
     </div>
