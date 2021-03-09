@@ -84,37 +84,6 @@ unless ($pfamDB) {
 $logger->debug("Got pfamlive database connection");
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
-my $jobsDB = Bio::Pfam::PfamJobsDBManager->new( %{ $config->pfamjobs } );
-unless ($jobsDB) {
-  Bio::Pfam::ViewProcess::mailPfam( "Failed to run view process",
-    "Could not get connection to the pfam_jobs database" );
-}
-
-#Now make sure that all of the view processes have completed
-my $noUnFinishedJobs = $jobsDB->getSchema->resultset('JobHistory')->search(
-  {
-    -and => [
-      status   => { '!=', 'DONE' },
-      status   => { '!=', 'KILL' },
-      job_type => [qw(clan family)]
-    ],
-  }
-);
-
-if ( $noUnFinishedJobs != 0 ) {
-    $logger->warn("There are currently $noUnFinishedJobs jobs in the jobs database");
-
-  if ( -e $logDir . "/overrideView" ) {
-    $logger->info("$logDir/overrideView exists, continuing");
-  }
-  else {
-    $logger->logdie("Exiting as there are still $noUnFinishedJobs jobs in the jobs database");
-  }
-}
-else {
-  $logger->info("All view processes are complete!");
-}
-
 #The swissprot/trembl/reference proteome version used to be updated in this section
 #Have taken it out as it is updated when the sequence databases are loaded in the db
 #(jaina Feb 2017)
@@ -158,9 +127,6 @@ $logger->info("Got relnotes and userman");
 # 1. pfamseq
 # 2. sprot.dat
 # 3. trembl.dat
-# 4. genpept.fa
-# 5. metaseq
-# 6. ncbi
 
 #Upto here......
 
@@ -178,7 +144,7 @@ unless ( -e "$logDir/checkedseqsize" ){
     $logger->info("Got pfamseq size (residues): $numSeqs, ($numRes)");
     }
 
-    foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
+    foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat)) {
      unless ( -s "$thisRelDir/$f.gz" ) {
       if ( $f eq 'pfamseq' ) {
        ( $numSeqs, $numRes ) = checkPfamseqSize( $updateDir, $pfamDB );
@@ -197,13 +163,12 @@ unless ( -e "$logDir/checkedseqsize" ){
     touch("$logDir/checkedseqsize");
 }
 
-unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full.ncbi" ) {
+unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full.uniprot") {
     makePfamAFlat( $thisRelDir, $pfamDB );
 }
 
 unless ( -e "$logDir/checkedA" ) {
   foreach my $f ( "$thisRelDir/Pfam-A.seed", "$thisRelDir/Pfam-A.full" ) {
-    $logger->info("Checking format of $f");
     checkflat($f);
     touch("$logDir/checkedA");
   }
@@ -567,9 +532,9 @@ unless ( -d "$thisRelDir/SeqInfo" ){
 
 }
 
-#Calculate coverage stats for ncbi, metaseq and uniprot
+#Calculate coverage stats for uniprot
 unless(-e "$logDir/submitted_coverage_job") {
-  $logger->info("Submitting job to calculate coverage for ncbi, metaseq and uniprot databases to the farm");
+  $logger->info("Submitting job to calculate coverage for uniprot database to the farm");
   chdir($thisRelDir) or $logger->logdie("Couldn't chdir into $thisRelDir, $!");
   my $queue = $config->{farm}->{lsf}->{queue};
   system("bsub -q $queue -o $pwd/coverage_stats.log -Jstats -M 100000 -R \"rusage[mem=100000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
@@ -710,7 +675,7 @@ sub checkPfamseqSize {
 sub makeStats {
   my ( $releasedir, $num_seqs, $num_res ) = @_;
   $logger->info("Making stats.\n");
-  system("flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt");
+  system("flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt") and $logger->logdie("Couldn't run 'flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt', $!");
   if ( -s "$releasedir/stats.txt" ) {
     $logger->info("Made stats");
   }
@@ -864,7 +829,7 @@ sub getTxtFiles {
 sub getPfamseqFiles {
   my ( $relDir, $pfamseqDir, $config ) = @_;
 
-  foreach my $f (qw(pfamseq uniprot uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
+  foreach my $f (qw(pfamseq uniprot uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat)) {
     unless ( -s "$relDir/$f.gz" ) {
       $logger->info("Copying $f");
       if ( -s "$pfamseqDir/$f.gz" ) {
@@ -873,12 +838,6 @@ sub getPfamseqFiles {
       }
       elsif( -s "$pfamseqDir/$f" ) {
         copy( "$pfamseqDir/$f", "$relDir/$f" )  || $logger->logdie("Could not copy $f from $pfamseqDir to $relDir:[$!]");
-      }
-      elsif($f eq "metaseq") {
-        copy($config->metaseqLoc."/$f", "$relDir/$f") || $logger->logdie("Could not copy $f from ".$config->metaseqLoc." to $relDir:[$!]");
-      }
-      elsif($f eq "ncbi") {
-        copy($config->ncbiLoc."/$f", "$relDir/$f") || $logger->logdie("Could not copy $f from ".$config->ncbiLoc." to $relDir:[$!]");
       }
       else {
         $logger->logdie("Could not find $f in $pfamseqDir!");
@@ -926,8 +885,6 @@ sub makePfamAFlat {
     makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level ) unless(-e "$thisRelDir/Pfam-A.$level");
   }
   makePfamAUniprot( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.uniprot");
-  makePfamANcbi( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.ncbi");
-  makePfamAMeta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.metagenomics");
 }
 
 sub makePfamAFlatSeed {
@@ -1352,61 +1309,6 @@ sub makePfamAFlatRP {
 
 }
 
-sub makePfamAMeta {
-  my ( $thisRelDir, $pfamDB, $families ) = @_;
-
-  my @errors;
-  open( PFAMAMETA, ">$thisRelDir/Pfam-A.full.metagenomics" )
-    || $logger->logdie("Could not open Pfam-A.full.metagenomics");
-
-  $logger->info("Checking Metagenomics files");
-  foreach my $family (@$families) {
-    next
-      if ( !defined( $family->number_meta ) or $family->number_meta == 0 );
-
-    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
-      {
-        pfama_acc => $family->pfama_acc,
-        type       => 'meta'
-      }
-    );
-
-    if ( $row and $row->pfama_acc ) {
-
-      #Okay, looks like we have an alignment
-      my $ali = Compress::Zlib::memGunzip( $row->alignment );
-      if ( length($ali) > 10 ) {
-        print PFAMAMETA $ali;
-      }
-      else {
-        $logger->warn("Metagenomics ali has incorrect size");
-        push(
-          @errors,
-          {
-            family  => $family->pfama_acc,
-            file    => 'metaAli',
-            message => 'No size'
-          }
-        );
-      }
-
-    }
-    else {
-      $logger->warn("Failed to get metagenomics row");
-      push(
-        @errors,
-        {
-          family  => $family->pfama_acc,
-          file    => 'metaAli',
-          message => 'No row from database'
-        }
-      );
-    }
-  }
-  close(PFAMAMETA);
-  errors( \@errors );
-}
-
 sub makePfamAUniprot {
   my ( $thisRelDir, $pfamDB, $families ) = @_;
 
@@ -1478,96 +1380,6 @@ sub makePfamAUniprot {
 }
 
 
-
-sub makePfamANcbi {
-my ( $thisRelDir, $pfamDB, $families ) = @_;
-
-  my @errors;
-  open( PFAMANCBI, ">$thisRelDir/Pfam-A.full.ncbi" )
-    || $logger->logdie("Could not open Pfam-A.full.ncbi");
-
-  $logger->info("Checking NCBI files");
-  foreach my $family (@$families) {
-    next
-      if ( !defined( $family->number_ncbi ) or $family->number_ncbi == 0 );
-
-    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
-      {
-        pfama_acc => $family->pfama_acc,
-        type       => 'ncbi'
-      }
-    );
-
-    if ( $row and $row->pfama_acc ) {
-      #Okay, looks like we have an alignment
-      my $ali = Compress::Zlib::memGunzip( $row->alignment );
-      my $length = length($ali);
-      if(!$ali) {
-        my $fam= $family->pfama_acc;
-        open(FAM, ">$thisRelDir/$fam.gz") or $logger->logdie("Couldn't open $thisRelDir/$fam.gz for writing, $!");
-        print FAM $row->alignment; #This will print it in gzipped format (alignments > 4gb won't unzip correctly with Compress::Zlib::memGunzip)
-        close FAM;
-        system("gunzip $thisRelDir/$fam.gz") and $logger->logdie("Couldn't 'gunzip $thisRelDir/$fam.gz', $!");
-        open(FAM, "$thisRelDir/$fam") or $logger->logdie("Couldn't open fh to $thisRelDir/$fam, $!");
-        my $c;
-        while(<FAM>) {
-          print PFAMANCBI $_;
-          $c++;
-        }
-        close FAM;
-        unlink("$thisRelDir/$fam");
-        $length=$c; 
-      }
-      elsif ( $length > 10 ) {
-        print PFAMANCBI $ali;
-      }
-      
-      if($length <= 10) {
-        $logger->warn("NCBI ali has incorrect size");
-        push(
-          @errors,
-          {
-            family  => $family->pfama_acc,
-            file    => 'ncbiAli',
-            message => 'No size'
-          }
-        );
-      }
-
-    }
-    elsif($family->pfama_acc eq "PF07960") {
-      if(-s "PF07690.ncbi.gz") {  #This alignment won't fit in the db, and should have been run separately and put in the cwd
-        open(FAM, "gunzip -c PF07690.ncbi.gz |") or $logger->logdie("Couldn't open fh to 'gunzip -c PF07690.ncbi.gz |', $!");
-        while(<FAM>) {
-          print PFAMANCBI $_;
-        }
-        close FAM;
-      }
-      else {
-        $logger->warn("PF07690.ncbi.gz doesn't exist in cwd, so will be unable to add it to the ncbi flatfile") ;
-        push(@errors, { family  => $family->pfama_acc,
-                        file    => 'ncbiAli',
-                        message => 'No row from database and alignment not in cwd'
-                                                                        }
-                                                                              );
-      }
-    }
-    else {
-      $logger->warn("Failed to get NCBI row for ".$family->acc);
-      push(
-        @errors,
-        {
-          family  => $family->pfama_acc,
-          file    => 'ncbiAli',
-          message => 'No row from database'
-        }
-      );
-    }  
-  }
-  close(PFAMANCBI);
-  errors( \@errors );
-
-}
 
 ##########################################################
 # Checks flatfile format, exits at first sign of trouble #
@@ -1645,15 +1457,11 @@ sub make_ftp {
   my @list = qw(
     active_site.dat
     diff
-    metaseq
-    ncbi
     pdbmap
     Pfam-A.dead
     Pfam-A.fasta
     Pfam-A.full
     Pfam-A.full.uniprot
-    Pfam-A.full.metagenomics
-    Pfam-A.full.ncbi
     Pfam-A.hmm.dat
     Pfam-A.hmm
     Pfam-A.seed
