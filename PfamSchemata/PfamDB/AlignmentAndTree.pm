@@ -53,7 +53,7 @@ __PACKAGE__->table("alignment_and_tree");
 =head2 type
 
   data_type: 'enum'
-  extra: {list => ["full","seed","meta","ncbi","uniprot","rp15","rp35","rp55","rp75"]}
+  extra: {list => ["full","seed","uniprot","rp15","rp35","rp55","rp75"]}
   is_nullable: 0
 
 =cut
@@ -73,17 +73,7 @@ __PACKAGE__->add_columns(
   {
     data_type => "enum",
     extra => {
-      list => [
-        "full",
-        "seed",
-        "meta",
-        "ncbi",
-        "uniprot",
-        "rp15",
-        "rp35",
-        "rp55",
-        "rp75",
-      ],
+      list => ["full", "seed", "uniprot", "rp15", "rp35", "rp55", "rp75"],
     },
     is_nullable => 0,
   },
@@ -102,8 +92,8 @@ Related object: L<PfamDB::Pfama>
 __PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i19BB6ScmJVS5kgyDDaDaw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2021-03-09 10:30:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E/ew873PlGg0o6215CDLVw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
