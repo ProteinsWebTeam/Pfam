@@ -1164,6 +1164,7 @@ sub makePfamAFasta {
 
   my @errors;
 
+  $logger->info("Getting FASTA files");
   #Opent the output file
   open( PFAMAFA, ">$thisRelDir/Pfam-A.fasta" )
     || $logger->logdie("Could not open Pfam-A.fasta");
@@ -1179,7 +1180,6 @@ sub makePfamAFasta {
 
     #Check we have a row.
     if ( $row and $row->pfama_acc ) {
-      $logger->info("Checking FASTA file");
       my $fa = Compress::Zlib::memGunzip( $row->fasta );
 
       if ( length($fa) > 10 ) {
