@@ -2228,7 +2228,7 @@ sub _compete {
   if($clanAcc and $clanAcc =~ /CL\d{4}/){
     #Look up to see if there are any regions in the database with an E-value
     #less than this one!
-    unless($region->{evalue}) {
+    unless(defined($region->{evalue})) {
       die "No evalue for $seqAcc in scores file\n";
     }
     my $seqRegions = $pfamDB->findLowerEvalueRegion($seqAcc, $region, $clanAcc, $region->{evalue});  

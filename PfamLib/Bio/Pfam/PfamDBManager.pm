@@ -601,7 +601,7 @@ sub findLowerEvalueRegion {
   
   my $dbh = $self->getSchema->storage->dbh;
 
-  unless($evalue){
+  unless(defined($evalue)){
     my $sthE = $dbh->prepare("SELECT domain_evalue_score FROM 
                                       pfamA a, 
                                       pfamA_reg_full_significant r
