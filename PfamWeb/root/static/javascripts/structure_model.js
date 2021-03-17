@@ -1,6 +1,6 @@
 const IP_PFAM_FAMILY_API = "https://www.ebi.ac.uk/interpro/wwwapi/entry/pfam/";
 const IP_PFAM_FAMILY_WEB = "https://www.ebi.ac.uk/interpro/entry/pfam/";
-const VIEWPORT_ID = "viewport";
+const VIEWPORT_ID = "structure_viewport";
 
 const getInterProStructureModelLink = async function(accession) {
   const url = new URL(accession, IP_PFAM_FAMILY_API);
