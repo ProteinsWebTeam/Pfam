@@ -356,7 +356,7 @@ else {
   my $interpro_go2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/interpro_go.log", -J => 'interpro_go_done', -w => "done($interpro_go)", "touch $status_dir/interpro_and_go");
 
   $logger->info("Waiting for interpro and gene_ontology tables to finish populating");
-  until(-e "$status_dir/other_regions") {
+  until(-e "$status_dir/interpro_and_go") {
     sleep 300;
   }
 }
@@ -371,7 +371,7 @@ if(-e "$status_dir/RP_done") {
 else {
   $logger->info("Going to populate RP field in uniprot table");
 
-  my $RP = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX', -M => 10000, -R => 'rusage[mem=10000]', "pud-getRepresentativeProteomes.pl -statusdir $status_dir");
+  my $RP = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX', -M => 20000, -R => 'rusage[mem=20000]', "pud-getRepresentativeProteomes.pl -statusdir $status_dir");
   my $RP2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX_done', -w => "done($RP)", "touch $status_dir/RP_done");
 
   $logger->info("Waiting for RP field to finish updating");
@@ -397,6 +397,30 @@ else {
   }
 }
 
+
+#Copy released_pfam_version and released_clan_version table data from the last release db to pfam_live db
+#Also put a copy of the release config in the configs directory
+if(-e "$status_dir/released_version_tables") {
+    $logger->info("Already copied released version tables");
+}
+else {
+
+    my $config_dir = "/nfs/production/xfam/pfam/software/Conf";
+    my $new_rel_config = "pfam".$new_release_num.".conf";
+    $logger->info("Going to copy the pfam release config to $config_dir/$new_rel_config");
+
+    system("cp $pfam_release_config $config_dir/$new_rel_config") and die "Couldn't 'cp $pfam_release_config $config_dir/$new_rel_config, $!";
+
+    my $last_release = $new_release_num -1;
+    my $last_rel_db = "pfam_".$last_release."_0";
+    my $last_release_conf = "$config_dir/pfam".$last_release.".conf";
+
+    $logger->info("Going to copy released_pfam_version and released_clan_version table data from $last_rel_db to pfam_live database");
+    $logger->info("*** Note: If $last_rel_db is not the previous released version of Pfam, you will need to run pud-copy_versions.pl and pass in the config file for the previous release on the command line ***");
+    system("pud-copy_versions.pl -pfam_live_config $live_config -last_release_config $last_release_conf") and die "Couldn't run 'pud-copy_versions.pl -pfam_live_config $live_config -last_release_config $last_release_conf', $!"; 
+
+    system("touch $status_dir/released_version_tables") and $logger->logdie("Couldn't touch $status_dir/released_version_tables");
+}
 
 sub help {
 

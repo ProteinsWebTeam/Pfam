@@ -71,10 +71,10 @@ LINE: while(<>) {
 	## Can be one of six types
 	/^\#=GF\s+TP\s{3}(Domain|Family|Repeat|Motif|Coiled-coil|Disordered)$/ && do {$hash{'TP'}++; next; };
 
-  /^\#=GF\s+WK\s{3}(.*)$/ && do { $hash{'WK'}++; next; };
-	## Can be one of three options
-	/^\#=GF\s+AM\s{3}(byscore|globalfirst|localfirst)$/ && do {$hash{'AM'}++; next; };
-	
+    /^\#=GF\s+WK\s{3}(.*)$/ && do { $hash{'WK'}++; next; };
+
+    /^\#=GF\s+CL\s{3}CL\d{4}$/ && do {$hash{'CL'}++; next; };
+
 	## Needs to be four lines.
 	if (/^\#=GF\s+BM\s{3}/) {
 		$hash{'BM'}++;
@@ -179,6 +179,12 @@ LINE: while(<>) {
     if( $hash{'TP'} != 1 ) {
 	print ("Printing: $hash{'TP'} TP lines for $pfam_id\n");
     }
+    if( $hash{'CL'} and $hash{'CL'} != 1 ) {
+	print ("Printing: $hash{'CL'} CL lines for $pfam_id\n");
+    }
+
+
+
     if( $hash{'BM'} != 1 ) {
 	print ("Printing: $hash{'BM'} BM lines for $pfam_id\n");
 	}

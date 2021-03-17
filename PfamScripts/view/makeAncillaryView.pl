@@ -149,14 +149,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $pdbImageView->submitToFarm(150);
     $pdbImageView->touchStatus('donePdbImages');
   }
-  #Now make run the models against the 'other' sequence databases
-  if(! $searchView->statusCheck('doneOtherSearches')){
-    $logger->debug("Running other searches"); 
-    #Submit the database searches to the farm. This will not return until
-    #all jobs have completed.
-    $searchView->submitToFarm(75);
-    $searchView->touchStatus('doneOtherSearches');
-  }
 } #end of if exists $archView
  
 #All of these steps are affected whether one family is changed or all as they

@@ -89,9 +89,8 @@ __PACKAGE__->table("uniprot_reg_full");
 
 =head2 domain_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =head2 sequence_bits_score
 
@@ -102,9 +101,8 @@ __PACKAGE__->table("uniprot_reg_full");
 
 =head2 sequence_evalue_score
 
-  data_type: 'varchar'
+  data_type: 'double precision'
   is_nullable: 0
-  size: 15
 
 =head2 in_full
 
@@ -146,7 +144,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "domain_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
   "sequence_bits_score",
   {
     data_type => "double precision",
@@ -155,7 +153,7 @@ __PACKAGE__->add_columns(
     size => [8, 2],
   },
   "sequence_evalue_score",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "double precision", is_nullable => 0 },
   "in_full",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
 );
@@ -214,8 +212,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-22 11:23:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qiZ8Vu6ZYZB5tj1hBuY8nw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2021-03-09 10:30:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8zUI9DNs8XGq0g95oaBULQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

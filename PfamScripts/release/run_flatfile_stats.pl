@@ -23,8 +23,11 @@ my $stats_dir="stats";
 
 #Set the location of the fasta files
 my %db;
-$db{'metaseq'} = $config->{metaseq}->{location}."/metaseq";
-$db{'ncbi'} = $config->{ncbi}->{location}."/ncbi";
+
+#No longer run metaseq and ncbi searches
+#$db{'metaseq'} = $config->{metaseq}->{location}."/metaseq";
+#$db{'ncbi'} = $config->{ncbi}->{location}."/ncbi";
+
 $db{'uniprot'} = $config->{uniprot}->{location}."/uniprot";
 
 #Create the stats directory

@@ -717,36 +717,6 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 pfama_interactions_pfama_acc_as
-
-Type: has_many
-
-Related object: L<PfamDB::PfamaInteractions>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfama_interactions_pfama_acc_as",
-  "PfamDB::PfamaInteractions",
-  { "foreign.pfama_acc_a" => "self.pfama_acc" },
-  undef,
-);
-
-=head2 pfama_interactions_pfama_acc_bs
-
-Type: has_many
-
-Related object: L<PfamDB::PfamaInteractions>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfama_interactions_pfama_acc_bs",
-  "PfamDB::PfamaInteractions",
-  { "foreign.pfama_acc_b" => "self.pfama_acc" },
-  undef,
-);
-
 =head2 pfama_literature_references
 
 Type: has_many
@@ -938,8 +908,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-08-30 08:56:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:POY9a6H1towplCKyGe+zdw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2021-03-09 10:30:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fE824nfUqSGWaUNFJL4lYA
 
 
 

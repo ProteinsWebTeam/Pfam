@@ -652,23 +652,17 @@ sub makeRPAligns {
     }
   }
 
-
-  my $file="uniprot.gz";
-  unless(-s "uniprot.gz") { #This should already exist from addUniprotGF subroutine
-    #Get the uniprot alignemnt for the family
-    my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
-    my $alignment = Compress::Zlib::memGunzip($rs->alignment);
-    open(FH, ">$file") or $self->logger->logdie("Couldn't open fh to $file, $!");
-    print FH $rs->alignment;
-    close FH;
+  #This should already exist from addUniprotGF subroutine
+  my $uniprot_file="uniprot.ann";
+  unless(-s $uniprot_file) {
+    $self->logger->logdie("$uniprot_file does not exist, $!");
   }
-
 
   #Create the rp alignments, and upload to db
   foreach my $rp_level (@rp_levels) {
     $self->logger->debug("Working on level $rp_level");
     my ($upload, $aln, $noSeqs);
-    open(ALN, "gunzip -c $file |") or $self->logger->logdie("Couldn't open fh to 'gunzip -c $file |', $!");
+    open(ALN, $uniprot_file) or $self->logger->logdie("Couldn't open fh to $uniprot_file, $!");
     while(<ALN>) {
       chomp; 
       my $row = $_;
@@ -2031,7 +2025,7 @@ sub makeNonRedundantFasta {
 
   #Families which fail using cd-hit have been hard-coded to use esl-weight
   my %fail;
-  my @fail = qw(PF00220 PF00446 PF02757 PF03373 PF03991 PF08257 PF08258 PF08261);  #These families fail with cd-hit
+  my @fail = qw(PF00220 PF00446 PF00904 PF02757 PF03373 PF03991 PF06049 PF08257 PF08258 PF08261);  #These families fail with cd-hit
   foreach my $f (@fail) {
     $fail{$f}=1;
   }
@@ -2218,13 +2212,11 @@ sub uploadTreesAndAlign {
     or ( $type eq 'rp35' )
     or ( $type eq 'rp55' )
     or ( $type eq 'rp75' )
-    or ( $type eq 'ncbi' )
-    or ( $type eq 'meta' ) 
     or ( $type eq 'uniprot' )
     )
   {
     $self->mailUserAndFail( 
-"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed', 'meta', 'ncbi' or 'uniprot' or 'rp15-75'"
+"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed' or 'uniprot' or 'rp15-75'"
     );
   }
 
@@ -2241,7 +2233,7 @@ sub uploadTreesAndAlign {
 
   my $file;
   if(-s "$filename.ann" >= 4000000000) { #If the file is >=4gb in size
-    system("gzip $filename.ann") and $self->mailUserAndFail("Failed to gzip $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
+    system("gzip -c $filename.ann > $filename.ann.gz") and $self->mailUserAndFail("Failed to gzip -c $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
     open(ANN, "$filename.ann.gz") or $self->mailUserAndFail("Failed to open $filename.ann.gz, $!" );
     while(<ANN>) {
       $file .= $_; 
@@ -2496,7 +2488,9 @@ sub writeGFAnnotationBlock {
   foreach my $a (@{$GFAnn->{author}}) {
     my $author_line = $a->author->author.";";
     if($a->author->orcid) {
-      $author_line .= $a->author->orcid;
+      unless($a->author->orcid eq "NULL") {
+          $author_line .= $a->author->orcid;
+      }
     }
     print $annfile "#=GF AU   $author_line\n";
   }
@@ -2523,6 +2517,11 @@ sub writeGFAnnotationBlock {
       print $annfile wrap( "#=GF WK   ", "#=GF WK   ", $w->auto_wiki->title );
       print $annfile "\n";
     }
+  }
+
+  #Add CL line if present
+  if($GFAnn->{clan}) {
+    print $annfile "#=GF CL   ". $GFAnn->{clan}."\n";
   }
 
   #Add Nested domains if they are present
@@ -2631,7 +2630,7 @@ sub make_tree {
   close TREE;
   my @tree = split( /,/, $line );
 
-#Exchange the treefile accessions for ids (not for ncbi or metaseq), and set the tree order on the database object
+#Exchange the treefile accessions for ids, and set the tree order on the database object
   my $order = 1;
   foreach my $acc (@tree) {
     my ( $before1, $before2, $nm, $st, $en, $after );
@@ -3104,8 +3103,6 @@ sub resetStats {
   $self->pfam->update( { number_archs => '0',
                          number_species => '0',
                          number_structures => '0',
-                         number_ncbi => '0',
-                         number_meta => '0',
                          average_length => '0',
                          percentage_id => '0',
                          average_coverage => '0',
