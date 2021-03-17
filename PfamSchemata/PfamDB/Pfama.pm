@@ -200,16 +200,6 @@ __PACKAGE__->table("pfamA");
   data_type: 'integer'
   is_nullable: 1
 
-=head2 number_ncbi
-
-  data_type: 'integer'
-  is_nullable: 1
-
-=head2 number_meta
-
-  data_type: 'integer'
-  is_nullable: 1
-
 =head2 average_length
 
   data_type: 'double precision'
@@ -355,10 +345,6 @@ __PACKAGE__->add_columns(
   "number_species",
   { data_type => "integer", is_nullable => 1 },
   "number_structures",
-  { data_type => "integer", is_nullable => 1 },
-  "number_ncbi",
-  { data_type => "integer", is_nullable => 1 },
-  "number_meta",
   { data_type => "integer", is_nullable => 1 },
   "average_length",
   { data_type => "double precision", is_nullable => 1, size => [6, 2] },
