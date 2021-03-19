@@ -1232,11 +1232,18 @@ a.btn:hover {
   float: right;
   font-size: 28px;
   font-weight: bold;
-}
+}xs
 
 .ngl-close:hover,
 .ngl-close:focus {
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+
+#ngl-scontainer {
+  display: none; /* Hidden by default */
+  /* overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
