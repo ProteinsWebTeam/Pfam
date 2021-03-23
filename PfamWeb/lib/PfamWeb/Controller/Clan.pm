@@ -493,28 +493,7 @@ sub get_summary_data : Private {
   # number of architectures
   $summaryData{numArchitectures} = $c->stash->{clan}->number_archs;
 
-  # number of interactions
-  my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( [{'clan_membership_a.clan_acc' => $c->stash->{clan}->clan_acc },
-                                  {'clan_membership_b.clan_acc' => $c->stash->{clan}->clan_acc }],
-                                 { join     => [ qw( pfama_acc_a
-                                                     pfama_acc_b
-                                                     clan_membership_a
-                                                     clan_membership_b) ],
-                                   select   => [ qw( pfama_acc_a.pfama_id
-                                                     pfama_acc_a.pfama_acc
-                                                     pfama_acc_b.pfama_id
-                                                     pfama_acc_b.pfama_acc ) ],
-                                   as       => [ qw( pfamA_A_id
-                                                     pfamA_A_acc
-                                                     pfamA_B_id
-                                                     pfamA_B_acc ) ],
-                                  order_by  => [qw(pfama_acc_a.pfama_id pfama_acc_b.pfama_id)] } );
-
-  # stash this for later...
-  $c->stash->{interactions} = \@interactions;
-
-  $summaryData{numInt} = scalar @interactions;
+  $summaryData{numInt} = 0;
   $c->log->debug( 'Clan::get_summary_data: got ' . $summaryData{numInt} . ' interactions' )
     if $c->debug;
 
