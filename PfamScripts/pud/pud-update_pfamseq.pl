@@ -71,7 +71,7 @@ else {
   }
   close REL;
   unless(defined($trembl_rel) and defined($swiss_prot_rel)){
-    $logger->logdie("Faied to get release information for reldate.txt.");  
+    $logger->logdie("Failed to get release information for reldate.txt.");  
   }
   #Reference protoeme version will be same as the sprot/trembl version in the reldate.txt file
   my $st_version = $dbh->prepare("update version set reference_proteome_version = \"$swiss_prot_rel\"");
@@ -134,11 +134,30 @@ else {
     while(<FH>) {
 
       my @entry = split(/\n/, $_);
+      my $AS_res=undef; #Active site residue
+      my $ME_res=undef; #Metal binding 
 
 #count for debugging
       $count1++;
       my %record;
       foreach my $line (@entry) {
+
+        #If last line was parsing active site data, see if 
+        #active site annoation has finished
+        if($AS_res) {
+            if($line =~ /^FT\s{3}\w/) { #Next feature
+                  $AS_res=undef;
+            }
+        }
+
+        #If last line was parsing metal binding data, see if 
+        #metal binding annotation has finished
+        if($ME_res) {
+            if($line =~ /^FT\s{3}\w/) { #Next feature
+                $ME_res=undef;
+            }
+        }
+
         if( $line =~ /^AC\s+(\S+);(.+)?/) {
           my $secAcc;
           if($record{'AC'}){
@@ -218,56 +237,32 @@ else {
         elsif( $line =~ /^PE\s+(\d+)\:/) {
           $record{'PE'}=$1;  
         }   
-        elsif( $line =~ /^FT\s+ACT_SITE\s+(\d+)\s+\d+\s+(.+)$/ or $line =~ /^FT\s+ACT_SITE\s+(\d+)\s+\d+/ ) {
-          my ($res, $annotation) = ($1, $2);
-          if($annotation) {
-            $record{'AS'}{$res}=$annotation; 
-            if($annotation =~ /\.$/) {
-              chop $record{'AS'}{$res}; #Remove the trailing '.'
-            } 
-            else {
-              $record{'AS_FT'} = $res;
-            } 
-          } 
-          else {
-            $record{'AS'}{$1}="";
-          }
-        }
-        elsif( defined($record{'AS_FT'}) and $line =~ /^FT\s+(.+)$/) {
-          my $r = $record{'AS_FT'};
-          $record{'AS'}{$r} .= " $1";
-          if($record{'AS'}{$r} =~ /\.$/) {
-            chop $record{'AS'}{$r};	       
-            $record{'AS_FT'}=undef;
-          }
-        }
-        elsif( $line =~ /^FT\s+METAL\s+(\d+)\s+\d+\s+(.+)$/ or $line =~ /^FT\s+METAL\s+(\d+)\s+\d+$/  ) { 
-          my ($res, $annotation) = ($1, $2);
-          if($annotation) {
-            $record{'ME'}{$res}=$annotation;
-            if($annotation =~ /\.$/) {
-              chop $record{'ME'}{$res};
-            }
-            else {
-              $record{'ME_FT'} = $res;
-            }
-          }
-          else {
-            $record{'ME'}{$1}="";
-          }
-        }
-        elsif( defined($record{'ME_FT'}) and $line =~ /^FT\s+(.+)$/) {
-          my $r = $record{'ME_FT'};
-          $record{'ME'}{$r} .= " $1";
-          if($record{'ME'}{$r} =~ /\.$/) {
-            chop $record{'ME'}{$r};	       
-            $record{'ME_FT'}=undef;
-          }
-
-        }
-        elsif( $line =~ /^FT\s+DISULFID\s+(\d+)\s+(\d+)/) { 
-          $record{'DS'}{$1}=$2;
-        }
+		elsif($line =~ /^FT\s+ACT_SITE\s+(\d+)/)  {  #FT   ACT_SITE        238
+			$record{'AS'}{$1}=undef;
+			$AS_res=$1;
+		}
+		elsif($AS_res) {
+			if($line =~ /^FT\s+(.+)/) {   #FT                   /note="Charge relay system; for serine protease NS3
+				$record{'AS'}{$AS_res} .= " " if(defined($record{'AS'}{$AS_res}));
+				$record{'AS'}{$AS_res} .= $1;
+			}
+		}
+		elsif($line =~ /^FT\s+METAL\s+(\d+)/) {  #FT   METAL           52
+			$record{'ME'}{$1}=undef;
+			$ME_res=$1;
+		}
+		elsif($ME_res) {
+			if($line =~ /^FT\s+(.+)/) {
+				$record{'ME'}{$ME_res} .= " " if(defined($record{'ME'}{$ME_res}));
+				$record{'ME'}{$ME_res} .= $1;
+			}
+		}
+		elsif( $line =~ /^FT\s+DISULFID\s+(\d+)\.\.(\d+)/) {  #FT   DISULFID        5..103
+			$record{'DS'}{$1}=$2;
+		}
+		elsif( $line =~ /^FT\s+DISULFID\s+(\d+)/) {  #FT   DISULFID        30, eg interchain
+			$record{'DS'}{$1}="\\N";
+		}
         elsif( $line =~ /^FT\s+NON_CONS/) { 
           $record{'NON_CONS'}=1;
           last; # We don't do non consecutive   
@@ -336,44 +331,53 @@ else {
         }
       }
 
-####need to parse out evidence tags here###	    i
-      if($record{'AS'}) {
-        foreach my $residue (keys %{$record{'AS'}}) {
-          #Treat following codes as experimental evidence:
-          #ECO:0000269 - Experimental evidence
+####need to parse out evidence tags here###	
+	  foreach my $residue (sort keys %{$record{'AS'}}) {
+		  my $annotation = $record{'AS'}{$residue};
+
+		  if(!$annotation) {
+			  print ACT_METAL "$record{'AC'}\t3\t$residue\t\\N\t\\N\n"; #auto_markup 3 = uniprot predicted active site
+			  next;
+		  }
+
+		  $annotation =~ s/\///g;  #remove / (eg /note="Nucleophile" /evidence="ECO:0000255|HAMAP-Rule:MF_00807")
+
+		  #ECO:0000269 - Experimental evidence
           #ECO:0000305 - Curator inference evidence
           #ECO:0000303 - Non-traceable author statement evidence
-          if($record{'AS'}{$residue} =~ /ECO:0000269/ or $record{'AS'}{$residue} =~ /ECO:0000305/ or $record{'AS'}{$residue} =~ /ECO:0000303/) { 
-            print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\t\\N\n"; #auto_markup 1 = expermentally determined active site
+
+          if($annotation =~ /ECO:0000269/ or $annotation =~ /ECO:0000305/ or $annotation =~ /ECO:0000303/) {
+             print ACT_METAL "$record{'AC'}\t1\t$residue\t$annotation\t\\N\n"; #auto_markup 1 = expermentally determined active site
           }
-          elsif( lc($record{'AS'}{$residue}) =~ /(potential|probable|similarity)/ or $record{'AS'}{$residue} =~ /ECO:/) {  #Predicted feature
-            print ACT_METAL "$record{'AC'}\t3\t$residue\t$record{'AS'}{$residue}\t\\N\n"; #auto_markup 3 = uniprot predicted active site
+          else {
+             print ACT_METAL "$record{'AC'}\t3\t$residue\t$annotation\t\\N\n"; #auto_markup 3 = uniprot predicted active site
           }
-          else {  #If it doesn't have an ECO code and doesn't have potential/probable/similarity, assume it's an expermentally determined feature  
-            print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\t\\N\n";
-          } 
-          
-        }
       }
 
+
+
 ####need to parse out evidence tags here###	    
-      if($record{'ME'}) {
-        foreach my $residue (keys %{$record{'ME'}}) {
-          #Treat following codes as experimental evidence:
-          #ECO:0000269 - Experimental evidence
-          #ECO:0000305 - Curator inference evidence
-          #ECO:0000303 - Non-traceable author statement evidence
-          if($record{'ME'}{$residue} =~ /ECO:0000269/ or $record{'ME'}{$residue} =~ /ECO:0000305/ or $record{'ME'}{$residue} =~ /ECO:0000303/) { #Evidence code for experimentally determined feature
-            print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\t\\N\n"; #auto_markup 4 = experimentally determined metal ion binding 
-          }
-          elsif( lc($record{'ME'}{$residue}) =~ /(potential|probable|similarity)/ or $record{'ME'}{$residue} =~ /ECO:/) { #auto_markup 5 = uniprot predicted metal ion binding
-            print ACT_METAL "$record{'AC'}\t5\t$residue\t$record{'ME'}{$residue}\t\\N\n";
-          }
-          else { #If it doesn't have an ECO code and doesn't have potential/probable/similarity, assume it's an expermentally determined feature
-            print ACT_METAL "$record{'AC'}\t4\t$residue\t$record{'ME'}{$residue}\t\\N\n";
-          } 
-        }
-      }
+      foreach my $residue (sort keys %{$record{'ME'}}) {
+        my $annotation = $record{'ME'}{$residue};
+
+        if(!$annotation) {
+			print ACT_METAL "$record{'AC'}\t5\t$residue\t\\N\t\\N\n"; #auto_markup 5 = uniprot predicted metal ion binding
+            next;
+		}
+
+		$annotation =~ s/\///g;  #remove / (eg /note="Nucleophile" /evidence="ECO:0000255|HAMAP-Rule:MF_00807")
+
+		#ECO:0000269 - Experimental evidence
+        #ECO:0000305 - Curator inference evidence
+        #ECO:0000303 - Non-traceable author statement evidence
+
+		if($annotation =~ /ECO:0000269/ or $annotation =~ /ECO:0000305/ or $annotation =~ /ECO:0000303/) {
+			print ACT_METAL "$record{'AC'}\t4\t$residue\t$annotation\t\\N\n"; #auto_markup 4 = experimentally determined metal ion binding
+		}
+		else {
+			print ACT_METAL "$record{'AC'}\t5\t$residue\t$annotation\t\\N\n"; #auto_markup 5 = uniprot predicted metal ion binding
+		}
+	  }
 
       if($record{'DS'}) {
         foreach my $residue (keys %{$record{'DS'}}) {
@@ -393,7 +397,13 @@ else {
   close ACT_METAL;
   close PFAMSEQ; 
   close SEC_ACC;
-
+ 
+  #Check all the files have size
+  foreach my $file ( qw(pfamseq.dat disulphide.dat active_site_metal.dat secondary_acc.dat) ) {
+    unless(-s $file) {
+        $logger->logdie("$file did not get generated");
+    }
+  }
   chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
   system("touch $status_dir/parsed_refprot") and $logger->logdie("Couldn't touch $status_dir/parsed_refprot:[$!]\n");
 
