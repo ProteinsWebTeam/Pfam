@@ -52,7 +52,7 @@ while(<LIST>) {
       system("gzip $dir/$file");
     }
     elsif($file eq "$table.txt" and -e "$dir/$file") {
-      $logger->warn("$table.txt is empty");
+      $logger->die("$table.txt is empty");
     }
     else {
       $logger->logdie("Failed to make $dir/$file");
