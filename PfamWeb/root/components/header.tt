@@ -7,7 +7,7 @@
 # $Id: header.tt,v 1.36 2009-10-28 14:01:23 jt6 Exp $
 
 # the names for the links in the page
-navNames = { 
+navNames = {
   home   = "HOME",
   search = "SEARCH",
   browse = "BROWSE",
@@ -20,7 +20,7 @@ navLinks = {
   home   = c.secure_uri_for( "/" ),
   search = c.secure_uri_for( "/search" ),
   browse = c.secure_uri_for( "/browse" ),
-  ftp    = "ftp://ftp.ebi.ac.uk/pub/databases/Pfam",
+  ftp    = "http://ftp.ebi.ac.uk/pub/databases/Pfam",
   help   = c.secure_uri_for( "/help" ),
   about  = c.secure_uri_for( "/about" ) };
 
@@ -51,31 +51,31 @@ sharedUri = c.secure_uri_for( "/shared" );
     [% END -%]
     </ul>
   </div>
-  
+
   <div class="siteLogoHolder column">
     <a href="[% c.config.site_home %]">
-      <img alt="[% c.config.site_name %]" 
-           id="siteLogo" 
+      <img alt="[% c.config.site_name %]"
+           id="siteLogo"
            src="[% sharedUri %]/images/blank.gif" /></a>
   </div>
 
   <div class="pfamLogoHolder column">
     <a href="[% c.secure_uri_for( "/" ) %]">
-      <img alt="Pfam" 
+      <img alt="Pfam"
            [%- IF c.config.live %]
            class="prePfamLogo"
            [% ELSIF c.config.h3 %]
            class="h3PfamLogo"
            [%- END %]
-           id="pfamLogo" 
+           id="pfamLogo"
            src="[% sharedUri %]/images/blank.gif" /></a>
-    <form action="[% c.secure_uri_for( "/search/keyword" ) %]" 
+    <form action="[% c.secure_uri_for( "/search/keyword" ) %]"
           id="siteSearchForm">
       <div id="searchBox">
         <input class="entryField"
-             type="text" 
-             onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
-             name="query" 
+             type="text"
+             onfocus="if(!ssCleared){this.value='';ssCleared=true;}"
+             name="query"
              id="siteSearchField" />
         <a class="btn go"
            onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}">
@@ -90,15 +90,23 @@ sharedUri = c.secure_uri_for( "/shared" );
 
 [% INSERT components/sitewide_warning.html %]
 
+<div class="messageBox">
+    Please help us understand the impact of EMBL-EBI services, including Pfam,
+    by filling out a
+    <a href="https://www.surveymonkey.co.uk/r/EMBL-EBI_Impact_DR" target="_blank">
+      short survey →
+    </a>
+  </div>
+
 [%-
-# a warning message for users who dont have javascript turned on. The 
-# message should be hidden immediately after its displayed, but if 
+# a warning message for users who dont have javascript turned on. The
+# message should be hidden immediately after its displayed, but if
 # javascript is not working, the prototype call will fail and the message
 # will stay visible
 %]
 <div id="jsWarning" class="warningBox">
-  <strong>Please note:</strong> this site relies heavily on the use of javascript. 
-  Without a javascript-enabled browser, this site will not function correctly. 
+  <strong>Please note:</strong> this site relies heavily on the use of javascript.
+  Without a javascript-enabled browser, this site will not function correctly.
   Please enable javascript and reload the page, or switch to a different browser.
 </div>
 <script type="text/javascript">
@@ -110,7 +118,7 @@ sharedUri = c.secure_uri_for( "/shared" );
   // ]]>
 </script>
 
-[%- # dump out the name of the host that served the file -%] 
+[%- # dump out the name of the host that served the file -%]
 <!-- [% c.config.server_name %] / [% c.config.server_pid %] -->
 
 <!-- header end -->
