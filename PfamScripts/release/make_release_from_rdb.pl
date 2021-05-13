@@ -358,9 +358,15 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   my $password = $pfamDB->{password};
   my $port = $pfamDB->{port};
   my $db = $pfamDB->{database};
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+
   my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select pfamseq_acc, pfamA_acc, seq_start, seq_end from pfamA_reg_full_significant where in_full=1\" > regions";
   system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
 
+  #Find out how many regions should be in the file
+  my $pfamseq_qc = $dbh->prepare("select count(*) from pfamA_reg_full_significant where in_full=1");
+  $pfamseq_qc->execute() or die "Failed to query pfamA_reg_full_significant for total regions ".$pfamseq_qc->errstr."\n";
+  my $total_pfamseq_regions = $pfamseq_qc->fetchrow;
 
   #split regions file
   system("split -d -l 1000000 regions regions_") and $logger->logdie("Could not split regions file");
@@ -405,6 +411,22 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   close (REGIONS);
 
   system("cat Regions/regionsout_* >> $thisRelDir/Pfam-A.regions.tsv") and $logger->logdie("Failed to concatenate regions files");
+
+  #Check we've got the expected number of regions in the file
+  my $pfamseq_count=0;
+  open(P, "$thisRelDir/Pfam-A.regions.tsv") or die "Couldn't open fh to $thisRelDir/Pfam-A.regions.tsv";
+  while(<P>) {
+      $pfamseq_count++;
+  }
+  close P;
+  $pfamseq_count--; #File will contain header so remove that from the count
+
+  if($pfamseq_count == $total_pfamseq_regions) {
+      $logger->info("Number of regions in Pfam-A.regions.tsv [$pfamseq_count] matches that in pfamA_reg_full_significant [$total_pfamseq_regions]");
+  }
+  else {
+      $logger->logdie("Incorrect number of lines in Pfam-A.regions.tsv, expected [$total_pfamseq_regions], got [$pfamseq_count]");
+  }
 }
 
 unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
@@ -417,8 +439,14 @@ unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
   my $password = $pfamDB->{password};
   my $port = $pfamDB->{port};
   my $db = $pfamDB->{database};
+  my $dbh = $pfamDB->getSchema->storage->dbh;
   my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select uniprot_acc, pfamA_acc, seq_start, seq_end from uniprot_reg_full where in_full=1\" > uniprot_regions";
   system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
+
+  #Find out how many regions should be in the file
+  my $uniprot_qc = $dbh->prepare("select count(*) from uniprot_reg_full where in_full=1");
+  $uniprot_qc->execute() or "Failed to query uniprot_reg_full for total regions ".$uniprot_qc->errstr."\n";
+  my $total_uniprot_regions = $uniprot_qc->fetchrow;
 
   #split regions file
   system("split -d -l 1000000 uniprot_regions uniprot_regions_") and $logger->logdie("Could not split uniprot regions file");
@@ -464,6 +492,21 @@ unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
   close (REGIONS);
 
   system("cat Regions/uniprot_regionsout_* >> $thisRelDir/Pfam-A.regions.uniprot.tsv") and $logger->logdie("Failed to concatenate uniprot regions files");
+
+  my $uniprot_count=0;
+  open(U, "$thisRelDir/Pfam-A.regions.uniprot.tsv") or die "Couldn't open fh to $thisRelDir/Pfam-A.regions.uniprot.tsv";
+  while(<U>) {
+      $uniprot_count++;
+  }
+  close U;
+  $uniprot_count--; #File will contain header so remove that from the count
+
+  if($uniprot_count == $total_uniprot_regions) {
+      $logger->info("Number of regions in Pfam-A.regions.uniprot.tsv [$uniprot_count] matches that in uniprot_reg_full [$total_uniprot_regions]");
+  }
+  else{
+      $logger->logdie("Incorrect number of lines in Pfam-A.regions.uniprot.tsv, expected [$total_uniprot_regions], got [$uniprot_count]");
+  }
 }
 
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
