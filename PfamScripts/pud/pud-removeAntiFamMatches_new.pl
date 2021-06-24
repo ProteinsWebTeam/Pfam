@@ -13,6 +13,8 @@ use Pod::Usage;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 
+#use Smart::Comments;
+
 #Start up the logger
 Log::Log4perl->easy_init();
 my $logger = get_logger();
@@ -41,11 +43,19 @@ my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
+
+# testing, stop if not test db
+print STDERR "Using ".$pfamDB->{database} . "\n";
+sleep(3);
+#unless($pfamDB->{database} eq "tiago_test") {
+#    $logger->logdie("Config does not point to tiago_test!");
+#}
+
+
 #Copy over AntiFam hmms and relnotes
 my $antifam_dir = $config->antifamLoc;
-## $antifam_dir
 
-my $uniprot_seq_file = $pfamseq_dir . '/uniprot';
+my $uniprot_seq_file = $pfamseq_dir . '/uniprot.fasta';
 
 if (! -e $uniprot_seq_file) {
   $logger->logdie("Can't find seq file '$uniprot_seq_file': $!\n");
@@ -57,75 +67,86 @@ if (! -e $uniprot_seq_file) {
 
 
 
+
+
+
 my $hmms_dir = "${work_dir}/Antifam_hmms";
-mkdir($hmms_dir)
-  or $logger->logdie("Can't create $hmms_dir $!\n");
-
-
-$logger->info("Getting AntiFam data...\n");
-my $antifam_list = &copy_antifam_data($antifam_dir, $work_dir);
-
 my $logs_dir = "${work_dir}/logs";
-mkdir($logs_dir)
-  or $logger->logdie("Can't create $logs_dir $!\n");
-
 my $matches_dir = "${work_dir}/matches";
-mkdir($matches_dir)
-  or $logger->logdie("Can't create $matches_dir $!\n");
 
 
-my (@completed, @error);
 
-while (scalar @completed + scalar @error != scalar @{$antifam_list}) {
+if ( !-e "${logs_dir}/hmms_run_success" ) {
 
-  my @running_jobs = split( "\n", `bjobs -w | grep '_rAFM'| awk '{print \$7}'` );
+  mkdir($logs_dir)
+    or $logger->logdie("Can't create $logs_dir $!\n");
 
-  foreach my $antifam_id (@{$antifam_list}) {
-    my $matches_file = $matches_dir . '/' . $antifam_id . '_matches';
-    my $log_file = $logs_dir . '/' . $antifam_id . '_log';
-    my $hmm_file = "${work_dir}/Antifam_hmms/${antifam_id}.hmm";
+  mkdir($matches_dir)
+    or $logger->logdie("Can't create $matches_dir $!\n");
 
-    if (! -e $log_file) {
-      if ( ! grep /$antifam_id/, @running_jobs ) {
-        my $queue = $config->{farm}->{lsf}->{queue};
-        system("bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -n 8 -M 8000 -o $log_file -J ${antifam_id}_rAFM hmmsearch --cpu 8 --noali --cut_ga --tblout $matches_file $hmm_file $uniprot_seq_file")
-          and die "Error submitting hmmsearch job:[$!]";
-      }
-    } else {
-      if ( (! grep /$antifam_id/, @error) && (! grep /$antifam_id/, @completed) ) {
-        if (-s $log_file) {
-          open my $log_fh, '<', $log_file or die;
-          my $log = do { local $/; <$log_fh> };
-          if ( $log =~ m/Successfully completed/) {
-            $logger->info("$antifam_id search has completed.\n");
-            push @completed, $antifam_id;
+  mkdir($hmms_dir)
+    or $logger->logdie("Can't create $hmms_dir $!\n");
+
+  $logger->info("Getting AntiFam data...\n");
+  my $antifam_list = &copy_antifam_data($antifam_dir, $work_dir);
+
+
+  my (@completed, @error);
+
+  while (scalar @completed + scalar @error != scalar @{$antifam_list}) {
+
+    my @running_jobs = split( "\n", `bjobs -w | grep '_rAFM'| awk '{print \$7}'` );
+
+    foreach my $antifam_id (@{$antifam_list}) {
+      my $matches_file = $matches_dir . '/' . $antifam_id . '_matches';
+      my $log_file = $logs_dir . '/' . $antifam_id . '_log';
+      my $hmm_file = "${work_dir}/Antifam_hmms/${antifam_id}.hmm";
+
+      if (! -e $log_file) {
+        if ( ! grep /$antifam_id/, @running_jobs ) {
+          my $queue = $config->{farm}->{lsf}->{queue};
+          system("bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -n 8 -M 8000 -o $log_file -J ${antifam_id}_rAFM hmmsearch --cpu 8 --noali --cut_ga --tblout $matches_file $hmm_file $uniprot_seq_file")
+            and die "Error submitting hmmsearch job:[$!]";
+        }
+      } else {
+        if ( (! grep /$antifam_id/, @error) && (! grep /$antifam_id/, @completed) ) {
+          if (-s $log_file) {
+            open my $log_fh, '<', $log_file or die;
+            my $log = do { local $/; <$log_fh> };
+            if ( $log =~ m/Successfully completed/) {
+              $logger->info("$antifam_id search has completed.\n");
+              push @completed, $antifam_id;
+            } else {
+              $logger->info("Error processing $antifam_id search.\n");
+              push @error, $antifam_id;
+            }
           } else {
-            $logger->info("Error processing $antifam_id search.\n");
-            push @error, $antifam_id;
+            $logger->info("$antifam_id search is in progress.\n");
           }
-        } else {
-          $logger->info("$antifam_id search is in progress.\n");
         }
       }
     }
+
+    $logger->info("AntiFam search still running - checking again in 10 minutes\n");
+    sleep(600)
+
+  }
+  $logger->info("All AntiFam matches searches have completed.\n");
+
+
+  if (scalar @error) {
+    $logger->logdie("The following searches failed to run: @error\n");
+  } else {
+      touch("${logs_dir}/hmms_run_success");
   }
 
-  $logger->info("AntiFam search still running - checking again in 10 minutes\n");
-  sleep(6000)
-
-}
-$logger->info("All AntiFam matches searches have completed.\n");
-
-
-if (scalar @error) {
-  $logger->logdie("The following searches failed to run: @error\n");
+} else {
+  $logger->info("Antifam HMMs have been completed previously. Skipping...\n");
 }
 
 
 
 
-
-my $matches_dir = "${work_dir}/matches";
 
 #Should get somthing like this.
 ##                                                               --- full sequence ---- --- best 1 domain ---- --- domain number estimation ----
@@ -145,7 +166,7 @@ my $matches_dir = "${work_dir}/matches";
 my %seqsToDel;
 my %antifamMap;
 
-foreach my $matches_file ( glob("$matches_dir/*_matches") ) {
+foreach my $matches_file ( glob("${matches_dir}/*_matches") ) {
 
   open(my $match_fh, '<', "$matches_file") or $logger->logdie("Failed to open matches");
 
@@ -360,7 +381,7 @@ pud-removeAntiFamMatches.pl
 
 =head1 SYNOPSIS
 
-  pirsf.pl -pfamseq_dir DIR [-work_dir DIR]
+  pud-removeAntiFamMatches.pl -pfamseq_dir DIR [-work_dir DIR]
 
   -pfamseq_dir DIR     : The Pfam Sequence directory to access.
   -work_dir DIR        : Directory to write all required stuff to. Default to current work directory.
