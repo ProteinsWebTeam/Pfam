@@ -111,10 +111,6 @@ my $st = $dbh->prepare("update clan_membership set clan_acc='$clan_acc_merge' wh
 $st->execute() or die "Couldn't update clan_membership table in database, ". $st->errstr."\n";
 
 
-#Get a copy of the CLANDESC file for clan we will kill
-system("clco $clan_acc_kill") and die "Couldn't run 'clco $clan_acc_kill', $!";
-
-
 #Kill the clan
 print STDERR "\nKilling $clan_acc_kill\n";
 system("clkill -m \"Merging with $clan_acc_merge\" -f $clan_acc_merge $clan_acc_kill");
