@@ -45,9 +45,7 @@ unless ( $pfamseq_dir and -e $pfamseq_dir and $rel_num) {
 
 my $cwd = getcwd();
 
-
-#Create fasta file from pfamseq table
-#if this is too slow/fails it could be worth trying a smaller offset or sending it to the farm with plenty of memory
+#Create fasta file
 my $total=0;
 if(-s "$pfamseq_dir/pfamseq") {
   $logger->debug("Already made pfamseq fasta file");
@@ -56,28 +54,49 @@ if(-s "$pfamseq_dir/pfamseq") {
   $total=$sth->fetchrow();
 }
 else {
-  $logger->debug("Going to make fasta file from pfamseq table");
-  my $offset = 0;
-  my $n = 1;
-  open (FA, ">$pfamseq_dir/pfamseq") or $logger->logdie("Cannot open $pfamseq_dir/pfamseq file to write");
-  while (1){
-    $logger->debug("Querying pfamseq table in database.... chunk $n offset $offset ");
-    my $st = $dbh->prepare("select pfamseq_acc, seq_version, pfamseq_id, description, sequence from pfamseq limit 1000000 offset $offset") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
-    $st->execute() or $logger->logdie("Couldn't execute statement ".$st->errstr);
-    my $rowno = $st->rows;
-    last unless($rowno);
-    my $array_ref = $st->fetchall_arrayref();
-    $logger->debug("Fetching results...");
-    foreach my $row (@$array_ref) {
-      print FA ">" . $row->[0] . "." . $row->[1] . " " . $row->[2] . " " . $row->[3] . "\n" . $row->[4] . "\n";
-    }
-    $offset += 1000000;
-    $total += $rowno;
-    $n++;
-    $logger->debug("$total rows retrieved");
+  if(!-s "$pfamseq_dir/pfamseq.fasta") {
+    $logger->logdie("Source ${pfamseq_dir}/pfamseq.fasta does not seem to exist. Abort.");
   }
-  close FA;
+  $logger->debug("Getting Antifam sequence accessions from database.");
+
+  my $sthAntifam = $dbh->prepare(
+    "SELECT pfamseq_acc, seq_version FROM pfamseq_antifam"
+  );
+
+  $sthAntifam->execute() or $logger->logdie( $dbh->errstr );
+
+  my %antifam;
+  while (my ($pfamseq_acc, $seq_version) = $sthAntifam->fetchrow_array()) {
+    $antifam{"${pfamseq_acc}.${seq_version}"} = 1;
+  }
+
+  $sthAntifam->finish();
+  $dbh->disconnect();
+
+  $logger->debug("Going to create fasta file without antifam sequences (${pfamseq_dir}/pfamseq) based on the ${pfamseq_dir}/pfamseq.fasta file.");
+
+  open my $source_fh, '<', "$pfamseq_dir/pfamseq.fasta" or $logger->logdie ("Couldn't open source pfamseq file, $!");
+  open my $target_fh, '>', "$pfamseq_dir/pfamseq" or $logger->logdie ("Couldn't open target pfamseq file, $!");
+
+  my $write = 0;
+  while (my $line = <$source_fh>) {
+    if ( $line =~ m/>(\w+\.\d+)/) {
+      my $uniprot_id = $1;
+      if ($antifam{$uniprot_id}) {
+        $write = 0;
+      } else {
+        $write = 1;
+      }
+    }
+
+    if ($write) {
+      print $target_fh $line;
+    }
+  }
+  close $source_fh;
+  close $target_fh;
 }
+
 
 #Make DBSIZE file
 my $dbsize=$total;
