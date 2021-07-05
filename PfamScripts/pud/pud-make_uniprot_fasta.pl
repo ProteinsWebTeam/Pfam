@@ -11,7 +11,6 @@ use Config::General qw(SaveConfig);
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 
-
 #Start up the logger
 Log::Log4perl->easy_init();
 my $logger = get_logger();
@@ -20,6 +19,11 @@ my $logger = get_logger();
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
+
+
+# testing, stop if not test db
+print STDERR "Using ".$pfamDB->{database} . "\n";
+sleep(3);
 
 #User options
 my ($status_dir, $pfamseq_dir, $rel_num, $move, $update_config, $help);
@@ -45,7 +49,7 @@ unless ( $pfamseq_dir and -e $pfamseq_dir ) {
 my $cwd = getcwd();
 
 
-#Create fasta file from uniprot table
+#Create fasta file
 my $total=0;
 if(-s "$pfamseq_dir/uniprot") {
   $logger->debug("Already made uniprot fasta file");
@@ -54,22 +58,47 @@ if(-s "$pfamseq_dir/uniprot") {
   $total=$sth->fetchrow();
 }
 else {
-  $logger->debug("Going to make fasta file from uniprot table");
-  my $uniprot_file="uniprot.$$";
-  my $command = "mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{user}." -p". $pfamDB->{password}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." --quick -e 'select uniprot_acc, seq_version, uniprot_id, description, sequence from uniprot' > $uniprot_file";
-  system("$command") and $logger->logdie ("Couldn't run mysql command [$command], $!");
-  open(UNIPROT, $uniprot_file) or $logger->logdie ("Couldn't open $uniprot_file, $!");
-  open (FA, ">$pfamseq_dir/uniprot") or $logger->logdie("Cannot open $pfamseq_dir/uniprot file to write");
-  while(<UNIPROT>) {
-    next if(/^uniprot_acc/); #Skip header
-    chomp;
-    my ($uniprot_acc, $seq_version, $uniprot_id, $desc, $sequence) = split(/\t/, $_);
-    print FA ">$uniprot_acc.$seq_version $uniprot_id $desc\n$sequence\n";
-    $total++;
+  if(!-s "$pfamseq_dir/uniprot.fasta") {
+    $logger->logdie("Source ${pfamseq_dir}/uniprot.fasta does not seem to exist. Abort.");
   }
-  close FA;
-  close UNIPROT;
-  unlink($uniprot_file);
+  $logger->debug("Getting Antifam sequence accessions from database.");
+
+  my $sthAntifam = $dbh->prepare(
+    "SELECT pfamseq_acc, seq_version FROM pfamseq_antifam"
+  );
+
+  $sthAntifam->execute() or $logger->logdie( $dbh->errstr );
+
+  my %antifam;
+  while (my ($pfamseq_acc, $seq_version) = $sthAntifam->fetchrow_array()) {
+    $antifam{"${pfamseq_acc}.${seq_version}"} = 1;
+  }
+
+  $sthAntifam->finish();
+  $dbh->disconnect();
+
+  $logger->debug("Going to create fasta file without antifam sequences (${pfamseq_dir}/uniprot) based on the ${pfamseq_dir}/uniprot.fasta file.");
+
+  open my $source_fh, '<', "$pfamseq_dir/uniprot.fasta" or $logger->logdie ("Couldn't open source uniprot file, $!");
+  open my $target_fh, '>', "$pfamseq_dir/uniprot" or $logger->logdie ("Couldn't open target uniprot file, $!");
+
+  my $write = 0;
+  while (my $line = <$source_fh>) {
+    if ( $line =~ m/>(\w+\.\d+)/) {
+      my $uniprot_id = $1;
+      if ($antifam{$uniprot_id}) {
+        $write = 0;
+      } else {
+        $write = 1;
+      }
+    }
+
+    if ($write) {
+      print $target_fh $line;
+    }
+  }
+  close $source_fh;
+  close $target_fh;
 }
 
 #Make easel indexes
