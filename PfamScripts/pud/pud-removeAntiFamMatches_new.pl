@@ -20,13 +20,13 @@ Log::Log4perl->easy_init();
 my $logger = get_logger();
 
 
-my $work_dir = cwd;
+my $status_dir;
 my $pfamseq_dir;
 
 GetOptions(
   'help'          => sub { pod2usage( -verbose => 1 ) },
   'man'           => sub { pod2usage( -verbose => 2 ) },
-  'work_dir=s'    => \$work_dir,
+  'status_dir=s'  => \$status_dir,
   'pfamseq_dir=s' => \$pfamseq_dir
 ) or pod2usage(2);
 
@@ -62,17 +62,17 @@ if (! -e $uniprot_seq_file) {
 }
 
 
-# chdir($work_dir)
-#   or $logger->logdie("Couldn't change directory into $work_dir $!\n");
+# chdir($status_dir)
+#   or $logger->logdie("Couldn't change directory into $status_dir $!\n");
 
 
 
 
 
 
-my $hmms_dir = "${work_dir}/Antifam_hmms";
-my $logs_dir = "${work_dir}/logs";
-my $matches_dir = "${work_dir}/matches";
+my $hmms_dir = "${status_dir}/Antifam_hmms";
+my $logs_dir = "${status_dir}/logs";
+my $matches_dir = "${status_dir}/matches";
 
 
 
@@ -88,7 +88,7 @@ if ( !-e "${logs_dir}/hmms_run_success" ) {
     or $logger->logdie("Can't create $hmms_dir $!\n");
 
   $logger->info("Getting AntiFam data...\n");
-  my $antifam_list = &copy_antifam_data($antifam_dir, $work_dir);
+  my $antifam_list = &copy_antifam_data($antifam_dir, $status_dir);
 
 
   my (@completed, @error);
@@ -100,7 +100,7 @@ if ( !-e "${logs_dir}/hmms_run_success" ) {
     foreach my $antifam_id (@{$antifam_list}) {
       my $matches_file = $matches_dir . '/' . $antifam_id . '_matches';
       my $log_file = $logs_dir . '/' . $antifam_id . '_log';
-      my $hmm_file = "${work_dir}/Antifam_hmms/${antifam_id}.hmm";
+      my $hmm_file = "${status_dir}/Antifam_hmms/${antifam_id}.hmm";
 
       if (! -e $log_file) {
         if ( ! grep /$antifam_id/, @running_jobs ) {
@@ -332,7 +332,7 @@ $logger->info("The pfamseq table has had $pfamseqDeleted sequences removed, and 
 
 
 sub copy_antifam_data {
-  my ($antifam_dir, $work_dir) = @_;
+  my ($antifam_dir, $status_dir) = @_;
 
   my $hmm_file = $antifam_dir . '/AntiFam.hmm';
 
@@ -352,7 +352,7 @@ sub copy_antifam_data {
 
     # end of hmm, print it out and clear up for next one
     if ($line =~ m/\/\// ) {
-      open(my $hmm_out, '>', "${work_dir}/Antifam_hmms/${hmm_name}.hmm") or die "Can't open '${hmm_name}.hmm': $!\n";
+      open(my $hmm_out, '>', "${status_dir}/Antifam_hmms/${hmm_name}.hmm") or die "Can't open '${hmm_name}.hmm': $!\n";
       print $hmm_out join($", @curr_hmm);
       close($hmm_out);
 
@@ -381,10 +381,10 @@ pud-removeAntiFamMatches.pl
 
 =head1 SYNOPSIS
 
-  pud-removeAntiFamMatches.pl -pfamseq_dir DIR [-work_dir DIR]
+  pud-removeAntiFamMatches.pl -pfamseq_dir <pfamseq_dir> -status_dir <status_dir>
 
-  -pfamseq_dir DIR     : The Pfam Sequence directory to access.
-  -work_dir DIR        : Directory to write all required stuff to. Default to current work directory.
+  -pfamseq_dir DIR     : The Pfam Sequence directory.
+  -status_dir DIR      : Status directory.
   -help                : Prints brief help message.
   -man                 : Prints full documentation.
 
@@ -395,5 +395,10 @@ The pud-removeAntiFamMatches.pl script retrieves the current AntiFam hmm file,
 uses hmmsearch to run the AntiFam models against the uniprot.fasta file created above, 
 and removes any matches from the pfamseq and uniprot tables in the pfam_release database. 
 It also uploads the sequences that match antifam to the pfamseq_antifam table in the pfam_release database.
+
+Both the status directory and pfamseq_directory must already exist.
+pfamseq_dir is the directory where the uniprot and pfamseq data exist.
+The status directory is where a log of the progress of the script is recorded 
+and the antifam matches stored before insertion into the database.
 
 =cut
