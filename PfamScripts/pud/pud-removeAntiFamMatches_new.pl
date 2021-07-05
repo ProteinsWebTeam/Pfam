@@ -9,7 +9,7 @@ use Log::Log4perl qw(:easy);
 use Archive::Tar;
 use File::Touch;
 use File::Copy;
-use Pod::Usage;
+
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 
@@ -24,17 +24,19 @@ my $status_dir;
 my $pfamseq_dir;
 
 GetOptions(
-  'help'          => sub { pod2usage( -verbose => 1 ) },
-  'man'           => sub { pod2usage( -verbose => 2 ) },
+  'help'          => \$help,
   'status_dir=s'  => \$status_dir,
   'pfamseq_dir=s' => \$pfamseq_dir
-) or pod2usage(2);
+) or $logger->logdie("Invalid option!\n");
 
+
+if ($help) {
+  help();
+}
 
 unless ( $pfamseq_dir and -e $pfamseq_dir ) {
   print "pfamseq_dir is required\n\n";
-  pod2usage(2);
-  exit;
+  help();
 }
 
 
@@ -369,26 +371,20 @@ sub copy_antifam_data {
 }
 
 
+sub help{
+  print STDERR << "EOF";
 
+This script creates a fasta file from the sequences in the uniprot
+table in the database. It also copies the uniprot fasta
+file to the production location in the Pfam config file. Optionally
+it can update the config file with the database size. 
 
-__END__
+Usage:
 
+  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir>
 
-
-=head1 NAME
-
-pud-removeAntiFamMatches.pl
-
-=head1 SYNOPSIS
-
-  pud-removeAntiFamMatches.pl -pfamseq_dir <pfamseq_dir> -status_dir <status_dir>
-
-  -pfamseq_dir DIR     : The Pfam Sequence directory.
-  -status_dir DIR      : Status directory.
-  -help                : Prints brief help message.
-  -man                 : Prints full documentation.
-
-=head1 DESCRIPTION
+Options
+  -help           :Prints this help message
 
 AntiFam is a collection of HMMs designed to identify spurious protein predictions.
 The pud-removeAntiFamMatches.pl script retrieves the current AntiFam hmm file, 
@@ -401,4 +397,6 @@ pfamseq_dir is the directory where the uniprot and pfamseq data exist.
 The status directory is where a log of the progress of the script is recorded 
 and the antifam matches stored before insertion into the database.
 
-=cut
+EOF
+  exit;
+}
