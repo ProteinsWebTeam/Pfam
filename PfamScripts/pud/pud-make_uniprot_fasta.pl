@@ -90,6 +90,7 @@ else {
         $write = 0;
       } else {
         $write = 1;
+        $total++;
       }
     }
 
