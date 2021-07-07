@@ -34,6 +34,11 @@ if ($help) {
   help();
 }
 
+unless ( $status_dir and -e $status_dir ) {
+  print "status_dir is required\n\n";
+  help();
+}
+
 unless ( $pfamseq_dir and -e $pfamseq_dir ) {
   print "pfamseq_dir is required\n\n";
   help();
