@@ -46,12 +46,9 @@ unless ( $pfamseq_dir and -e $pfamseq_dir and $rel_num) {
 my $cwd = getcwd();
 
 #Create fasta file
-my $total=0;
+my $total = 0;
 if(-s "$pfamseq_dir/pfamseq") {
   $logger->debug("Already made pfamseq fasta file");
-  my $sth=$dbh->prepare("select count(*) from pfamseq") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
-  $sth->execute() or $logger->logdie("Couldn't execute statement ".$sth->errstr);
-  $total=$sth->fetchrow();
 }
 else {
   if(!-s "$pfamseq_dir/pfamseq.fasta") {
@@ -71,7 +68,6 @@ else {
   }
 
   $sthAntifam->finish();
-  $dbh->disconnect();
 
   $logger->debug("Going to create fasta file without antifam sequences (${pfamseq_dir}/pfamseq) based on the ${pfamseq_dir}/pfamseq.fasta file.");
 
@@ -98,9 +94,19 @@ else {
   close $target_fh;
 }
 
+$logger->debug("Getting pfamseq sequence count from database.");
+my $sth = $dbh->prepare("select count(*) from pfamseq") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
+$sth->execute() or $logger->logdie("Couldn't execute statement ".$sth->errstr);
+my $dbsize = $sth->fetchrow();
+$sth->finish();
+
+$dbh->disconnect();
+
+if ($dbsize != $total) {
+  $logger->logdie("Wrote ${total} sequences into $pfamseq_dir/pfamseq file but database contains ${dbsize}. Abort.\n");
+}
 
 #Make DBSIZE file
-my $dbsize=$total;
 if(-s "$pfamseq_dir/DBSIZE") {
   $logger->debug("Already created $pfamseq_dir/DBSIZE file");
 }
@@ -180,7 +186,9 @@ sub help{
   my $loc=$config->{pfamseq}->{location};
   print STDERR << "EOF";
 
-This script creates a fasta file from the sequences in the pfamseq
+This script creates a pfamseq fasta file based on the pfamseq.fasta
+fasta file, excluding AntiFam sequences.
+Those sequences should match the sequences in the pfamseq
 table in the database. It also copies the pfamseq fasta
 file to the production location in the Pfam config file. Optionally
 it can update the config file with the database size. 

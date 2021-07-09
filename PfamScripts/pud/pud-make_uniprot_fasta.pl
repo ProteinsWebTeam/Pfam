@@ -21,9 +21,6 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 
-# testing, stop if not test db
-print STDERR "Using ".$pfamDB->{database} . "\n";
-sleep(3);
 
 #User options
 my ($status_dir, $pfamseq_dir, $rel_num, $move, $update_config, $help);
@@ -50,12 +47,9 @@ my $cwd = getcwd();
 
 
 #Create fasta file
-my $total=0;
+my $total = 0;
 if(-s "$pfamseq_dir/uniprot") {
   $logger->debug("Already made uniprot fasta file");
-  my $sth=$dbh->prepare("select count(*) from uniprot") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
-  $sth->execute() or $logger->logdie("Couldn't execute statement ".$sth->errstr);
-  $total=$sth->fetchrow();
 }
 else {
   if(!-s "$pfamseq_dir/uniprot.fasta") {
@@ -75,7 +69,6 @@ else {
   }
 
   $sthAntifam->finish();
-  $dbh->disconnect();
 
   $logger->debug("Going to create fasta file without antifam sequences (${pfamseq_dir}/uniprot) based on the ${pfamseq_dir}/uniprot.fasta file.");
 
@@ -102,6 +95,18 @@ else {
   close $target_fh;
 }
 
+$logger->debug("Getting uniprot sequence count from database.");
+my $sth = $dbh->prepare("select count(*) from uniprot") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
+$sth->execute() or $logger->logdie("Couldn't execute statement ".$sth->errstr);
+my $dbsize = $sth->fetchrow();
+$sth->finish();
+
+$dbh->disconnect();
+
+if ($dbsize != $total) {
+  $logger->logdie("Wrote ${total} sequences into $pfamseq_dir/uniprot file but database contains ${dbsize}. Abort.\n");
+}
+
 #Make easel indexes
 if(-e "$status_dir/esl-indexes_uniprot") { 
   $logger->debug("Already make easel indexes");
@@ -112,8 +117,6 @@ if(-e "$status_dir/esl-indexes_uniprot") {
   chdir($cwd) or $logger->logdie("Couldn't chdir to $cwd:[$!]");
   system("touch $status_dir/esl-indexes_uniprot") and $logger->logdie("Couldn't touch $status_dir/esl-indexes_uniprot:[$!]\n");
 }
-
-my $dbsize=$total;
 
 #Copy uniprot to production location
 if (-e "$status_dir/moved_uniprot"){
@@ -172,8 +175,10 @@ sub help{
   my $loc=$config->{uniprot}->{location};
   print STDERR << "EOF";
 
-This script creates a fasta file from the sequences in the uniprot
-table in the database. It also copies the uniprot fasta
+This script creates a uniprot fasta file based on the uniprot.fasta
+fasta file, excluding AntiFam sequences.
+Those sequences should match the sequences in the uniprot
+table in the database.  It also copies the uniprot fasta
 file to the production location in the Pfam config file. Optionally
 it can update the config file with the database size. 
 
