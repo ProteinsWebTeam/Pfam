@@ -45,42 +45,68 @@ unless ( $pfamseq_dir and -e $pfamseq_dir and $rel_num) {
 
 my $cwd = getcwd();
 
-
-#Create fasta file from pfamseq table
-#if this is too slow/fails it could be worth trying a smaller offset or sending it to the farm with plenty of memory
-my $total=0;
+#Create fasta file
+my $total = 0;
 if(-s "$pfamseq_dir/pfamseq") {
   $logger->debug("Already made pfamseq fasta file");
-  my $sth=$dbh->prepare("select count(*) from pfamseq") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
-  $sth->execute() or $logger->logdie("Couldn't execute statement ".$sth->errstr);
-  $total=$sth->fetchrow();
 }
 else {
-  $logger->debug("Going to make fasta file from pfamseq table");
-  my $offset = 0;
-  my $n = 1;
-  open (FA, ">$pfamseq_dir/pfamseq") or $logger->logdie("Cannot open $pfamseq_dir/pfamseq file to write");
-  while (1){
-    $logger->debug("Querying pfamseq table in database.... chunk $n offset $offset ");
-    my $st = $dbh->prepare("select pfamseq_acc, seq_version, pfamseq_id, description, sequence from pfamseq limit 1000000 offset $offset") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
-    $st->execute() or $logger->logdie("Couldn't execute statement ".$st->errstr);
-    my $rowno = $st->rows;
-    last unless($rowno);
-    my $array_ref = $st->fetchall_arrayref();
-    $logger->debug("Fetching results...");
-    foreach my $row (@$array_ref) {
-      print FA ">" . $row->[0] . "." . $row->[1] . " " . $row->[2] . " " . $row->[3] . "\n" . $row->[4] . "\n";
-    }
-    $offset += 1000000;
-    $total += $rowno;
-    $n++;
-    $logger->debug("$total rows retrieved");
+  if(!-s "$pfamseq_dir/pfamseq.fasta") {
+    $logger->logdie("Source ${pfamseq_dir}/pfamseq.fasta does not seem to exist. Abort.");
   }
-  close FA;
+  $logger->debug("Getting Antifam sequence accessions from database.");
+
+  my $sthAntifam = $dbh->prepare(
+    "SELECT pfamseq_acc, seq_version FROM pfamseq_antifam"
+  );
+
+  $sthAntifam->execute() or $logger->logdie( $dbh->errstr );
+
+  my %antifam;
+  while (my ($pfamseq_acc, $seq_version) = $sthAntifam->fetchrow_array()) {
+    $antifam{"${pfamseq_acc}.${seq_version}"} = 1;
+  }
+
+  $sthAntifam->finish();
+
+  $logger->debug("Going to create fasta file without antifam sequences (${pfamseq_dir}/pfamseq) based on the ${pfamseq_dir}/pfamseq.fasta file.");
+
+  open my $source_fh, '<', "$pfamseq_dir/pfamseq.fasta" or $logger->logdie ("Couldn't open source pfamseq file, $!");
+  open my $target_fh, '>', "$pfamseq_dir/pfamseq" or $logger->logdie ("Couldn't open target pfamseq file, $!");
+
+  my $write = 0;
+  while (my $line = <$source_fh>) {
+    if ( $line =~ m/>(\w+\.\d+)/) {
+      my $uniprot_id = $1;
+      if ($antifam{$uniprot_id}) {
+        $write = 0;
+      } else {
+        $write = 1;
+        $total++;
+      }
+    }
+
+    if ($write) {
+      print $target_fh $line;
+    }
+  }
+  close $source_fh;
+  close $target_fh;
+}
+
+$logger->debug("Getting pfamseq sequence count from database.");
+my $sth = $dbh->prepare("select count(*) from pfamseq") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
+$sth->execute() or $logger->logdie("Couldn't execute statement ".$sth->errstr);
+my $dbsize = $sth->fetchrow();
+$sth->finish();
+
+$dbh->disconnect();
+
+if ($dbsize != $total) {
+  $logger->logdie("Wrote ${total} sequences into ${pfamseq_dir}/pfamseq file but database contains ${dbsize}. Abort.\n");
 }
 
 #Make DBSIZE file
-my $dbsize=$total;
 if(-s "$pfamseq_dir/DBSIZE") {
   $logger->debug("Already created $pfamseq_dir/DBSIZE file");
 }
@@ -160,7 +186,9 @@ sub help{
   my $loc=$config->{pfamseq}->{location};
   print STDERR << "EOF";
 
-This script creates a fasta file from the sequences in the pfamseq
+This script creates a pfamseq fasta file based on the pfamseq.fasta
+fasta file, excluding AntiFam sequences.
+Those sequences should match the sequences in the pfamseq
 table in the database. It also copies the pfamseq fasta
 file to the production location in the Pfam config file. Optionally
 it can update the config file with the database size. 
