@@ -13,15 +13,14 @@ use File::Copy;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 
-#use Smart::Comments;
 
 #Start up the logger
 Log::Log4perl->easy_init();
 my $logger = get_logger();
 
 
-my $status_dir;
-my $pfamseq_dir;
+my ($status_dir, $pfamseq_dir, $help);
+
 
 GetOptions(
   'help'          => \$help,
@@ -51,14 +50,6 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 
-# testing, stop if not test db
-print STDERR "Using ".$pfamDB->{database} . "\n";
-sleep(3);
-#unless($pfamDB->{database} eq "tiago_test") {
-#    $logger->logdie("Config does not point to tiago_test!");
-#}
-
-
 #Copy over AntiFam hmms and relnotes
 my $antifam_dir = $config->antifamLoc;
 
@@ -69,18 +60,9 @@ if (! -e $uniprot_seq_file) {
 }
 
 
-# chdir($status_dir)
-#   or $logger->logdie("Couldn't change directory into $status_dir $!\n");
-
-
-
-
-
-
 my $hmms_dir = "${status_dir}/Antifam_hmms";
 my $logs_dir = "${status_dir}/logs";
 my $matches_dir = "${status_dir}/matches";
-
 
 
 if ( !-e "${logs_dir}/hmms_run_success" ) {
@@ -112,7 +94,7 @@ if ( !-e "${logs_dir}/hmms_run_success" ) {
       if (! -e $log_file) {
         if ( ! grep /$antifam_id/, @running_jobs ) {
           my $queue = $config->{farm}->{lsf}->{queue};
-          system("bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -n 8 -M 8000 -o $log_file -J ${antifam_id}_rAFM hmmsearch --cpu 8 --noali --cut_ga --tblout $matches_file $hmm_file $uniprot_seq_file")
+          system("bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -n 8 -M 8000 -o $log_file -g /Pfam_100 -J ${antifam_id}_rAFM hmmsearch --cpu 8 --noali --cut_ga --tblout $matches_file $hmm_file $uniprot_seq_file")
             and die "Error submitting hmmsearch job:[$!]";
         }
       } else {
