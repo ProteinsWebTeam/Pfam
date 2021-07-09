@@ -104,7 +104,7 @@ $sth->finish();
 $dbh->disconnect();
 
 if ($dbsize != $total) {
-  $logger->logdie("Wrote ${total} sequences into $pfamseq_dir/uniprot file but database contains ${dbsize}. Abort.\n");
+  $logger->logdie("Wrote ${total} sequences into ${pfamseq_dir}/uniprot file but database contains ${dbsize}. Abort.\n");
 }
 
 #Make easel indexes
