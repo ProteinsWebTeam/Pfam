@@ -85,6 +85,10 @@ IF refreshUri != "";
 <script type="text/javascript" src="[% sharedUri %]/javascripts/sharedFunctions.js"></script>
 <script type="text/javascript" src="[% staticUri %]/javascripts/pfFunctions.js"></script>
 <script src="https://unpkg.com/ngl@0.10.5-12"></script>
+
+<!-- molstar and structure resources -->
+<link rel="stylesheet" type="text/css" href="[% staticUri %]/css/material-icons.css" />
+<script type="text/javascript" src="[% staticUri %]/javascripts/main.js"></script>
 <script type="text/javascript" src="[% staticUri %]/javascripts/structure_model.js"></script>
 
 <!-- ====================================================================== -->

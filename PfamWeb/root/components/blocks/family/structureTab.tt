@@ -130,7 +130,7 @@ END -%]
               </td>
     			    <td class="[% oe % 2 ? 'odd' : 'even' %]">[% pdbResKey %]</td>
     			    <td class="[% oe % 2 ? 'odd' : 'even' %]">
-                <a class="ngl-button" onclick="showStructure('[% pdbKey %]', '[% chainKey %]', '[% pdbResKey %]')">NGL</a>
+                <a class="ngl-button" onclick="showStructure('[% pdbKey %]', '[% chainKey %]', '[% pdbResKey %]', '[% c.config.molstar_structure_url %]')">View 3D Structure</a>
                 <a class="ngl-button" href="https://www.ebi.ac.uk/interpro/structure/PDB/[% pdbKey %]">View in InterPro</a>
 	            </td>
 	          </tr>
@@ -149,8 +149,8 @@ END -%]
   <div class="ngl-content">
     <span class="ngl-close" onclick="hideStructure()">&times;</span>
     <div id="ngl-title" class="handle"></div>
-    <p>The parts of the structure corresponding to the Pfam family are 
-    highlighted in yellow.</p>
+    <p>The parts of the structure corresponding to the Pfam family are
+    highlighted in blue.</p>
     <p id="ngl-spinner" class="loading">Loading Structure Data</p>
     <div id="ngl-viewport">
     </div>
