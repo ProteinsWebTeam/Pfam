@@ -1,0 +1,20 @@
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files
+
+PROCESS "components/require.tt";
+#-------------------------------------------------------------------------------
+
+seq_acc = '';
+IF ( pfamseq.pfamseq_acc );
+  seq_acc = pfamseq.pfamseq_acc;
+ELSE;
+  seq_acc = pfamseq.uniprot_acc;
+END;
+
+-%]
+
+<div class="block" id="modelBlock">
+  <div class="handle">
+    <h1>Structure Model</h1>
+  </div>
+</div>

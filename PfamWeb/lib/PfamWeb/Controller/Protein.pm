@@ -246,7 +246,7 @@ sub protein_end : Chained( 'protein' )
         $c->forward('get_mapping');
         $c->forward('get_summary_data');
       }
-
+      $c->forward('get_models');
     }
   }
 
@@ -381,6 +381,31 @@ sub get_data : Private {
     return;
   }
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 get_models : Private
+
+Retrieves and stashes the models for this protein.
+
+=cut
+
+sub get_models : Private {
+  my ( $this, $c, $entry ) = @_;
+  my $pfamseq_acc = $c->stash->{pfamseq}->pfamseq_acc;
+  $c->log->debug( 'Protein::get_models: adding model info' ) if $c->debug;
+  $c->log->debug("Protein::get_models: '$pfamseq_acc' searching in af2")
+    if $c->debug;
+  # fetch associated model data from WebUser
+  my @hits;
+  @hits = $c->model('WebUser::Af2')
+                          ->search({ 'me.pfamseq_acc' => $pfamseq_acc });
+  $c->stash->{af2} = \@hits;
+  $c->log->debug( 'Protein::get_models: found '
+                  . scalar( @{ $c->stash->{af2} } ) . ' model hits' )
+                  if $c->debug;
+}
+
 
 #-------------------------------------------------------------------------------
 
