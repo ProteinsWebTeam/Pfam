@@ -143,6 +143,14 @@ END -%]
   </tbody>
 </table>
 
+<!--
+<pfam-molstar-component id="molstar" url="https://www.ebi.ac.uk/pdbe/static/entry/6dw0_updated.cif" type="structure">
+</pfam-molstar-component>
+<pfam-molstar-component id="molstar-tr-model" url="https://www.ebi.ac.uk/interpro/wwwapi//entry/pfam/PF06980/?model:structure" type="tr-model">
+</pfam-molstar-component>
+<pfam-molstar-component id="molstar-af-model" url="https://test.alphafold.ebi.ac.uk/api/prediction/Q9LXW8?key=AIzaSyCeurAJz7ZGjPQUtEaerUkBZ3TaBkXrY94" type="af-model">
+</pfam-molstar-component>
+-->
 <!-- The Modal -->
 <div id="ngl-container">
   <!-- Modal content -->
@@ -152,7 +160,10 @@ END -%]
     <p>The parts of the structure corresponding to the Pfam family are
     highlighted in blue.</p>
     <p id="ngl-spinner" class="loading">Loading Structure Data</p>
+    <pfam-molstar-component id="pfam-molstar"></pfam-molstar-component>
     <div id="ngl-viewport">
+
+    </div>
     </div>
   </div>
 

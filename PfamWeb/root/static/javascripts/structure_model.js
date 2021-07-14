@@ -200,9 +200,38 @@ const createContainer = function(accession) {
   return textContainer;
 }
 
-const showStructure = function(accession, chain, pdbResKey, urlString) {
+const showStructure = function(acc, chain, pdbResKey, urlString) {
   try {
-    const url = eval('`'+urlString+'`');
+    // resize and add canvas behaviour
+    const canvas = document.getElementById('mol-canvas');
+    canvas.style.width = "80vh";
+    canvas.style.height = "50vh";
+
+    // Prevent scrolling when touching the canvas
+    document.body.addEventListener("wheel", function (e) {
+      if (e.target == canvas) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+    document.body.addEventListener("touchstart", function (e) {
+      if (e.target == canvas) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+    document.body.addEventListener("touchend", function (e) {
+      if (e.target == canvas) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+    document.body.addEventListener("touchmove", function (e) {
+      if (e.target == canvas) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+
+    const accession = acc.toLowerCase();
+    const url = String(eval('`'+urlString+'`'));
+    console.log(`URL template ${urlString}`);
     const [start, end] = pdbResKey.split(" - ");
 
     const container = document.getElementById('ngl-container');
@@ -210,67 +239,17 @@ const showStructure = function(accession, chain, pdbResKey, urlString) {
     const title = document.getElementById("ngl-title");
     title.innerHTML = `<h1>${accession}</h1>`;
 
-    const viewer = document.createElement('pfam-molstar-component');
+    const viewer = document.getElementById('pfam-molstar');
     viewer.setAttribute('type', 'structure');
     viewer.setAttribute('url', url);
 
-    const nglContainer = document.getElementById("ngl-viewport");
-    nglContainer.replaceChildren(viewer);
-    //
-    // const viewer = document.createElement("div");
-    // viewer.id = VIEWPORT_ID;
-    // viewer.style.margin = "auto";
-    // viewer.style.minHeight = "400px";
-    // viewer.style.minWidth = "300px";
-    //
-    // const nglContainer = document.getElementById("ngl-viewport");
-    // nglContainer.replaceChildren(viewer);
-    //
-    // var stage = new NGL.Stage(VIEWPORT_ID);
-    // stage.setParameters({ backgroundColor: "white"});
-    // // Handle window resizing
-    // window.addEventListener( "resize", function( event ){
-    //     stage.handleResize();
-    // }, false );
-    // stage.loadFile(
-    //   `https://mmtf.rcsb.org/v1.0/full/${accession}`,
-    //   { "ext": "mmtf" }
-    // ).then(function (component) {
-    //   const highlight = NGL.ColormakerRegistry.addSelectionScheme([
-    //     ["yellow", `:${chain} and ${start}-${end}`],
-    //     ["blue", "*"]
-    //   ], `$accession`);
-    //   component.addRepresentation('cartoon', { color: highlight });
-    //   component.autoView();
-    //
-    //   // hide spinner
-    //   const spinner = document.getElementById("ngl-spinner");
-    //   spinner.style.display = "none";
-    //
-    //   // Prevent scrolling when touching the canvas
-    //   const canvas = document.getElementById(VIEWPORT_ID).firstChild;
-    //   document.body.addEventListener("wheel", function (e) {
-    //     if (e.target == canvas) {
-    //       e.preventDefault();
-    //     }
-    //   }, {passive: false});
-    //   document.body.addEventListener("touchstart", function (e) {
-    //     if (e.target == canvas) {
-    //       e.preventDefault();
-    //     }
-    //   }, {passive: false});
-    //   document.body.addEventListener("touchend", function (e) {
-    //     if (e.target == canvas) {
-    //       e.preventDefault();
-    //     }
-    //   }, {passive: false});
-    //   document.body.addEventListener("touchmove", function (e) {
-    //     if (e.target == canvas) {
-    //       e.preventDefault();
-    //     }
-    //   }, {passive: false});
-    // });
+    // hide spinner
+    const spinner = document.getElementById("ngl-spinner");
+    spinner.style.display = "none";
+
   } catch(e) {
+    const spinner = document.getElementById("ngl-spinner");
+    spinner.style.display = "none";
     const errorContainer = document.getElementById("ngl-viewport");
     errorContainer.innerHTML = `<p>Something went wrong whilst fetching structure
     data. Please try again later, or if the problem persists contact us on
