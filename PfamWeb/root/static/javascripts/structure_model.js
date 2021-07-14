@@ -1,6 +1,7 @@
 const IP_PFAM_FAMILY_API = "https://www.ebi.ac.uk/interpro/wwwapi/entry/pfam/";
 const IP_PFAM_FAMILY_WEB = "https://www.ebi.ac.uk/interpro/entry/pfam/";
 const VIEWPORT_ID = "structure_viewport";
+const BLUE = "1148136";
 
 const getInterProStructureModelLink = async function(accession) {
   const url = new URL(accession, IP_PFAM_FAMILY_API);
@@ -229,11 +230,16 @@ const showStructure = function(acc, chain, pdbResKey, urlString) {
       }
     }, {passive: false});
 
+    // setup molstar parameters
     const accession = acc.toLowerCase();
     const url = String(eval('`'+urlString+'`'));
-    console.log(`URL template ${urlString}`);
     const [start, end] = pdbResKey.split(" - ");
-
+    const locations = [{
+      chain: chain,
+      start: start,
+      end: end,
+      colour: BLUE
+    }];
     const container = document.getElementById('ngl-container');
     container.style.display = "block";
     const title = document.getElementById("ngl-title");
@@ -242,6 +248,7 @@ const showStructure = function(acc, chain, pdbResKey, urlString) {
     const viewer = document.getElementById('pfam-molstar');
     viewer.setAttribute('type', 'structure');
     viewer.setAttribute('url', url);
+    viewer.setAttribute('locations', JSON.stringify(locations));
 
     // hide spinner
     const spinner = document.getElementById("ngl-spinner");
