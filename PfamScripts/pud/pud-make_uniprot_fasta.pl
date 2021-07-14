@@ -50,6 +50,7 @@ my $cwd = getcwd();
 my $total = 0;
 if(-s "${pfamseq_dir}/uniprot") {
   $logger->debug("Already made uniprot fasta file");
+  $total = -1;
 }
 else {
   if(!-s "${pfamseq_dir}/uniprot.fasta") {
@@ -102,6 +103,11 @@ my $dbsize = $sth->fetchrow();
 $sth->finish();
 
 $dbh->disconnect();
+
+# fasta file existed, will trust db counts
+if ($total == -1 {
+  total = $dbsize;
+}
 
 if ($dbsize != $total) {
   $logger->logdie("Wrote ${total} sequences into ${pfamseq_dir}/uniprot file but database contains ${dbsize}. Abort.\n");
