@@ -48,11 +48,11 @@ my $cwd = getcwd();
 
 #Create fasta file
 my $total = 0;
-if(-s "$pfamseq_dir/uniprot") {
+if(-s "${pfamseq_dir}/uniprot") {
   $logger->debug("Already made uniprot fasta file");
 }
 else {
-  if(!-s "$pfamseq_dir/uniprot.fasta") {
+  if(!-s "${pfamseq_dir}/uniprot.fasta") {
     $logger->logdie("Source ${pfamseq_dir}/uniprot.fasta does not seem to exist. Abort.");
   }
   $logger->debug("Getting Antifam sequence accessions from database.");
@@ -72,8 +72,8 @@ else {
 
   $logger->debug("Going to create fasta file without antifam sequences (${pfamseq_dir}/uniprot) based on the ${pfamseq_dir}/uniprot.fasta file.");
 
-  open my $source_fh, '<', "$pfamseq_dir/uniprot.fasta" or $logger->logdie ("Couldn't open source uniprot file, $!");
-  open my $target_fh, '>', "$pfamseq_dir/uniprot" or $logger->logdie ("Couldn't open target uniprot file, $!");
+  open my $source_fh, '<', "${pfamseq_dir}/uniprot.fasta" or $logger->logdie ("Couldn't open source uniprot.fasta file, $!");
+  open my $target_fh, '>', "${pfamseq_dir}/uniprot" or $logger->logdie ("Couldn't open target uniprot file, $!");
 
   my $write = 0;
   while (my $line = <$source_fh>) {
