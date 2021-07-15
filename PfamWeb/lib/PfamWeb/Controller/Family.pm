@@ -401,7 +401,7 @@ sub family_page : Chained( 'family' )
     $c->forward( 'get_db_xrefs' );
     #$c->forward( 'get_pseudofam' );
     $c->forward( 'get_wikipedia' );
-
+    $c->forward( 'get_models' );
     return;
 
   } # end of "else"
@@ -899,6 +899,32 @@ sub build_fasta : Private {
 
   return $fasta;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 get_models : Private
+
+Retrieves and stashes the models for this protein.
+
+=cut
+
+sub get_models : Private {
+  my ( $this, $c) = @_;
+
+  my $pfama_acc = $c->stash->{pfam}->pfama_acc;
+  $c->log->debug('Family::get_models: adding model info' ) if $c->debug;
+  $c->log->debug("Family::get_models: '$pfama_acc' searching in af2")
+    if $c->debug;
+  # fetch associated model data from WebUser
+  my @hits;
+  @hits = $c->model('WebUser::Af2')
+                          ->search({ 'me.pfama_acc' => $pfama_acc });
+  $c->stash->{af2} = \@hits;
+  $c->log->debug( 'Family::get_models: found '
+                  . scalar( @{ $c->stash->{af2} } ) . ' model hits' )
+                  if $c->debug;
+}
+
 
 #-------------------------------------------------------------------------------
 

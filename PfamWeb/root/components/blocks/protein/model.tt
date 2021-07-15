@@ -19,10 +19,10 @@ url = c.config.molstar_af_model_url.replace('\$\{accession\}', seq_acc);
 
 <div class="block" id="proteinModelBlock">
   <div class="handle">
-    <h1>Structure Model [% c.stash.af2.size %]</h1>
+    <h1>Structure Model</h1>
   </div>
   <div class="blockContent">
-    <p>Predicted structure for protein [% seq_acc %]. The colours in the structure to the LDDT score.</p>
+    <p>Predicted structure for protein [% seq_acc %]. The structure is coloured according the predicted local distance difference test (pLDDT) score.</p>
   </div>
   <div>
     <pfam-molstar-component url="[% url %]" type="af-model"></pfam-molstar-component>
