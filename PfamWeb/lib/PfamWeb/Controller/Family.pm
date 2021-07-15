@@ -401,7 +401,8 @@ sub family_page : Chained( 'family' )
     $c->forward( 'get_db_xrefs' );
     #$c->forward( 'get_pseudofam' );
     $c->forward( 'get_wikipedia' );
-    $c->forward( 'get_models' );
+    $c->forward( 'get_protein_models' );
+    $c->forward( 'get_structural_model' );
     return;
 
   } # end of "else"
@@ -902,29 +903,71 @@ sub build_fasta : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_models : Private
+=head2 get_protein_models : Private
 
-Retrieves and stashes the models for this protein.
+Retrieves and stashes the protein models for this family.
 
 =cut
 
-sub get_models : Private {
+sub get_protein_models : Private {
   my ( $this, $c) = @_;
 
   my $pfama_acc = $c->stash->{pfam}->pfama_acc;
-  $c->log->debug('Family::get_models: adding model info' ) if $c->debug;
-  $c->log->debug("Family::get_models: '$pfama_acc' searching in af2")
+  $c->log->debug('Family::get_protein_models: adding model info' ) if $c->debug;
+  $c->log->debug("Family::get_protein_models: '$pfama_acc' searching in af2")
     if $c->debug;
   # fetch associated model data from WebUser
   my @hits;
   @hits = $c->model('WebUser::Af2')
                           ->search({ 'me.pfama_acc' => $pfama_acc });
   $c->stash->{af2} = \@hits;
-  $c->log->debug( 'Family::get_models: found '
+  $c->log->debug( 'Family::get_protein_models: found '
                   . scalar( @{ $c->stash->{af2} } ) . ' model hits' )
                   if $c->debug;
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 get_structural_model : Private
+
+Retrieves and stashes url to the structural model for this family from InterPro
+
+=cut
+
+sub get_structural_model : Private {
+  my ( $this, $c) = @_;
+  my $pfama_acc = $c->stash->{pfam}->pfama_acc;
+
+  my $url = $c->config->{'interpro_pfam_url'};
+  $url =~ s/\$\{accession}/$pfama_acc/i;
+
+  if ( not defined $this->{_ua} ) {
+    $c->log->debug( 'Family::get_structural_model: building a new user agent' )
+      if $c->debug;
+    $this->{_ua} = LWP::UserAgent->new;
+    $this->{_ua}->timeout(10);
+    $this->{_ua}->env_proxy;
+  }
+
+  my $response = $this->{_ua}->get( $url );
+  if ( $response->is_success ) {
+    $c->log->debug( 'Family::get_structural_model: successful response from web service' )
+      if $c->debug;
+
+    my $data = decode_json $response->decoded_content;
+
+    $c->log->debug( "Family::get_structural_model: model count = ".$data->{metadata}->{counters}->{structural_models}."" )
+      if $c->debug;
+
+    $c->stash->{family_model}->{count} = $data->{metadata}->{counters}->{structural_models};
+    $c->stash->{family_model}->{url} = "$url/?model:structure";
+  }
+  else {
+    $c->log->debug( "Family::get_structural_model: got an error from web service '$response->status_line;'" )
+      if $c->debug;
+    $c->stash->{error} = $response->status_line;
+  }
+}
 
 #-------------------------------------------------------------------------------
 
