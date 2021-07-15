@@ -1,8 +1,10 @@
-#-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files
+[%
+# model.tt
+#
+# block for the structure model for the protein page
+#
 
-PROCESS "components/require.tt";
-#-------------------------------------------------------------------------------
+RETURN UNLESS c.config.molstar_af_model_url AND c.stash.af2;
 
 seq_acc = '';
 IF ( pfamseq.pfamseq_acc );
@@ -11,10 +13,18 @@ ELSE;
   seq_acc = pfamseq.uniprot_acc;
 END;
 
+url = c.config.molstar_af_model_url.replace('\$\{accession\}', seq_acc);
+
 -%]
 
-<div class="block" id="modelBlock">
+<div class="block" id="proteinModelBlock">
   <div class="handle">
     <h1>Structure Model</h1>
+  </div>
+  <div class="blockContent">
+    <p>Predicted structure for protein [% seq_acc %]. The colours in the structure to the LDDT score.</p>
+  </div>
+  <div>
+    <pfam-molstar-component url="[% url %]" type="af-model"></pfam-molstar-component>
   </div>
 </div>
