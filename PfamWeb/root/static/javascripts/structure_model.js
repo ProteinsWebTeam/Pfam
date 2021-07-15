@@ -206,7 +206,7 @@ const showStructure = function(acc, chain, pdbResKey, urlString) {
     // resize and add canvas behaviour
     const canvas = document.getElementById('mol-canvas');
     canvas.style.width = "80vh";
-    canvas.style.height = "50vh";
+    canvas.style.height = "60vh";
 
     // Prevent scrolling when touching the canvas
     document.body.addEventListener("wheel", function (e) {
@@ -257,7 +257,7 @@ const showStructure = function(acc, chain, pdbResKey, urlString) {
   } catch(e) {
     const spinner = document.getElementById("ngl-spinner");
     spinner.style.display = "none";
-    const errorContainer = document.getElementById("ngl-viewport");
+    const errorContainer = document.getElementById("molstar-message");
     errorContainer.innerHTML = `<p>Something went wrong whilst fetching structure
     data. Please try again later, or if the problem persists contact us on
     pfam-help@ebi.ac.uk.</p>`;
