@@ -4,7 +4,7 @@
 # block for the structure model for the protein page
 #
 
-RETURN UNLESS c.config.molstar_af_model_url AND c.stash.af2;
+RETURN UNLESS c.config.molstar_af_model_url AND c.stash.af2.size > 0;
 
 seq_acc = '';
 IF ( pfamseq.pfamseq_acc );
@@ -19,7 +19,7 @@ url = c.config.molstar_af_model_url.replace('\$\{accession\}', seq_acc);
 
 <div class="block" id="proteinModelBlock">
   <div class="handle">
-    <h1>Structure Model</h1>
+    <h1>Structure Model [% c.stash.af2.size %]</h1>
   </div>
   <div class="blockContent">
     <p>Predicted structure for protein [% seq_acc %]. The colours in the structure to the LDDT score.</p>
