@@ -1,0 +1,56 @@
+[%
+# model.tt
+#
+# block for the structure model for the protein page
+#
+
+RETURN UNLESS c.config.molstar_af_model_url AND c.stash.af2.size > 0;
+
+USE dumper;
+USE String;
+
+-%]
+
+<div class="block" id="modelBlock">
+  <div class="handle">
+    <h1>Protein Structure Models</h1>
+  </div>
+  <div class="blockContent">
+    <p>The following proteins matching this Family which have predicted structural
+    models. Click on a protein below to view the predicted structure.</p>
+    <table class="details">
+      <thead>
+        <tr class="caption">
+          <th>Protein</th>
+          <th>Predicted structure</th>
+          <th>External Information</th>
+        </tr>
+      </thead>
+      <tbody>
+      [%- FOREACH hit IN c.stash.af2; -%]
+      [%
+        protein_url = c.secure_uri_for( "/protein", hit.pfamseq_acc );
+        protein_viewer_url = protein_url _ "#tabview=tab4";
+      %]
+        <tr>
+          <td>
+            <a href="[% protein_url %]">
+              [% hit.pfamseq_acc %]
+            </a>
+          </td>
+          <td>
+            <a href="[% protein_viewer_url %]">
+              View 3D Structure
+            </a>
+          </td>
+          <td>
+            <a href="[% c.config.external_af_url.replace('\$\{accession\}', hit.pfamseq_acc) %]">
+              Click here
+            </a>
+          </td>
+        </tr>
+      [%- END -%]
+      </tbody>
+    </table>
+  </div>
+</div>
