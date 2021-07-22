@@ -4,6 +4,20 @@
         <script type="module" src="/main.js" ></script>
     <script defer src="main.js"></script></head>
     <body>
+        <pfam-molstar-component id="molstar" url="https://www.ebi.ac.uk/pdbe/static/entry/101m_updated.cif" type="structure">
+        </pfam-molstar-component>
+        <script>
+            var molstar = document.getElementById('molstar');
+            var locations = [
+                {
+                    chain: 'A',
+                    color: 6457265,
+                    start: 6,
+                    end: 112
+                }
+            ];
+            document.getElementById('molstar').setAttribute('locations', JSON.stringify(locations));
+        </script>
     </body>
     
 </html>

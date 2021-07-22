@@ -13,11 +13,11 @@ USE String;
 
 <div class="block" id="modelBlock">
   <div class="handle">
-    <h1>Protein Structure Models</h1>
+    <h1>AlphaFold Structure Predictions</h1>
   </div>
   <div class="blockContent">
-    <p>The following proteins matching this Family which have predicted structural
-    models. Click on a protein below to view the predicted structure.</p>
+    <p>The list of proteins below match this family and have AlphaFold predicted structures.
+    Click on the protein accession to view the predicted structure.</p>
     <table class="details">
       <thead>
         <tr class="caption">

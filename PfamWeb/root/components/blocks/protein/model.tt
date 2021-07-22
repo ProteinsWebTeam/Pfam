@@ -19,12 +19,56 @@ url = c.config.molstar_af_model_url.replace('\$\{accession\}', seq_acc);
 
 <div class="block" id="proteinModelBlock">
   <div class="handle">
-    <h1>Structure Model</h1>
+    <h1>AlphaFold Structure Prediction</h1>
   </div>
   <div class="blockContent">
-    <p>Predicted structure for protein [% seq_acc %]. The structure is coloured according the predicted local distance difference test (pLDDT) score.</p>
+    <p>The protein structure below has been predicted by <a href="https://deepmind.com/">Deep Mind</a> with <a class="ext" href="https://doi.org/10.1038/s41586-021-03819-2">AlphaFold</a>.
+    For more information, please visit <a href="[% c.config.external_af_url.replace('\$\{accession\}', seq_acc) %]">
+      the AlphaFold page
+    </a> for this protein.</p>
+  </div>
+  <div>
+    <h2>Model confidence scale</h2>
+    <table>
+      <tr>
+        <td class="colour-scale very-high">&nbsp;</td>
+        <td>Very High (pLDDT > 90)</td>
+      </tr>
+      <tr>
+        <td class="colour-scale high">&nbsp;</td>
+        <td>Confident (90 > pLDDT > 70)</td>
+      </tr>
+      <tr>
+        <td class="colour-scale low">&nbsp;</td>
+        <td>Low (70 > pLDDT > 50)</td>
+      </tr>
+      <tr>
+        <td class="colour-scale very-low">&nbsp;</td>
+        <td>Very Low (pLDDT < 50)</td>
+      </tr>
+      <tr>
+        <td class="colour-scale no-score">&nbsp;</td>
+        <td>No Score</td>
+      <tr>
+    </table>
   </div>
   <div>
     <pfam-molstar-component url="[% url %]" type="af-model"></pfam-molstar-component>
   </div>
+  <div class="citation">
+    <span class="title">
+      <a class="ext" href="https://doi.org/10.1038/s41586-021-03819-2">
+        Highly accurate protein structure prediction with AlphaFold.
+      </a>
+    </span>
+    <span class="authors">
+      John Jumper, Richard Evans, Alexander Pritzel, Tim Green, Michael Figurnov, Olaf Ronneberger, Kathryn Tunyasuvunakool, Russ Bates, Augustin Žídek, Anna Potapenko, Alex Bridgland, Clemens Meyer, Simon A. A. Kohl, Andrew J. Ballard, Andrew Cowie, Bernardino Romera-Paredes, Stanislav Nikolov, Rishub Jain, Jonas Adler, Trevor Back, Stig Petersen, David Reiman, Ellen Clancy, Michal Zielinski, Martin Steinegger, Michalina Pacholska, Tamas Berghammer, Sebastian Bodenstein, David Silver, Oriol Vinyals, Andrew W. Senior, Koray Kavukcuoglu, Pushmeet Kohli & Demis Hassabis
+    </span>
+    <span class="ref">
+      <span class="jrnl">Nature</span>
+      2021-07-15;
+      DOI: 10.1038/s41586-021-03819-2;
+    </span>
+  </div>
+</div>
 </div>
