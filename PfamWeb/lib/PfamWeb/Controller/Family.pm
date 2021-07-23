@@ -953,16 +953,22 @@ sub get_structural_model : Private {
   if ( $response->is_success ) {
     $c->log->debug( 'Family::get_structural_model: successful response from web service')
       if $c->debug;
+    if ($response->code == 200) {
+      my $data = decode_json $response->decoded_content;
 
-    my $data = decode_json $response->decoded_content;
+      $c->log->debug( "Family::get_structural_model: trRosetta model count = ".$data->{metadata}->{counters}->{structural_models}->{trRosetta}."" )
+        if $c->debug;
 
-    $c->log->debug( "Family::get_structural_model: trRosetta model count = ".$data->{metadata}->{counters}->{structural_models}->{trRosetta}."" )
-      if $c->debug;
+      $c->stash->{family_model}->{count} = $data->{metadata}->{counters}->{structural_models}->{trRosetta};
+      my $dataUrl = $c->config->{'molstar_tr_model_url'};
+      $dataUrl =~ s/\$\{accession}/$pfama_acc/i;
+      $c->stash->{family_model}->{url} = $dataUrl;
+    } else {
+      $c->log->debug( "Family::get_structural_model: Encountered error fetching data from $url HTTP status ".$response->code." Skipping" )
+        if $c->debug;
+      $c->stash->{family_model}->{count} = 0;
+    }
 
-    $c->stash->{family_model}->{count} = $data->{metadata}->{counters}->{structural_models}->{trRosetta};
-    my $dataUrl = $c->config->{'molstar_tr_model_url'};
-    $dataUrl =~ s/\$\{accession}/$pfama_acc/i;
-    $c->stash->{family_model}->{url} = $dataUrl;
   }
   else {
     $c->log->debug( "Family::get_structural_model: got an error from web service '$response->status_line;'" )
