@@ -22,7 +22,7 @@ url = c.config.molstar_af_model_url.replace('\$\{accession\}', seq_acc);
     <h1>AlphaFold Structure Prediction</h1>
   </div>
   <div class="blockContent">
-    <p>The protein structure below has been predicted by <a href="https://deepmind.com/">Deep Mind</a> with <a class="ext" href="https://doi.org/10.1038/s41586-021-03819-2">AlphaFold</a>.
+    <p>The protein structure below has been predicted by <a href="https://deepmind.com/">DeepMind</a> with <a class="ext" href="https://doi.org/10.1038/s41586-021-03819-2">AlphaFold</a>.
     For more information, please visit <a href="[% c.config.external_af_url.replace('\$\{accession\}', seq_acc) %]">
       the AlphaFold page
     </a> for this protein.</p>
@@ -46,10 +46,6 @@ url = c.config.molstar_af_model_url.replace('\$\{accession\}', seq_acc);
         <td class="colour-scale very-low">&nbsp;</td>
         <td>Very Low (pLDDT < 50)</td>
       </tr>
-      <tr>
-        <td class="colour-scale no-score">&nbsp;</td>
-        <td>No Score</td>
-      <tr>
     </table>
   </div>
   <div>
