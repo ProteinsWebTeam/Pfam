@@ -942,7 +942,7 @@ sub get_structural_model : Private {
   $url =~ s/\$\{accession}/$pfama_acc/i;
 
   if ( not defined $this->{_ua} ) {
-    $c->log->debug( 'Family::get_structural_model: building a new user agent' )
+    $c->log->debug( "Family::get_structural_model: building a new user agent " )
       if $c->debug;
     $this->{_ua} = LWP::UserAgent->new;
     $this->{_ua}->timeout(10);
@@ -951,16 +951,18 @@ sub get_structural_model : Private {
 
   my $response = $this->{_ua}->get( $url );
   if ( $response->is_success ) {
-    $c->log->debug( 'Family::get_structural_model: successful response from web service' )
+    $c->log->debug( 'Family::get_structural_model: successful response from web service')
       if $c->debug;
 
     my $data = decode_json $response->decoded_content;
 
-    $c->log->debug( "Family::get_structural_model: model count = ".$data->{metadata}->{counters}->{structural_models}."" )
+    $c->log->debug( "Family::get_structural_model: trRosetta model count = ".$data->{metadata}->{counters}->{structural_models}->{trRosetta}."" )
       if $c->debug;
 
-    $c->stash->{family_model}->{count} = $data->{metadata}->{counters}->{structural_models};
-    $c->stash->{family_model}->{url} = "$url/?model:structure";
+    $c->stash->{family_model}->{count} = $data->{metadata}->{counters}->{structural_models}->{trRosetta};
+    my $dataUrl = $c->config->{'molstar_tr_model_url'};
+    $dataUrl =~ s/\$\{accession}/$pfama_acc/i;
+    $c->stash->{family_model}->{url} = $dataUrl;
   }
   else {
     $c->log->debug( "Family::get_structural_model: got an error from web service '$response->status_line;'" )
