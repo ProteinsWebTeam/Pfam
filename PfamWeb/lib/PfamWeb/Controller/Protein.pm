@@ -245,8 +245,8 @@ sub protein_end : Chained( 'protein' )
         $c->forward('get_annseq');
         $c->forward('get_mapping');
         $c->forward('get_summary_data');
+        $c->forward('get_models');
       }
-      $c->forward('get_models');
     }
   }
 
@@ -392,6 +392,8 @@ Retrieves and stashes the models for this protein.
 
 sub get_models : Private {
   my ( $this, $c, $entry ) = @_;
+  $c->log->debug( "Protein::get_models: searching for $entry" )
+                  if $c->debug;
   my $pfamseq_acc = $c->stash->{pfamseq}->pfamseq_acc;
   $c->log->debug( 'Protein::get_models: adding model info' ) if $c->debug;
   $c->log->debug("Protein::get_models: '$pfamseq_acc' searching in af2")
