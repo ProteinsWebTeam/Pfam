@@ -33,7 +33,7 @@ use LWP::UserAgent;
 use Compress::Zlib;
 use JSON;
 use Text::Wrap qw( $columns wrap );
-
+use HTTP::Status qw(:constants :is status_message);
 $Text::Wrap::columns = 60;
 
 BEGIN {
@@ -936,24 +936,38 @@ Retrieves and stashes url to the structural model for this family from InterPro
 
 sub get_structural_model : Private {
   my ( $this, $c) = @_;
+
+  my $SLEEP = 30;
+  my $MAX_REPEAT = 3;
+  my $attempt = 0;
+
   my $pfama_acc = $c->stash->{pfam}->pfama_acc;
 
-  my $url = $c->config->{'interpro_pfam_url'};
-  $url =~ s/\$\{accession}/$pfama_acc/i;
+  if ($c->config->{'interpro_pfam_url'}) {
+    my $url = $c->config->{'interpro_pfam_url'};
+    $url =~ s/\$\{accession}/$pfama_acc/i;
 
-  if ( not defined $this->{_ua} ) {
-    $c->log->debug( "Family::get_structural_model: building a new user agent " )
-      if $c->debug;
-    $this->{_ua} = LWP::UserAgent->new;
-    $this->{_ua}->timeout(10);
-    $this->{_ua}->env_proxy;
-  }
+    if ( not defined $this->{_ua} ) {
+      $c->log->debug( "Family::get_structural_model: building a new user agent " )
+        if $c->debug;
+      $this->{_ua} = LWP::UserAgent->new;
+      $this->{_ua}->timeout(10);
+      $this->{_ua}->env_proxy;
+    }
 
-  my $response = $this->{_ua}->get( $url );
-  if ( $response->is_success ) {
-    $c->log->debug( 'Family::get_structural_model: successful response from web service')
-      if $c->debug;
-    if ($response->code == 200) {
+    my ($code, $response);
+    do {
+      $c->log->debug( "Family::get_structural_model: get $url [attempt=$attempt]" )
+        if $c->debug;
+      $response = $this->{_ua}->get( $url );
+      $code = $response->code;
+      sleep($SLEEP) unless ($attempt == 0);
+      $attempt++;
+    } while($attempt < $MAX_REPEAT and $code == HTTP_REQUEST_TIMEOUT);
+
+    if ($code == HTTP_OK) {
+      $c->log->debug( 'Family::get_structural_model: successful response from web service')
+        if $c->debug;
       my $data = decode_json $response->decoded_content;
 
       $c->log->debug( "Family::get_structural_model: trRosetta model count = ".$data->{metadata}->{counters}->{structural_models}->{trRosetta}."" )
@@ -964,16 +978,15 @@ sub get_structural_model : Private {
       $dataUrl =~ s/\$\{accession}/$pfama_acc/i;
       $c->stash->{family_model}->{url} = $dataUrl;
     } else {
-      $c->log->debug( "Family::get_structural_model: Encountered error fetching data from $url HTTP status ".$response->code." Skipping" )
+      $c->log->debug( "Family::get_structural_model: Encountered error fetching data from $url HTTP status (".$response->status_line."). Skipping" )
         if $c->debug;
       $c->stash->{family_model}->{count} = 0;
+      # $c->stash->{error} = $response->status_line;
     }
 
-  }
-  else {
-    $c->log->debug( "Family::get_structural_model: got an error from web service '$response->status_line;'" )
-      if $c->debug;
-    $c->stash->{error} = $response->status_line;
+  } else {
+    $c->stash->{family_model}->{count} = 0;
+    $c->log->debug( "'interpro_pfam_url' not defined in config. Skipping trRosetta models" )
   }
 }
 
