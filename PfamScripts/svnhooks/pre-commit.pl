@@ -212,6 +212,9 @@ elsif ( $msg =~ /SEQUP/ ) {
         . " like it has come from the sequence part of the repository\n";
     }
   }
+}elsif($msg =~ /CLMERGE/ or $msg =~ /CLADD/ or $msg =~ /CLREMOVE/) {
+ #let it go through
+
 }elsif( $msg =~ /ADMINBYPASS/){
 # let it go through.
 
