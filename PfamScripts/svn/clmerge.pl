@@ -82,7 +82,7 @@ foreach my $pfamA_acc (@clan_members) {
     print STDERR "Updating CL line in $pfamA_acc/DESC\n";
     system("pfco $pfamA_acc") and die "Couldn't 'pfco $pfamA_acc', $!";
     system("sed -i -r 's/CL   \\w+/CL   $clan_acc_merge/' $pfamA_acc/DESC") and die "Couldn't 'sed -i -r 's/CL   \\w+/CL   $clan_acc_merge/' $pfamA_acc/DESC' replace CL in $pfamA_acc/DESC, $!";
-    system("svn commit -m 'ADMINBYPASS: clmerge, changing CL line from $clan_acc_kill to $clan_acc_merge' $pfamA_acc/DESC")
+    system("svn commit -m 'CLMERGE:Changing CL line from $clan_acc_kill to $clan_acc_merge' $pfamA_acc/DESC")
 }
 
 
@@ -90,7 +90,7 @@ foreach my $pfamA_acc (@clan_members) {
 print STDERR "\nRemoving all MB lines from $clan_acc_kill CLANDESC\n";
 system("clco $clan_acc_kill") and die "Couldn't run 'clco $clan_acc_kill', $!";
 system("sed -i -r '/^MB/d' $clan_acc_kill/CLANDESC") and die "Couldn't run 'sed -i -r '/^MB/d' $clan_acc_kill/CLANDESC', $!";
-system("svn commit -m 'ADMINBYPASS: clmerge, removing all MB lines from CLANDESC prior to killing the clan' $clan_acc_kill/CLANDESC");
+system("svn commit -m 'CLMERGE:Removing all MB lines from CLANDESC prior to killing the clan' $clan_acc_kill/CLANDESC");
 
 
 #Checkout the other clan, and add MB lines
@@ -102,7 +102,7 @@ foreach my $pfamA_acc (@clan_members) {
     print STDERR "$pfamA_acc\n";
 }
 close CLANDESC;
-system("svn commit -m \"ADMINBYPASS: clmerge - added MB lines to CLANDESC for the following families that used to be in $clan_acc_kill: @clan_members\" $clan_acc_merge/CLANDESC");
+system("svn commit -m \"CLMERGE:Added MB lines to CLANDESC for the following families that used to be in $clan_acc_kill: @clan_members\" $clan_acc_merge/CLANDESC");
 
 
 #Update database
