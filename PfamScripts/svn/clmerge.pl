@@ -46,6 +46,14 @@ foreach my $clan ($clan_acc_kill, $clan_acc_merge) {
 	}
 }
 
+#Check database is not locked
+my @lock_data = $pfamDB->getSchema->resultset('Lock')->search({ 'locked' => 1});
+if(@lock_data) {
+    my $lock_data = shift @lock_data; #Should only ever be one row
+    print STDERR "\nThe database is currently locked by ". $lock_data->locker . " which means clan changes cannot be made at this time\n\n";
+    exit 1;
+}
+
 #Make a new dir
 my $dir_name = "$clan_acc_kill" . "_" . "$clan_acc_merge" . "_merge";
 print STDERR "Making new directory $dir_name\n\n";

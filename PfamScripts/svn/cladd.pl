@@ -30,6 +30,14 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 @families_to_add = split(/,/,join(',',@families_to_add));
 check_options($help, $clan_acc, \@families_to_add, $pfamDB);
 
+#Check database is not locked
+my @lock_data = $pfamDB->getSchema->resultset('Lock')->search({ 'locked' => 1});
+if(@lock_data) {
+    my $lock_data = shift @lock_data; #Should only ever be one row
+    print STDERR "\nThe database is currently locked by ". $lock_data->locker . " which means clan changes cannot be made at this time\n\n";
+    exit 1;
+}
+
 #Make the dir to work in
 mkdir($clan_acc, 0755) or die "Couldn't mkdir $clan_acc, $!";
 chdir($clan_acc) or die "Couldn't chdir into $clan_acc, $!";
