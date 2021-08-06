@@ -24,9 +24,11 @@ use File::Copy;
 
 #Get input options
 my (@families_to_remove, $clan_acc, $help, $check_overlaps);
+my $message = "";
 GetOptions('remove=s' => \@families_to_remove,
 		   'clan=s'   => \$clan_acc,
            'check_overlaps' => \$check_overlaps,
+           'm=s'      => \$message,
            'help'     => \$help);
 
 
@@ -94,7 +96,7 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };   # don't allow control C for a bit!
 # - be removed from the MB lines in the CLANDESC,
 # - have the CL line removed from the DESC file
 # - be removed from the clan_membership table in the db
-remove_families_from_clan($clan_acc, \@families_to_remove, $dbh);
+remove_families_from_clan($clan_acc, \@families_to_remove, $dbh, $message);
 chdir("../");
 
 print STDERR "Families have been removed from $clan_acc\n";
@@ -137,6 +139,7 @@ sub check_options {
         $clan_fam{$pfamA_acc}=1;
         $clan_members++;
     }
+
     my $error="";
     foreach my $pfamA_acc (@$families_to_remove) {
         if(exists($clan_fam{$pfamA_acc})) {
@@ -156,9 +159,8 @@ sub check_options {
         die "$error";
     }
 
-
     unless($clan_members >1) {
-        print STDERR "If you remove [@$families_to_remove] from this clan, it will leave the clan with $clan_members member(s). Are you sure you want to continue? [y/n]:";
+        print STDERR "If you remove [@$families_to_remove] from this clan, it will leave the clan with $clan_members member. Are you sure you want to continue? [y/n]:";
         my $reply = <STDIN>;
         chomp $reply;
         unless($reply eq "y") {
@@ -166,13 +168,12 @@ sub check_options {
         }
         print STDERR "Once this script is finished, you should either add more families to $clan_acc (clans should have at least two families in them), or if the clan is empty and no longer needed, you can kill it using clkill.pl\n";
     }
-
     return 0;
 }
 
 sub remove_families_from_clan {
 
-    my ($clan_acc, $families_to_remove, $dbh) = @_;
+    my ($clan_acc, $families_to_remove, $dbh, $message) = @_;
 
 
     my %remove;
@@ -183,7 +184,7 @@ sub remove_families_from_clan {
     my $caught_cntrl_c;
     $SIG{INT} = sub { $caught_cntrl_c = 1; };   # don't allow control C for a bit!
 
-    #Checkout clan to be killed and remove the MB lines for the families that we are removing from the clan
+    #Checkout clan and remove the MB lines for the families that we are removing from the clan
     print STDERR "\nRemoving MB lines for families from $clan_acc CLANDESC\n\n";
     system("clco $clan_acc") and die "Couldn't run 'clco $clan_acc', $!";
 
@@ -209,7 +210,11 @@ sub remove_families_from_clan {
     close C;
 
     #Commit the changes
-    system("svn commit -m 'CLREMOVE:Removing @$families_to_remove from clan' $clan_acc/CLANDESC");
+    my $commit_message = "CLREMOVE:Removed MB lines in CLANDESC for the following families: @$families_to_remove";
+    if($message) {
+        $commit_message .= "\n$message";
+    }
+    system("svn commit -m '$commit_message' $clan_acc/CLANDESC");
 
 
     #Remove CL line from the DESC files for the families
@@ -219,7 +224,11 @@ sub remove_families_from_clan {
        system("pfco $pfamA_acc") and die "Couldn't 'pfco $pfamA_acc', $!";
        system("sed -i -r '/^CL/d' $pfamA_acc/DESC") and die "Couldn't run 'sed -i -r '/^CL/d' $pfamA_acc/DESC' to remove CL line in $pfamA_acc/DESC, $!";
        #Commit the changes
-       system("svn commit -m 'CLREMOVE:Removing CL line in DESC file (family is being removed from $clan_acc)' $pfamA_acc/DESC")
+       $commit_message = "CLREMOVE:Removed CL line to $clan_acc in the DESC files of the following families: @$families_to_remove";
+       if($message) {
+           $commit_message .= "\n$message";
+       }
+       system("svn commit -m '$commit_message' $pfamA_acc/DESC")
    }
     
     #Update database
@@ -374,7 +383,7 @@ print<<EOF;
     from the clan:
      * remove the MB line from the CLANDESC
      * remove the CL line from the DESC file
-     * remove from the clan membership table in the database
+     * remove the family from the clan membership table in the database
 
     Usage:
 
@@ -389,7 +398,8 @@ print<<EOF;
     Options:
     -check_overlap   :check for overlaps in the families being removed from 
                       the clan, but do not remove the families from the clan
-
+    -m               :message that describes the changes you have made
+                      to this family (optional)
 EOF
     exit(1);
 }

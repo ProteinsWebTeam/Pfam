@@ -17,8 +17,10 @@ use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::FamilyIO;
 
 my ($clan_acc, @families_to_add, $help);
+my $message = "";
 GetOptions( 'clan=s' => \$clan_acc,
              'add=s' => \@families_to_add,
+             'm=s'   => \$message,
              'help' => \$help);
 
 #Get database connection
@@ -48,7 +50,7 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };   # don't allow control C for a bit!
 #Add MB line to clan
 #Add CL line to DESC
 #Add to clan membership table
-add_to_clan($clan_acc, \@families_to_add, $dbh);
+add_to_clan($clan_acc, \@families_to_add, $dbh, $message);
 
 print STDERR "\n@families_to_add have been added to $clan_acc\n";
 
@@ -107,7 +109,7 @@ sub check_options {
 }
 
 sub add_to_clan {
-    my ($clan_acc, $families_to_add, $dbh) = @_;
+    my ($clan_acc, $families_to_add, $dbh, $message) = @_;
 
     
     #Add CL line to DESC of famlies
@@ -120,10 +122,14 @@ sub add_to_clan {
         my $descObj = $familyIO->parseDESC("$pfamA_acc/DESC");
         $descObj->CL($clan_acc);
         $familyIO->writeDESC($descObj, $pfamA_acc);
-        system("svn commit -m 'CLADD:Adding CL line to $clan_acc' $pfamA_acc/DESC")
+        my $commit_message = "CLADD:Added CL line to $clan_acc in the DESC files of the following families: @$families_to_add";
+        if($message) {
+            $commit_message .= "\n$message";
+        }
+        system("svn commit -m '$commit_message' $pfamA_acc/DESC")
     }
 
-    #Add MB lines to CLANDESC file
+    #Check out the clan and add MB lines to CLANDESC file for the families we are adding
     print STDERR "\n\nAdding MB lines to CLANDESC file of $clan_acc\n";
     system("clco $clan_acc") and die "Couldn't run 'clco $clan_acc', $!";
     open(CLANDESC, ">>$clan_acc/CLANDESC") or die "Couldn't open fh to $clan_acc/CLANDESC, $!";
@@ -132,7 +138,11 @@ sub add_to_clan {
         print STDERR "$pfamA_acc\n";
     }
     close CLANDESC;
-    system("svn commit -m \"CLADD:Added MB lines to CLANDESC for the following families: @$families_to_add\" $clan_acc/CLANDESC");
+    my $commit_message = "CLADD:Added MB lines in CLANDESC for the following families: @$families_to_add";
+    if($message) {
+        $commit_message .= "\n$message";
+    }
+    system("svn commit -m '$commit_message' $clan_acc/CLANDESC");
 
     #Update clan_membership table
     print STDERR "\n\nAdding families to the clan_membership table in the database\n";
@@ -155,7 +165,7 @@ print<<EOF;
   added from to the clan:
   * add an MB line to the CLANDESC
   * add the CL line to the DESC file
-  * add the family to  the clan membership table in the database
+  * add the family to the clan membership table in the database
 
   Usage:
 
@@ -167,6 +177,9 @@ print<<EOF;
 
   Eg. $0 -clan CL0001 -add PF00001,PF00002
 
+  Options:
+    -m               :message that describes the changes you have made
+                      to this family (optional)
 EOF
 
 exit(1);
