@@ -398,7 +398,7 @@ print<<EOF;
     Options:
     -check_overlap   :check for overlaps in the families being removed from 
                       the clan, but do not remove the families from the clan
-    -m               :message that describes the changes you have made
+    -m '<message>'   :message that describes the changes you have made
                       to this family (optional)
 EOF
     exit(1);

@@ -178,8 +178,8 @@ print<<EOF;
   Eg. $0 -clan CL0001 -add PF00001,PF00002
 
   Options:
-    -m               :message that describes the changes you have made
-                      to this family (optional)
+    -m '<message>'    :message that describes the changes you have made
+                       to this family (optional)
 EOF
 
 exit(1);
