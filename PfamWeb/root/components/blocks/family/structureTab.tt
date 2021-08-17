@@ -130,7 +130,7 @@ END -%]
               </td>
     			    <td class="[% oe % 2 ? 'odd' : 'even' %]">[% pdbResKey %]</td>
     			    <td class="[% oe % 2 ? 'odd' : 'even' %]">
-                <a class="ngl-button" onclick="showStructure('[% pdbKey %]', '[% chainKey %]', '[% pdbResKey %]', '[% c.config.molstar_structure_url %]')">View 3D Structure</a>
+                <a class="ngl-button" onclick="showStructure('[% pfam.pfama_acc %]', '[% pdbKey %]', '[% chainKey %]', '[% pdbResKey %]', '[% c.config.molstar_structure_url %]')">View 3D Structure</a>
                 <a class="ngl-button" href="https://www.ebi.ac.uk/interpro/structure/PDB/[% pdbKey %]">View in InterPro</a>
 	            </td>
 	          </tr>
