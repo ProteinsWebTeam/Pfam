@@ -3,7 +3,7 @@ const IP_PFAM_FAMILY_WEB = "https://www.ebi.ac.uk/interpro/entry/pfam/";
 const VIEWPORT_ID = "structure_viewport";
 const BLUE = "1148136";
 
-const showStructure = function(acc, chain, pdbResKey, urlString) {
+const showStructure = function(family, acc, chain, pdbResKey, urlString) {
   try {
     // resize and add canvas behaviour
     const canvas = document.getElementById('mol-canvas');
@@ -48,6 +48,9 @@ const showStructure = function(acc, chain, pdbResKey, urlString) {
     title.innerHTML = `<h1>${accession}</h1>`;
 
     const viewer = document.getElementById('pfam-molstar');
+    if (family) {
+      viewer.setAttribute('accession', family);
+    }
     viewer.setAttribute('type', 'structure');
     viewer.setAttribute('url', url);
     viewer.setAttribute('locations', JSON.stringify(locations));
