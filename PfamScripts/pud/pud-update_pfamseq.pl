@@ -116,6 +116,7 @@ else {
   chdir($pfamseq_dir) or $logger->logdie("Couldn't change directory into $pfamseq_dir $!\n");
 
   open(PFAMSEQ, ">pfamseq.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
+  open(FASTA, ">pfamseq.fasta") or $logger->logdie("Failed to open filehandle:[$!]\n");
   open(DISULPHIDE, ">disulphide.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
   open(ACT_METAL, ">active_site_metal.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
   open(SEC_ACC, ">secondary_acc.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
@@ -321,7 +322,8 @@ else {
 
       #This will be uploaded into the tmp_pfamseq table.
       print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\t$record{'SWISSPROT'}\n";
-      
+      print FASTA ">$record{'AC'}.$record{'SEQ_VER'} $record{'ID'} $description\n$record{'SEQ'}\n";
+
 #count for debugging
       $count2++;
 
@@ -395,7 +397,8 @@ else {
 
   close DISULPHIDE;
   close ACT_METAL;
-  close PFAMSEQ; 
+  close PFAMSEQ;
+  close FASTA;
   close SEC_ACC;
  
   #Check all the files have size

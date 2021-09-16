@@ -13,14 +13,3 @@ open( my $fh, ">PfamFamily.xml") or die "Could not open PfamFamily.xml\n";
 my $xmlDump = Bio::Pfam::SiteSearch::PfamXML->new($fh);;
 $xmlDump->createNewDump( 'family' );
 close($fh);
-
-#Need to compress the file.
-
-gzip "PfamFamily.xml"  => "PfamFamily.xml.gz"
-      or die "gzip failed: $GzipError\n";
-#system("gzip PfamFamily.xml") and die "Failed to compress the 
-
-#Now move the files to the ftp site.
-#move("PfamFamily.xml.gz", "/nfs/disk69/ftp/pub/databases/Pfam/sitesearch/PfamFamily.xml.gz")
-# or die "Could not PfamFamily.xml.gz to the ftp site";
-

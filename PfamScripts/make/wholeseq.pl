@@ -39,7 +39,7 @@ if($musclep) {
 }
 
 if($mcount == 0) {
-  &iBio::Pfam::AlignMethods::help($prog);
+  &Bio::Pfam::AlignMethods::help($prog);
 }
 
 
