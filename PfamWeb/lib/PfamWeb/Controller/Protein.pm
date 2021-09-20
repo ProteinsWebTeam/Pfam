@@ -392,6 +392,10 @@ Retrieves and stashes the models for this protein.
 
 sub get_models : Private {
   my ( $this, $c, $entry ) = @_;
+  my $page = $c->request->param('page');
+  $page = 1 unless (defined $page and $page =~ /^\d+$/);
+  $c->log->debug("Protein models (alphafold) Page=$page");
+
   $c->log->debug( "Protein::get_models: searching for $entry" )
                   if $c->debug;
   my $pfamseq_acc = $c->stash->{pfamseq}->pfamseq_acc;
@@ -401,7 +405,9 @@ sub get_models : Private {
   # fetch associated model data from WebUser
   my @hits;
   @hits = $c->model('WebUser::Af2')
-                          ->search({ 'me.pfamseq_acc' => $pfamseq_acc });
+                          ->search(
+                            { 'me.pfamseq_acc' => $pfamseq_acc },
+                            {page => $page, rows => 5})->all();
   $c->stash->{af2} = \@hits;
   $c->log->debug( 'Protein::get_models: found '
                   . scalar( @{ $c->stash->{af2} } ) . ' model hits' )

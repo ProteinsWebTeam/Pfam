@@ -912,17 +912,24 @@ Retrieves and stashes the protein models for this family.
 sub get_protein_models : Private {
   my ( $this, $c) = @_;
 
+  #there may be too many hits to display on a single pages
+  my $page = $c->request->param('page');
+  $page = 1 unless (defined $page and $page =~ /^\d+$/);
+  $c->log->debug("Protein models (alphafold) Page=$page");
+
   my $pfama_acc = $c->stash->{pfam}->pfama_acc;
   $c->log->debug('Family::get_protein_models: adding model info' ) if $c->debug;
   $c->log->debug("Family::get_protein_models: '$pfama_acc' searching in af2")
     if $c->debug;
   # fetch associated model data from WebUser
-  my @hits;
-  @hits = $c->model('WebUser::Af2')
-                          ->search({ 'me.pfama_acc' => $pfama_acc });
-  $c->stash->{af2} = \@hits;
+  my $hits;
+  $hits = $c->model('WebUser::Af2')
+                          ->search(
+                          { 'me.pfama_acc' => $pfama_acc },
+                          {page => $page, rows => 5});
+  $c->stash->{af2} = $hits;
   $c->log->debug( 'Family::get_protein_models: found '
-                  . scalar( @{ $c->stash->{af2} } ) . ' model hits' )
+                  . scalar( $c->stash->{af2}->all() ) . ' model hits' )
                   if $c->debug;
 }
 

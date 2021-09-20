@@ -27,7 +27,7 @@ USE String;
         </tr>
       </thead>
       <tbody>
-      [%- FOREACH hit IN c.stash.af2; -%]
+      [%- FOREACH hit IN c.stash.af2.all(); -%]
       [%
         protein_url = c.secure_uri_for( "/protein", hit.pfamseq_acc );
         protein_viewer_url = protein_url _ "#tabview=tab4";
