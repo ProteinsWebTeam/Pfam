@@ -124,6 +124,11 @@ unless ($noFilter) {
   filterOverlaps( $lengthLimit, $numberLimit );
 }
 
+#Run the allocate_ignore script
+#This script allocates each overlap in the <date>overlaps.overlaps.filtered to the overlapping family with the least number of
+#overlaps. The number of overlaps per family is taken from <date>.overlaps.familyOverlaps.filtered file
+system("pud-assign_ignore_overlaps.pl -dir .") and $logger->logdie("Couldn't run 'pud-assign_ignore_overlaps.pl -dir .', $!");
+
 #-------------------------------------------------------------------------------
 
 sub getRegions {
