@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Date::Calc qw[Add_Delta_Days Today];
 
 #This script should be run after pud-findOverlapsAndMissing.pl
 # 1. This script allocates each overlap in the <date>overlaps.overlaps.filtered to the overlapping family with the least number of 
@@ -20,15 +21,23 @@ my ($date, $overlaps_dir);
 GetOptions('date=s'  => \$date,
             'dir=s'  => \$overlaps_dir);
 
-unless($date and $overlaps_dir) {
-    die "Need to specify date of overlap file on command line\nEg $0 -date 20210107 -dir /nfs/production/xfam/pfam/sequpd/34.0/overlapLogs\n";
+unless($overlaps_dir) {
+    die "Need to specify overlaps directory on the command line\nEg $0 -dir /nfs/production/xfam/pfam/sequpd/34.0/overlapLogs -date 20210107\nIf no date is specified, the script will use the file with todays date\n";
+}
+
+#Unless a date is specified by the user, use todays overlaps file
+unless($date) {
+	my ($year, $month, $day) = Today();
+	$day = "0" . $day if($day !~ /\d\d/);  #Add 0 in front of day if single digit
+	$month = "0" . $month if($month !~ /\d\d/);  #Add 0 in front of month if single digit
+    $date = $year.$month.$day;
 }
 
 my $overlaps_file = $overlaps_dir . "/" . $date . "overlaps.overlaps.filtered";
 my $family_overlaps_file = $overlaps_dir . "/" . $date . "overlaps.familyOverlaps.filtered";
 
-unless(-s $family_overlaps_file and -s $family_overlaps_file) {
-    die "Check overlaps file [$family_overlaps_file] and family overlaps file [$family_overlaps_file] exist";
+unless(-s $overlaps_file and -s $family_overlaps_file) {
+    die "Check overlaps file [$overlaps_file] and family overlaps file [$family_overlaps_file] exist";
 }
 
 my $ignore_threshold = 3; #Maximum number of overlaps per family that will be filtered out of the overlaps file
