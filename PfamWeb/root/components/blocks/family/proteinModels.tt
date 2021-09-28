@@ -52,5 +52,13 @@ USE String;
       [%- END -%]
       </tbody>
     </table>
+    <div class="page-nav">
+      [%
+        pager = c.stash.af2.pager;
+      %]
+      <div>Showing [% pager.entries_on_this_page %] matches</div>
+      <div>Page [% pager.current_page %] of [% pager.last_page %]</div>
+      <div>URL [% c.uri_for($c.action, \['page', 1]) %]
+    </div>
   </div>
 </div>
