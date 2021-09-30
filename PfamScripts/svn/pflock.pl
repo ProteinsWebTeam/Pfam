@@ -30,8 +30,7 @@ unless($lock or $unlock) {
 }
 
 
-
-if($unlock and ($commit or @commit_list or $force or $lock)) {
+if($unlock and ($commit or @commit_list or $lock)) {
     die "You have specified options which cannot be used together\n";
 }
 
