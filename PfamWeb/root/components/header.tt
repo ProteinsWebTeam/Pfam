@@ -90,14 +90,6 @@ sharedUri = c.secure_uri_for( "/shared" );
 
 [% INSERT components/sitewide_warning.html %]
 
-<div class="messageBox">
-    Please help us understand the impact of EMBL-EBI services, including Pfam,
-    by filling out a
-    <a href="https://www.surveymonkey.co.uk/r/EMBL-EBI_Impact_DR" target="_blank">
-      short survey →
-    </a>
-  </div>
-
 [%-
 # a warning message for users who dont have javascript turned on. The
 # message should be hidden immediately after its displayed, but if

@@ -1,3 +1,91 @@
+use utf8;
+package WebUser::Result::JobStream;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+WebUser::Result::JobStream
+
+=cut
+
+use strict;
+use warnings;
+
+use base 'DBIx::Class::Core';
+
+=head1 TABLE: C<job_stream>
+
+=cut
+
+__PACKAGE__->table("job_stream");
+
+=head1 ACCESSORS
+
+=head2 id
+
+  data_type: 'bigint'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 stdin
+
+  data_type: 'longtext'
+  is_nullable: 0
+
+=head2 stdout
+
+  data_type: 'mediumblob'
+  is_nullable: 1
+
+=head2 stderr
+
+  data_type: 'longtext'
+  is_nullable: 1
+
+=cut
+
+__PACKAGE__->add_columns(
+  "id",
+  {
+    data_type => "bigint",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_nullable => 0,
+  },
+  "stdin",
+  { data_type => "longtext", is_nullable => 0 },
+  "stdout",
+  { data_type => "mediumblob", is_nullable => 1 },
+  "stderr",
+  { data_type => "longtext", is_nullable => 1 },
+);
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</id>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("id");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2021-07-14 21:37:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NZKVPggYiMD955t+9iv8oQ
+# These lines were loaded from '/nfs/production/xfam/pfam/software/Pfam/PfamSchemata/WebUser/Result/JobStream.pm' found in @INC.
+# They are now part of the custom portion of this file
+# for you to hand-edit.  If you do not either delete
+# this section or remove that file from @INC, this section
+# will be repeated redundantly when you re-create this
+# file again via Loader!  See skip_load_external to disable
+# this feature.
+
 #
 # JobStream
 # rdf 20070405 WTSI
@@ -61,4 +149,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
+1;
+# End of lines loaded from '/nfs/production/xfam/pfam/software/Pfam/PfamSchemata/WebUser/Result/JobStream.pm'
+
+
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

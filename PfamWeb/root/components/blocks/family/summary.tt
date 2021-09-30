@@ -40,11 +40,6 @@ PROCESS components/links.tt; %]
       Pfam includes annotations and additional family information from a range
       of different sources. These sources can be accessed via the tabs below.
     </p>
-    <div>
-      <script>
-        getInterProStructureModelLink("[% pfam.pfama_acc %]");
-      </script>
-    </div>
     <div id="summaryTabs" class="nestedTabs yui-navset">
 
       <ul id="summaryTabsNav" class="yui-nav">

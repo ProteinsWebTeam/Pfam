@@ -33,7 +33,7 @@ use LWP::UserAgent;
 use Compress::Zlib;
 use JSON;
 use Text::Wrap qw( $columns wrap );
-
+use HTTP::Status qw(:constants :is status_message);
 $Text::Wrap::columns = 60;
 
 BEGIN {
@@ -401,7 +401,8 @@ sub family_page : Chained( 'family' )
     $c->forward( 'get_db_xrefs' );
     #$c->forward( 'get_pseudofam' );
     $c->forward( 'get_wikipedia' );
-
+    $c->forward( 'get_protein_models' );
+    $c->forward( 'get_structural_model' );
     return;
 
   } # end of "else"
@@ -898,6 +899,139 @@ sub build_fasta : Private {
   }
 
   return $fasta;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_protein_models : Private
+
+Retrieves and stashes the protein models for this family.
+
+=cut
+
+sub get_protein_models : Private {
+  my ( $this, $c) = @_;
+
+  #there may be too many hits to display on a single pages
+  my $page = $c->request->param('page');
+  $page = 1 unless (defined $page and $page =~ /^\d+$/);
+  $c->log->debug("Protein models (alphafold) Page=$page");
+
+  my $pfama_acc = $c->stash->{pfam}->pfama_acc;
+  $c->log->debug('Family::get_protein_models: adding model info' ) if $c->debug;
+  $c->log->debug("Family::get_protein_models: '$pfama_acc' searching in af2")
+    if $c->debug;
+  # fetch associated model data from WebUser
+  my $hits_per_page = 40;
+  my $hits;
+  $hits = $c->model('WebUser::Af2')
+                          ->search(
+                          { 'me.pfama_acc' => $pfama_acc },
+                          { distinct => 1,
+                            select => [qw(pfamseq_acc)],
+                            page => $page,
+                            rows => $hits_per_page
+                          });
+  $c->stash->{af2} = $hits;
+  $c->log->debug( 'Family::get_protein_models: found '
+                  . scalar( $c->stash->{af2}->all() ) . ' model hits' )
+                  if $c->debug;
+  my $ALPHAFOLD_TAB = "#tabview=tab9";
+  $c->stash->{af2}->{pages} = {};
+  my $curr_page = $hits->pager->current_page;
+  my $last_page = $hits->pager->last_page;
+  $c->log->debug( "Family::get_protein_models: Showing page $curr_page of $last_page page(s)" )
+                  if $c->debug;
+  $c->stash->{af2}->{pages}->{curr} = $curr_page;
+  #link to first page
+  my $first_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => 1});
+  $c->stash->{af2}->{pages}->{first_url} = $first_url.$ALPHAFOLD_TAB;
+  #link to last page
+  $c->stash->{af2}->{pages}->{last} = $last_page;
+  my $last_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => $last_page});
+  $c->stash->{af2}->{pages}->{last_url} = $last_url.$ALPHAFOLD_TAB;
+  #links to next and previous pages
+  my $prev_page = ($curr_page > 1) ? $curr_page-1 : 0;
+  my $next_page = ($curr_page < $last_page) ? $curr_page + 1: 0;
+  if ($prev_page) {
+    $c->stash->{af2}->{pages}->{prev} = $prev_page;
+    my $prev_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => $prev_page});
+    $c->stash->{af2}->{pages}->{prev_url} = $prev_url.$ALPHAFOLD_TAB;
+    $c->log->debug( "Family::get_protein_models: Previous page = $prev_page: $prev_url" )
+                    if $c->debug;
+  }
+  if ($next_page) {
+    $c->stash->{af2}->{pages}->{next} = $next_page;
+    my $next_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => $next_page});
+    $c->stash->{af2}->{pages}->{next_url} = $next_url.$ALPHAFOLD_TAB;
+    $c->log->debug( "Family::get_protein_models: Next page = $next_page: $next_url" )
+                    if $c->debug;
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_structural_model : Private
+
+Retrieves and stashes url to the structural model for this family from InterPro
+
+=cut
+
+sub get_structural_model : Private {
+  my ( $this, $c) = @_;
+
+  my $SLEEP = 30;
+  my $MAX_REPEAT = 3;
+  my $attempt = 0;
+
+  my $pfama_acc = $c->stash->{pfam}->pfama_acc;
+
+  if ($c->config->{'interpro_pfam_url'}) {
+    my $url = $c->config->{'interpro_pfam_url'};
+    $url =~ s/\$\{accession}/$pfama_acc/i;
+
+    if ( not defined $this->{_ua} ) {
+      $c->log->debug( "Family::get_structural_model: building a new user agent " )
+        if $c->debug;
+      $this->{_ua} = LWP::UserAgent->new;
+      $this->{_ua}->timeout(10);
+      $this->{_ua}->env_proxy;
+    }
+
+    my ($code, $response);
+    do {
+      $c->log->debug( "Family::get_structural_model: get $url [attempt=$attempt]" )
+        if $c->debug;
+      $response = $this->{_ua}->get( $url );
+      $code = $response->code;
+      sleep($SLEEP) unless ($attempt == 0);
+      $attempt++;
+    } while($attempt < $MAX_REPEAT and $code == HTTP_REQUEST_TIMEOUT);
+
+    if ($code == HTTP_OK) {
+      $c->log->debug( 'Family::get_structural_model: successful response from web service')
+        if $c->debug;
+      my $data = decode_json $response->decoded_content;
+
+      $c->log->debug( "Family::get_structural_model: trRosetta model count = ".$data->{metadata}->{counters}->{structural_models}->{trRosetta}."" )
+        if $c->debug;
+
+      $c->stash->{family_model}->{count} = $data->{metadata}->{counters}->{structural_models}->{trRosetta};
+      my $dataUrl = $c->config->{'molstar_tr_model_url'};
+      $dataUrl =~ s/\$\{accession}/$pfama_acc/i;
+      $c->stash->{family_model}->{url} = $dataUrl;
+    } else {
+      $c->log->debug( "Family::get_structural_model: Encountered error fetching data from $url HTTP status (".$response->status_line."). Skipping" )
+        if $c->debug;
+      $c->stash->{family_model}->{count} = 0;
+      # $c->stash->{error} = $response->status_line;
+    }
+
+  } else {
+    $c->stash->{family_model}->{count} = 0;
+    $c->log->debug( "'interpro_pfam_url' not defined in config. Skipping trRosetta models" )
+  }
 }
 
 #-------------------------------------------------------------------------------

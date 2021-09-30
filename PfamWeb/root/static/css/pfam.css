@@ -1221,6 +1221,7 @@ a.btn:hover {
   padding: 20px;
   border: 1px solid #888;
   width: 85vw; /* Could be more or less, depending on screen size */
+  height: 75vh;
 }
 
 #ngl-viewport {
@@ -1246,4 +1247,31 @@ a.btn:hover {
   /* overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.colour-scale {
+  height: 1em;
+  width:  1em;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+}
+
+.very-high {
+  background-color: rgb(0, 83, 214);
+}
+
+.high {
+  background-color: rgb(101, 203, 243);
+}
+
+.low {
+  background-color: rgb(255, 219, 19);
+}
+
+.very-low {
+  background-color: rgb(255, 125, 69);
+}
+
+.no-score {
+  background-color: rgb(170, 170, 170);
 }

@@ -21,3 +21,4 @@ nytprof.out
 *.bs
 /_eumm/
 pfamweb_*.conf
+/PfamWeb/node_modules/

@@ -8,6 +8,11 @@
 # $Id$
 
 imagesUri = c.secure_uri_for( "/static/images" );
+
+RETURN UNLESS c.config.molstar_structure_url;
+
+url = c.config.molstar_structure_url.replace('\$\{accession\}', pdbId);
+
 %]
 
 <!-- start view block -->
@@ -16,18 +21,11 @@ imagesUri = c.secure_uri_for( "/static/images" );
   <div class="handle">
     <h1>View structure</h1>
   </div>
+  <div>
+    <pfam-molstar-component url="[% url %]" type="structure" accession="[% pdbId %]"></pfam-molstar-component>
+  </div>
   <div class="blockContent">
-
-    <p>
-      Clich <a class="ngl-button" onclick="showStructureInStructurePage('[% pdbId %]')">here</a>
-      to see an interactive view of [% pdbId %] below.
-    </p>
-      <div id="ngl-scontainer">
-        <p id="ngl-spinner" class="loading">Loading Structure Data</p>
-        <div id="ngl-viewport"></div>
-      </div>
-    <p>
-      View Pfam families and other data mapped to the structure of PDB entry
+    <p>View Pfam families and other data mapped to the structure of PDB entry
       <strong>[% pdbId %]</strong> in
       <a class="ngl-button" href="https://www.ebi.ac.uk/interpro/structure/PDB/[% pdbId %]">InterPro</a>
     </p>

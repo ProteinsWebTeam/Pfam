@@ -1,3 +1,170 @@
+use utf8;
+package WebUser::Result::JobHistory;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+WebUser::Result::JobHistory
+
+=cut
+
+use strict;
+use warnings;
+
+use base 'DBIx::Class::Core';
+
+=head1 TABLE: C<job_history>
+
+=cut
+
+__PACKAGE__->table("job_history");
+
+=head1 ACCESSORS
+
+=head2 id
+
+  data_type: 'bigint'
+  extra: {unsigned => 1}
+  is_auto_increment: 1
+  is_nullable: 0
+
+=head2 job_id
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 40
+
+=head2 ebi_id
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 60
+
+=head2 status
+
+  data_type: 'varchar'
+  default_value: (empty string)
+  is_nullable: 0
+  size: 5
+
+=head2 options
+
+  data_type: 'varchar'
+  default_value: (empty string)
+  is_nullable: 1
+  size: 255
+
+=head2 estimated_time
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 opened
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  default_value: '1970-01-01 00:00:00'
+  is_nullable: 0
+
+=head2 closed
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  default_value: '1970-01-01 00:00:00'
+  is_nullable: 0
+
+=head2 started
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  default_value: '1970-01-01 00:00:00'
+  is_nullable: 0
+
+=head2 job_type
+
+  data_type: 'varchar'
+  default_value: (empty string)
+  is_nullable: 0
+  size: 50
+
+=head2 email
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 255
+
+=cut
+
+__PACKAGE__->add_columns(
+  "id",
+  {
+    data_type => "bigint",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
+  },
+  "job_id",
+  { data_type => "varchar", is_nullable => 0, size => 40 },
+  "ebi_id",
+  { data_type => "varchar", is_nullable => 1, size => 60 },
+  "status",
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 5 },
+  "options",
+  { data_type => "varchar", default_value => "", is_nullable => 1, size => 255 },
+  "estimated_time",
+  { data_type => "integer", is_nullable => 1 },
+  "opened",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    default_value => "1970-01-01 00:00:00",
+    is_nullable => 0,
+  },
+  "closed",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    default_value => "1970-01-01 00:00:00",
+    is_nullable => 0,
+  },
+  "started",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    default_value => "1970-01-01 00:00:00",
+    is_nullable => 0,
+  },
+  "job_type",
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 50 },
+  "email",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
+);
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</id>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("id");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2021-07-14 21:37:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Bow3I/Heu7tI/hM9jKuLRw
+# These lines were loaded from '/nfs/production/xfam/pfam/software/Pfam/PfamSchemata/WebUser/Result/JobHistory.pm' found in @INC.
+# They are now part of the custom portion of this file
+# for you to hand-edit.  If you do not either delete
+# this section or remove that file from @INC, this section
+# will be repeated redundantly when you re-create this
+# file again via Loader!  See skip_load_external to disable
+# this feature.
+
 #
 # JobHistory
 # rdf 20070405 WTSI
@@ -127,4 +294,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
+1;
+# End of lines loaded from '/nfs/production/xfam/pfam/software/Pfam/PfamSchemata/WebUser/Result/JobHistory.pm'
+
+
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
