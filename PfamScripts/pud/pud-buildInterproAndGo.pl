@@ -41,7 +41,7 @@ my $log = get_logger();
 my $config = Bio::Pfam::Config->new;
 
 my $IP_URL_ROOT = 'ftp://ftp.ebi.ac.uk/pub/databases/interpro';
-my $GO_URL_ROOT = 'ftp://ftp.geneontology.org/pub/go/ontology/obo_format_1_2';
+my $GO_URL_ROOT = 'http://current.geneontology.org/ontology';
 my $FILE_ROOT = $config->localDbsLoc . '/interpro';
 
 # URLs that will be substituted into the abstract
@@ -97,7 +97,7 @@ $log->debug( "saving downloaded files to root directory '$FILE_ROOT'" );
 
 my $ip_file    = 'interpro.xml';
 my $ip2go_file = 'interpro2go';
-my $ontologies = [ 'gene_ontology.1_2.obo' ];
+my $ontologies = [ 'go.obo' ];
 
 if ( $SKIP_RETRIEVALS ) {
   $log->debug( 'skipping file retrieval' );
