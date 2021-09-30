@@ -5,11 +5,11 @@
    the Pfam family pages.
 
    $Id: family.css,v 1.34 2009-10-07 13:01:50 jt6 Exp $
-   
+
    Copyright (c) 2007: Genome Research Ltd.
-   
+
    Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-   
+
    This is free software; you can redistribute it and/or modify it under
    the terms of the GNU General Public License as published by the Free Software
    Foundation; either version 2 of the License, or (at your option) any later
@@ -22,8 +22,8 @@
 
    You should have received a copy of the GNU General Public License along with
    this program. If not, see <http://www.gnu.org/licenses/>.
-    
-*/   
+
+*/
 
 /* ======================================== */
 /* rules for specific blocks */
@@ -155,7 +155,7 @@ div.blockContent ol {
 }
 
 /* the slider that controls the horizontal scrolling of the alignment.
- * Note that the outer div is slightly wider than the inner one, which 
+ * Note that the outer div is slightly wider than the inner one, which
  * actually forms the visible track for the slider, so that the handle can
  * be aligned with the edges of the alignment */
 #slider {
@@ -336,4 +336,35 @@ p.viewAlignOptsFootnote {
 p.quote {
   margin-left: 2em;
   margin-right: 2em;
+}
+
+.page-controls {
+  /* border: 1px solid red; */
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.page-control {
+  margin: 2em;
+  padding: 1em;
+  align-content: center;
+  display: inline-block;
+  height: 100%;
+  color: #074987;
+  background: #e7edf3;
+  font-weight: bold;
+}
+
+.page-control a {
+  text-decoration: none;
+}
+
+.page-control-disabled a{
+  color: currentColor;
+  cursor: not-allowed;
+  opacity: 0.5;
+  text-decoration: none;
+  pointer-events: none;
 }

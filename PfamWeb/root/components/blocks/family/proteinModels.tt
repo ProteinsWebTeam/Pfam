@@ -56,9 +56,24 @@ USE String;
       [%
         pager = c.stash.af2.pager;
       %]
-      <div>Showing [% pager.entries_on_this_page %] matches</div>
-      <div>Page [% pager.current_page %] of [% pager.last_page %]</div>
-      <div>URL [% c.uri_for($c.action, \['page', 1]) %]
+      <div class="">Showing [% pager.entries_on_this_page %] matches</div>
+      <div class="page-controls">
+        <div class="page-control [% IF c.stash.af2.pages.curr == 1 %] page-control-disabled [%END %]">
+          <a href="[% c.stash.af2.pages.first_url %]"><<</a>
+        </div>
+        <div class="page-control [% IF c.stash.af2.pages.curr == 1 %] page-control-disabled [%END %]">
+          <a href="[% c.stash.af2.pages.prev_url %]"><</a>
+        </div>
+        <div class="page-control">
+          Page [% c.stash.af2.pages.curr %] of [% c.stash.af2.pages.last %]
+        </div>
+        <div class="page-control [% IF c.stash.af2.pages.curr >= c.stash.af2.pages.last %] page-control-disabled [%END %]">
+          <a href="[% c.stash.af2.pages.next_url %]">></a>
+        </div>
+        <div class="page-control [% IF c.stash.af2.pages.curr >= c.stash.af2.pages.last %] page-control-disabled [%END %]">
+          <a href="[% c.stash.af2.pages.last_url %]">>></a>
+        </div>
+      </div>
     </div>
   </div>
 </div>

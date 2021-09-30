@@ -922,15 +922,52 @@ sub get_protein_models : Private {
   $c->log->debug("Family::get_protein_models: '$pfama_acc' searching in af2")
     if $c->debug;
   # fetch associated model data from WebUser
+  my $hits_per_page = 40;
   my $hits;
   $hits = $c->model('WebUser::Af2')
                           ->search(
                           { 'me.pfama_acc' => $pfama_acc },
-                          {page => $page, rows => 5});
+                          { distinct => 1,
+                            select => [qw(pfamseq_acc)],
+                            page => $page,
+                            rows => $hits_per_page
+                          });
   $c->stash->{af2} = $hits;
   $c->log->debug( 'Family::get_protein_models: found '
                   . scalar( $c->stash->{af2}->all() ) . ' model hits' )
                   if $c->debug;
+  my $ALPHAFOLD_TAB = "#tabview=tab9";
+  $c->stash->{af2}->{pages} = {};
+  my $curr_page = $hits->pager->current_page;
+  my $last_page = $hits->pager->last_page;
+  $c->log->debug( "Family::get_protein_models: Showing page $curr_page of $last_page page(s)" )
+                  if $c->debug;
+  $c->stash->{af2}->{pages}->{curr} = $curr_page;
+  #link to first page
+  my $first_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => 1});
+  $c->stash->{af2}->{pages}->{first_url} = $first_url.$ALPHAFOLD_TAB;
+  #link to last page
+  $c->stash->{af2}->{pages}->{last} = $last_page;
+  my $last_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => $last_page});
+  $c->stash->{af2}->{pages}->{last_url} = $last_url.$ALPHAFOLD_TAB;
+  #links to next and previous pages
+  my $prev_page = ($curr_page > 1) ? $curr_page-1 : 0;
+  my $next_page = ($curr_page < $last_page) ? $curr_page + 1: 0;
+  if ($prev_page) {
+    $c->stash->{af2}->{pages}->{prev} = $prev_page;
+    my $prev_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => $prev_page});
+    $c->stash->{af2}->{pages}->{prev_url} = $prev_url.$ALPHAFOLD_TAB;
+    $c->log->debug( "Family::get_protein_models: Previous page = $prev_page: $prev_url" )
+                    if $c->debug;
+  }
+  if ($next_page) {
+    $c->stash->{af2}->{pages}->{next} = $next_page;
+    my $next_url = $c->uri_for($c->stash->{pfam}->pfama_id, {page => $next_page});
+    $c->stash->{af2}->{pages}->{next_url} = $next_url.$ALPHAFOLD_TAB;
+    $c->log->debug( "Family::get_protein_models: Next page = $next_page: $next_url" )
+                    if $c->debug;
+  }
+
 }
 
 #-------------------------------------------------------------------------------
