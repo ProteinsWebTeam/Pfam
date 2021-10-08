@@ -21,7 +21,7 @@ url = c.config.molstar_tr_model_url.replace('\$\{accession\}', pfam.pfama_acc);
   <div>
     <pfam-molstar-component id="family-model" type="tr-model" accession="[% pfam.pfama_acc %]"></pfam-molstar-component>
     <script>
-      addMolsterComponentObserver("family-model", "[% url %]");
+      addMolsterComponentObserver("modelBlockSelector", "family-model", "[% url %]");
     </script>
   </div>
   <div class="blockContent">

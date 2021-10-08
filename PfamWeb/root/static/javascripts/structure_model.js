@@ -3,21 +3,29 @@ const IP_PFAM_FAMILY_WEB = "https://www.ebi.ac.uk/interpro/entry/pfam/";
 const VIEWPORT_ID = "structure_viewport";
 const BLUE = "1148136";
 
-const addMolsterComponentObserver = function(name, url) {
+const addMolsterComponentObserver = function(selectorName, name, url) {
+  console.log(`addMolsterComponentObserver: ${name} : ${url}`);
   try {
     const element = document.getElementById(name);
-
-    const obs = new IntersectionObserver((entries, o) => {
+    const cStyle = window.getComputedStyle(element);
+    const selector = document.getElementById(selectorName);
+    const obs = new MutationObserver((entries, o) => {
       for (const e of entries) {
-        if (e.isIntersecting) {
-          element.setAttribute('url', url);
-          obs.disconnect();
+        if (e.type = "attributes") {
+          // console.log(`${e.target.id} Mutated!!!`);
+          // console.log(e.type);
+          // console.log(e.target.classList);
+          // console.log(cStyle.visibility);
+          if (cStyle.visibility === 'visible') {
+            element.setAttribute('url', url);
+            obs.disconnect();
+          }
         }
       }
     });
-    obs.observe(element, {attributes: true, childList: true, subTree: true});
+    obs.observe(selector, {attributes: true, childList: false, characterData: false});
   } catch(e) {
-    console.log(e);
+    console.log(`Error attaching observer: ${e}`);
   }
 };
 
