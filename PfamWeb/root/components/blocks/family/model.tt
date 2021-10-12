@@ -19,7 +19,7 @@ url = c.config.molstar_tr_model_url.replace('\$\{accession\}', pfam.pfama_acc);
      group with the trRosetta software using the Pfam UniProt multiple sequence alignment.</p>
   </div>
   <div>
-    <pfam-molstar-component url="[% url %]" type="tr-model"></pfam-molstar-component>
+    <pfam-molstar-component url="[% url %]" type="tr-model" accession="[% pfam.pfama_acc %]"></pfam-molstar-component>
   </div>
   <div class="blockContent">
     <p>The InterPro website shows the contact map for the Pfam SEED alignment.
