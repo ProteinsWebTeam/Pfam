@@ -8,12 +8,10 @@ use Compress::Zlib;
 use Getopt::Long;
 use File::Copy;
 
-#Script to calculate Neff for a Pfam-A uniprot alignment
 #Need to pass in pfamA on the command line
 #The script will get the uniprot alignment from the release database
 #(need to point the pfam config at a release database before running this script)
-#It will calculate the neff (number of sequences in the alignment when the alignment is made nr to 80%)
-#If the neff is >=50, the script will generate an a3m alignment for the family, and will
+#The script will generate an a3m alignment for the family, and will
 #include the first sequence of the seed alignment at the top of the a3m alignment
 #The a3m alignment will be written to a direcory in the cwd called Alignments (the script
 #will create this directory if it doesn't already exist).
@@ -37,10 +35,7 @@ if($pfamDB->{database} eq "pfam_live") {
 }
 
 my $uniprot_aln = get_uniprot_aln($pfamA_acc, $pfamDB);
-my $neff = calculate_neff($pfamA_acc, $uniprot_aln);
-if($neff >= 50) {
-    make_a3m_aln($pfamA_acc, $pfamDB);
-}
+make_a3m_aln($pfamA_acc, $pfamDB);
 
 sub get_uniprot_aln {
 
@@ -62,43 +57,6 @@ sub get_uniprot_aln {
 
 }
 
-
-sub calculate_neff {
-    my ($pfamA_acc, $aln) = @_;
-
-    unless(-s $aln) {
-        die "$aln does not exist";
-    }
-
-    my $aln_nr = "$pfamA_acc" . ".nr";
-
-    #Run esl-weight to reduce redundancy to 80%
-    system("esl-weight --amino -f --idf 0.8 -o $aln_nr $aln") and die "Couldn't run 'esl-weight --amino -f --idf 0.8 -o $aln_nr $aln', $!";
-
-    #Count seqs to get Neff
-    my $neff=0;
-    my %done;
-    open(NR, "$aln_nr") or die "Couldn't open fh to $aln_nr, $!";
-    while(<NR>) {
-        if(/^(\S+\/\d+-\d+)/) {
-            my $acc_se = $1;
-            unless(exists($done{$acc_se})) { #Alignment is interleaved
-                $neff++;
-                $done{$acc_se}=1;
-            }
-        }
-    }
-    close NR;
-
-    unlink($aln);
-    unlink($aln_nr);
-
-    print STDERR "$pfamA_acc has Neff $neff\n";
-    if($neff >=50) {
-        print STDERR "Can create structural model for $pfamA_acc\n"; 
-    }
-    return($neff);
-}
 
 sub make_a3m_aln {
 
