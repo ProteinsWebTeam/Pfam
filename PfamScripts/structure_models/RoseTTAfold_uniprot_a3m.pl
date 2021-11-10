@@ -163,5 +163,4 @@ sub generate_a3m_alignment {
     #The a3m alignment will be created in a directory called 'Alignments'
     #Log files will be writtent to cwd
 	system("bsub -q production-rh74 -M 5000 -R \"rusage[mem=5000]\" -o $pfamA_acc.log -J$pfamA_acc '/homes/jaina/Code/Pfam/PfamScripts/structure_models/uniprot_a3m.pl -pfamA $pfamA_acc'");
-    exit;
 }
