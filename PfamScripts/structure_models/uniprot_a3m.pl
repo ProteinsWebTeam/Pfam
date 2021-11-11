@@ -34,29 +34,7 @@ if($pfamDB->{database} eq "pfam_live") {
     die "Config points to the pfam_live database, but you need to point it at a release database (eg pfam_34_0)\n";
 }
 
-my $uniprot_aln = get_uniprot_aln($pfamA_acc, $pfamDB);
 make_a3m_aln($pfamA_acc, $pfamDB);
-
-sub get_uniprot_aln {
-
-    my ($pfamA_acc, $pfamDB) = @_;
-
-    #Get aln from db
-    my $rs_aln = $pfamDB->getSchema->resultset('AlignmentAndTree')->find({ pfama_acc => $pfamA_acc, type => 'uniprot' } );
-
-    #Uncompress alignment
-    my $alignment = Compress::Zlib::memGunzip($rs_aln->alignment) ;
-
-    #Print alignment
-    my $uniprot_aln="$pfamA_acc.sto";
-    open(ALN, ">$uniprot_aln") or die "Couldn't open $uniprot_aln, $!";
-    print ALN $alignment;
-    close ALN;
-
-    return($uniprot_aln);
-
-}
-
 
 sub make_a3m_aln {
 
@@ -106,6 +84,7 @@ sub make_a3m_aln {
 
     #Print uniprot alignment
     my $uniprot_aln="$pfamA_acc.uniprot";
+    my $uniprot_count=0;
     open(ALN, ">$uniprot_aln") or die "Couldn't open $uniprot_aln, $!";
     foreach my $line (@alignment) {  #One sequence per line (ie alignment is not interleaved)
         if($line =~ /^#/ or $line =~ /^\/\//) {
@@ -115,14 +94,23 @@ sub make_a3m_aln {
             my ($start, $end) = ($1, $2);
             if($seed_seq_st > $end or $seed_seq_en < $start) { #If it doesn't overlap with the seed sequence, then print it
                 print ALN "$line\n";
+                $uniprot_count++;
             }
         }
         else {
             print ALN "$line\n";
+            $uniprot_count++;
         }
     }
     close ALN;
 
+    #There is a small handful of families (4 for Pfam 35.0) where there is only one sequence in the uniprot alignment
+    #Won't be able to do structure prediction for these, so just exit
+    if($uniprot_count < 2) {
+        print STDERR "Less than 2 sequences in the uniprot alignment, will not make a3m alignment for this family\n";
+        unlink($seed_seq, $fasta, $uniprot_aln);
+        exit;
+    }
 
     #Convert uniprot alignment to fasta format and add to fasta file
     system("esl-reformat fasta $uniprot_aln >> $fasta") and die "Couldn't run 'esl-reformat fasta $uniprot_aln >> $fasta', $!";
