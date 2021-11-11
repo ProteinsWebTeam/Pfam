@@ -13,7 +13,7 @@ use Getopt::Long;
 #Where a family needs a new/updated structure model, a job will be submitted to the farm
 #which will generate an a3m uniprot alignment with a seed sequence into the top of 
 #the a3m file. These alignments will be written to cwd/Alignments. Log files will be written 
-#to the cwd, you should check these for errors.
+#to the Logs/cwd, you should check these for errors.
 #Before running the script, point the pfam config ($PFAM_CONFIG) at the new release db
 #You need to pass in the directory containing the a3m alignments from the previous release
 #on the command line. These alignments are used to find out which families need their model
@@ -55,6 +55,12 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 if($pfamDB->{database} eq "pfam_live") {
     die "Config points to the pfam_live database, but you need to point it at a release database (eg pfam_34_0)\n";
 }
+
+my $logs_dir = "Logs";
+unless(-d $logs_dir) {
+    mkdir($logs_dir, 0755);
+}
+
 
 #Get a list of all families in the new release
 $config = Bio::Pfam::Config->new;
@@ -101,26 +107,26 @@ foreach my $pfamA (@all_fam) {
             }
             else {
                 $recalculate++;
-                generate_a3m_alignment($pfamA_acc);
+                generate_a3m_alignment($pfamA_acc, $logs_dir);
             }
         }
         else { #Sequence is not in the current seed, so need to re-do structure model
             print SUM "$pfamA_acc\trecalculate\n";
             $recalculate++;
-            generate_a3m_alignment($pfamA_acc);
+            generate_a3m_alignment($pfamA_acc, $logs_dir);
         }
 	}
 	else { #No structure model in previous release
         print SUM "$pfamA_acc\tno_model\n";
         $no_model++;
-        generate_a3m_alignment($pfamA_acc);
+        generate_a3m_alignment($pfamA_acc, $logs_dir);
     }
 }
 close SUM;
 close NO_CHANGE;
 
 print STDERR "$recalculate/$total_model structural models from the last release need redoing\n";
-print STDERR "$no_model families have no structure and no structural model, will create a3m alignment for these in a directory called Alignments\n";
+print STDERR "$no_model families have no structure and no structural model, will try and create a3m alignment for these in a directory called Alignments\n";
 
 sub parse_first_seq {        
 
@@ -157,10 +163,10 @@ sub parse_first_seq {
 
 sub generate_a3m_alignment {
 
-    my ($pfamA_acc) = @_;
+    my ($pfamA_acc, $logs_dir) = @_;
 
     #Submit script to the farm that retrieves uniprot alignment from the database and converts it to a3m format. 
     #The a3m alignment will be created in a directory called 'Alignments'
     #Log files will be writtent to cwd
-	system("bsub -q production-rh74 -M 5000 -R \"rusage[mem=5000]\" -o $pfamA_acc.log -J$pfamA_acc '/homes/jaina/Code/Pfam/PfamScripts/structure_models/uniprot_a3m.pl -pfamA $pfamA_acc'");
+	system("bsub -q production-rh74 -M 5000 -R \"rusage[mem=5000]\" -o $logs_dir/$pfamA_acc.log -J$pfamA_acc 'uniprot_a3m.pl -pfamA $pfamA_acc'");
 }
