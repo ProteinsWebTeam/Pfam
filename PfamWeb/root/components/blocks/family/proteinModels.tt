@@ -4,7 +4,7 @@
 # block for the structure model for the protein page
 #
 
-RETURN UNLESS c.config.molstar_af_model_url AND c.stash.af2.size > 0;
+RETURN UNLESS c.config.molstar_af_model_url AND c.stash.af2Count > 0;
 
 USE dumper;
 USE String;
