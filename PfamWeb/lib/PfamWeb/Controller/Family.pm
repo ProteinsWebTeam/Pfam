@@ -1015,9 +1015,6 @@ sub get_structural_model : Private {
       $c->log->debug( 'Family::get_structural_model: successful response from web service')
         if $c->debug;
       my $data = decode_json $response->decoded_content;
-      $c->log->debug( "Family::get_structural_model: trRosetta data = ".keys($data)."" )
-        if $c->debug;
-
       $c->log->debug( "Family::get_structural_model: trRosetta model count = ".$data->{metadata}->{counters}->{structural_models}->{RoseTTAFold}."" )
         if $c->debug;
 
