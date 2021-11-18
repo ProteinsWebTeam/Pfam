@@ -22,8 +22,11 @@ url = c.config.molstar_structure_url.replace('\$\{accession\}', pdbId);
     <h1>View structure</h1>
   </div>
   <div>
-    <pfam-molstar-component url="[% url %]" type="structure" accession="[% pdbId %]"></pfam-molstar-component>
+    <pfam-molstar-component id="molstar-structure" type="structure" accession="[% pdbId %]"></pfam-molstar-component>
   </div>
+  <script>
+    addMolsterComponentObserver("structureViewBlockSelector", "molstar-structure", "[% url %]");
+  </script>
   <div class="blockContent">
     <p>View Pfam families and other data mapped to the structure of PDB entry
       <strong>[% pdbId %]</strong> in

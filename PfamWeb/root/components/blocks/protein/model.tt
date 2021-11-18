@@ -49,7 +49,10 @@ url = c.config.molstar_af_model_url.replace('\$\{accession\}', seq_acc);
     </table>
   </div>
   <div>
-    <pfam-molstar-component url="[% url %]" type="af-model" accession="[% seq_acc %]"></pfam-molstar-component>
+    <pfam-molstar-component id="protein-model" type="af-model" accession="[% seq_acc %]"></pfam-molstar-component>
+    <script>
+      addMolsterComponentObserver("proteinModelBlockSelector", "protein-model", "[% url %]");
+    </script>
   </div>
   <div class="citation">
     <span class="title">
