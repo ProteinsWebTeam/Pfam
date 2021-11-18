@@ -19,13 +19,14 @@ Log::Log4perl->easy_init();
 my $logger = get_logger();
 
 
-my ($status_dir, $pfamseq_dir, $help);
+my ($status_dir, $pfamseq_dir, $logs_dir, $help);
 
 
 GetOptions(
   'help'          => \$help,
   'status_dir=s'  => \$status_dir,
-  'pfamseq_dir=s' => \$pfamseq_dir
+  'pfamseq_dir=s' => \$pfamseq_dir,
+  'logs_dir=s'    => \$logs_dir
 ) or $logger->logdie("Invalid option!\n");
 
 
@@ -44,6 +45,23 @@ unless ( $pfamseq_dir and -e $pfamseq_dir ) {
 }
 
 
+
+$logs_dir //= "${status_dir}";
+
+unless ( $logs_dir and -e $logs_dir ) {
+  print "logs_dir does not exist\n\n";
+  help();
+}
+
+$logs_dir .= "/Antifam_logs";
+my $hmms_dir = "${pfamseq_dir}/Antifam_hmms";
+my $matches_dir = "${pfamseq_dir}/Antifam_matches";
+
+
+
+
+
+
 #Database connection stuff
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
@@ -60,12 +78,10 @@ if (! -e $uniprot_seq_file) {
 }
 
 
-my $hmms_dir = "${status_dir}/Antifam_hmms";
-my $logs_dir = "${status_dir}/logs";
-my $matches_dir = "${status_dir}/matches";
 
 
-if ( !-e "${logs_dir}/hmms_run_success" ) {
+
+if ( !-e "${status_dir}/antifam_hmms_run" ) {
 
   mkdir($logs_dir)
     or $logger->logdie("Can't create $logs_dir $!\n");
@@ -77,7 +93,7 @@ if ( !-e "${logs_dir}/hmms_run_success" ) {
     or $logger->logdie("Can't create $hmms_dir $!\n");
 
   $logger->info("Getting AntiFam data...\n");
-  my $antifam_list = &copy_antifam_data($antifam_dir, $status_dir);
+  my $antifam_list = &copy_antifam_data($antifam_dir, $hmms_dir);
 
 
   my (@completed, @error);
@@ -86,10 +102,15 @@ if ( !-e "${logs_dir}/hmms_run_success" ) {
 
     my @running_jobs = split( "\n", `bjobs -w | grep '_rAFM'| awk '{print \$7}'` );
 
+    if (@running_jobs) {
+      $logger->info("AntiFam search still running - checking again in 10 minutes\n");
+      sleep(600);
+    }
+
     foreach my $antifam_id (@{$antifam_list}) {
       my $matches_file = $matches_dir . '/' . $antifam_id . '_matches';
-      my $log_file = $logs_dir . '/' . $antifam_id . '_log';
-      my $hmm_file = "${status_dir}/Antifam_hmms/${antifam_id}.hmm";
+      my $log_file = $logs_dir . '/' . $antifam_id . '.log';
+      my $hmm_file = "${hmms_dir}/${antifam_id}.hmm";
 
       if (! -e $log_file) {
         if ( ! grep /$antifam_id/, @running_jobs ) {
@@ -116,9 +137,6 @@ if ( !-e "${logs_dir}/hmms_run_success" ) {
       }
     }
 
-    $logger->info("AntiFam search still running - checking again in 10 minutes\n");
-    sleep(600)
-
   }
   $logger->info("All AntiFam matches searches have completed.\n");
 
@@ -126,7 +144,7 @@ if ( !-e "${logs_dir}/hmms_run_success" ) {
   if (scalar @error) {
     $logger->logdie("The following searches failed to run: @error\n");
   } else {
-      touch("${logs_dir}/hmms_run_success");
+      touch("${status_dir}/antifam_hmms_run");
   }
 
 } else {
@@ -178,7 +196,7 @@ my $antifamSeq = keys %seqsToDel // 0;
 
 
 $logger->info("$antifamSeq sequences in uniprot match antifam, going to delete them from the uniprot and pfamseq tables and add them to the pfamseq_antifam table");
-if ( !-e "${logs_dir}/updated_pfamseq_antifam" ) {
+if ( !-e "${status_dir}/updated_pfamseq_antifam" ) {
 
   $logger->info("Going to delete sequences currently in the pfamseq_antifam table");
   my $stDelAntiSeq=$dbh->prepare("delete from pfamseq_antifam");
@@ -257,7 +275,7 @@ if ( !-e "${logs_dir}/updated_pfamseq_antifam" ) {
   }
   $dbh->commit or $logger->logdie( $dbh->errstr );
   # chdir($pwd) or $logger->logdie("Couldn't chdir to $pwd [$!]");
-  touch("${logs_dir}/updated_pfamseq_antifam");
+  touch("${status_dir}/updated_pfamseq_antifam");
 }
 else {
   $logger->info("Already updated pfamseq_antifam\n");
@@ -321,7 +339,7 @@ $logger->info("The pfamseq table has had $pfamseqDeleted sequences removed, and 
 
 
 sub copy_antifam_data {
-  my ($antifam_dir, $status_dir) = @_;
+  my ($antifam_dir, $hmms_dir) = @_;
 
   my $hmm_file = $antifam_dir . '/AntiFam.hmm';
 
@@ -341,7 +359,7 @@ sub copy_antifam_data {
 
     # end of hmm, print it out and clear up for next one
     if ($line =~ m/\/\// ) {
-      open(my $hmm_out, '>', "${status_dir}/Antifam_hmms/${hmm_name}.hmm") or die "Can't open '${hmm_name}.hmm': $!\n";
+      open(my $hmm_out, '>', "${hmms_dir}/${hmm_name}.hmm") or die "Can't open '${hmm_name}.hmm': $!\n";
       print $hmm_out join($", @curr_hmm);
       close($hmm_out);
 
@@ -350,7 +368,7 @@ sub copy_antifam_data {
 
   }
 
-  copy ("$antifam_dir/relnotes","relnotes") or $logger->logdie("Could not copy relnotes [$!]\n");
+  # copy ("$antifam_dir/relnotes","relnotes") or $logger->logdie("Could not copy relnotes [$!]\n");
 
 
   return \@hmm_list;
@@ -368,7 +386,7 @@ it can update the config file with the database size.
 
 Usage:
 
-  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir>
+  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir> [-logs_dir <logs_dir>]
 
 Options
   -help           :Prints this help message
@@ -380,9 +398,9 @@ and removes any matches from the pfamseq and uniprot tables in the pfam_release 
 It also uploads the sequences that match antifam to the pfamseq_antifam table in the pfam_release database.
 
 Both the status directory and pfamseq_directory must already exist.
-pfamseq_dir is the directory where the uniprot and pfamseq data exist.
-The status directory is where a log of the progress of the script is recorded 
-and the antifam matches stored before insertion into the database.
+pfamseq_dir is the directory where the uniprot and pfamseq data exist and the antifam matches are stored before insertion into the database.
+The status directory is where the progress of the script is recorded.
+The logs_dir is optional and status_dir will be used if none provided, this is where logs are stored.
 
 EOF
   exit;

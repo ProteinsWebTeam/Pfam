@@ -42,7 +42,7 @@ my $status_dir = "status";
 my $pfamseq_dir = "pfamseq";
 my $logs_dir = "logs";
 foreach my $dir ($status_dir, $pfamseq_dir, $logs_dir) {
-  if(-d $dir) { 
+  if(-d $dir) {
     $logger->info("Already made $dir directory");
   }
   else {
@@ -62,6 +62,7 @@ else {
   system("pflock -l -allow_user $user") and $logger->logdie("Couldnt run 'pflock -l -allow_user $user, $!");
   system("touch $status_dir/db_locked") and $logger->logdie("Couldn't touch $status_dir/db_locked");
 }
+
 
 #Make a copy of pfamlive
 my $config_live = Bio::Pfam::Config->new;
@@ -97,7 +98,7 @@ else {
 
   SaveConfig($pfam_release_config, \%ac);
 
-  system("touch $status_dir/pfam_release_config") and $logger->logdie("Couldn't touch $status_dir/pfam_release_config"); 
+  system("touch $status_dir/pfam_release_config") and $logger->logdie("Couldn't touch $status_dir/pfam_release_config");
 }
 
 
@@ -153,7 +154,7 @@ else {
   }
 
   unless(-e "$status_dir/update_uniprot") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 64000, -R => 'rusage[mem=64000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
+    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 80000, -R => 'rusage[mem=80000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
     my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot_done', -w => "done($uniprot_job)", "touch $status_dir/update_uniprot");
   }
 
@@ -170,9 +171,9 @@ if(-e "$status_dir/run_antifam") {
 else {
   $logger->info("Removing sequences that match AntiFam");
 
-  system("pud-removeAntiFamMatches.pl -status_dir status -pfamseq_dir pfamseq") and $logger->logdie("Problem running pud-removeAntiFamMatches.pl, $!");
+  my $antifam_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/antifam.log", -J => 'antifam', "pud-removeAntiFamMatches.pl -status_dir status -pfamseq_dir pfamseq -logs_dir logs");
+  my $antifam_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/antifam.log", -J => 'antifam_done', -w => "done($antifam_job)", "touch $status_dir/run_antifam");
 
-  system("touch $status_dir/run_antifam");
 }
 
 
@@ -184,14 +185,14 @@ else {
   $logger->info("Making pfamseq and uniprot fasta files on the farm");
 
   unless(-e "$status_dir/pfamseq_fasta") {
-    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfameq_fasta', -M => 8000, -R => 'rusage[mem=8000]', "pud-make_pfamseq_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
+    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfameq_fasta', -M => 4000, -R => 'rusage[mem=4000]', "pud-make_pfamseq_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
     my $pfamseq_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfamseq_fasta_done', -w => "done($pfamseq_job)", "touch $status_dir/pfamseq_fasta");
   }
 
   unless(-e "$status_dir/uniprot_fasta") {
     my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta', -M => 32000, -R => 'rusage[mem=32000]', "pud-make_uniprot_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
     my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta_done', -w => "done($uniprot_job)", "touch $status_dir/uniprot_fasta");
-  }   
+  }
 
   $logger->info("Waiting for pfamseq and uniprot fasta files to be written");
   until(-e "$status_dir/pfamseq_fasta" and -e "$status_dir/uniprot_fasta") {
@@ -207,7 +208,7 @@ if(-e "$status_dir/pfamseq_sym_link") {
 else {
     $logger->info("Updating pfamseq symbolic link");
     my $new_pfamseq = "pfamseq" . $new_release_num;
-    
+
     chdir("/nfs/production/xfam/pfam/data/") or die "Couldn't chdir into /nfs/production/xfam/pfam/data/, $!";
     system("rm -f pfamseq") and die "Couldn't remove old symbolic link, $!";
     system("ln -s $new_pfamseq pfamseq") and $logger->logdie("Couldn't create new symbolic link for pfamseq, $!");
@@ -288,7 +289,7 @@ else {
 
 #Check out all families
 if(-e "$status_dir/checked_out_families") {
-  $logger->info("Already checked out families"); 
+  $logger->info("Already checked out families");
 }
 else {
   $logger->info("Checking out all Pfam families");
@@ -335,7 +336,7 @@ if(-e "$status_dir/other_regions") {
 else {
   $logger->info("Going to populate other_reg table");
 
-  my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 32000, -R => 'rusage[mem=32000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
+  my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 48000, -R => 'rusage[mem=48000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
   my $other_reg2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg_done', -w => "done($other_reg)", "touch $status_dir/other_regions");
 
   $logger->info("Waiting for other_reg table to finish populating");

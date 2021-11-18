@@ -104,8 +104,8 @@ $sth->finish();
 $dbh->disconnect();
 
 # fasta file existed, will trust db counts
-if ($total == -1 {
-  total = $dbsize;
+if ($total == -1) {
+  $total = $dbsize;
 }
 
 if ($dbsize != $total) {
