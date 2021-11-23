@@ -34,6 +34,9 @@ for filename in files: #EAD9.fa
   #Reformat afa to pfam format, then use grep to remove STOCKHOLM tag, blank lines and // lines
   os.system(f"esl-reformat pfam {filename}  | grep -v '^#\|^\s*$\|\/\/' > seed");
 
+  #Replace any | in the accession with _, as downstream scripts don't like | in the accession name (ie 000|HEA09671.1 => 000_HEA09671.1)
+  os.system(f"sed -i -r 's/\|/_/' seed");
+
   #Submit liftover_alignment, create_alignment, pfbuild and pqc-overlap-rdb to farm
   os.system(f"bsub -q production-rh74 -M 5000 -R \"rusage[mem=5000]\" -o farm.log -J{name} 'liftover_alignment.pl -local -align seed && create_alignment.pl -fasta seed.phmmer -mu > SEED && pfbuild -withpfmake -local && cd .. && pqc-overlap-rdb {name} '");
 
