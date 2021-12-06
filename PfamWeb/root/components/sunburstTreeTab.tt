@@ -106,10 +106,6 @@
       <div>
         <div id="sunburstSelectionTools">
           <p>
-            <span id="sunburstAlignSelectionSwitch"
-                  class="link">Align</span> selected sequences to HMM
-          </p>
-          <p>
             <span id="sunburstDLSelectionSwitch"
                   class="link">Generate</span> a FASTA-format file
           </p>
