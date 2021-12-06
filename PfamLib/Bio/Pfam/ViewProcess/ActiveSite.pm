@@ -69,7 +69,7 @@ sub active_site_prediction {
   #Delete old data, if any
   $self->{database}->getSchema->resultset('ActiveSiteHmmPosition')->search( { pfamA_acc => $self->{pfama_acc}} )->delete;
   my $dbh = $self->{database}->getSchema->storage->dbh;
-  $dbh->do("delete from pfamseq_markup where pfamA_acc='".$self->{pfama_acc}."';");
+  #$dbh->do("delete from pfamseq_markup where pfamA_acc='".$self->{pfama_acc}."';");
 
   #Query db for active sites in the family
   $self->_get_active_sites_from_db();

@@ -10,7 +10,7 @@ import argparse
 #Script to create RoseTTAfold tar archives for the ftp site
 #This script will generate the following files:
 #RoseTTAfold.full.tar.gz and RoseTTAfold.full.tar.gz.md5 (in cwd)
-#RoseTTAfold.pdb.tar.gz and RoseTTAfold.pdb.tar.gz.md4 (in a cwd/RoseTTAfold/)
+#RoseTTAfold.pdb.tar.gz and RoseTTAfold.pdb.tar.gz.md5 (in a cwd/RoseTTAfold/)
 #Within RoseTTAfold dir, there will be 3 dir: a3m, pdb, npz. These can
 #be deleted
 #bsub the script the on the farm (1G memory, takes ~1 hour)
@@ -44,16 +44,19 @@ def main():
     family_list = get_family_list(global_plddt_file)
 
     #Copy files (a3m, npz and pdb files) over for families that have a new RoseTTAfold structure model
+    print("Copying a3m, npz and pdb files")
     ftp_dir="RoseTTAfold"
     copy_files(family_list, args.rosettafold_dir, args.a3m_dir, ftp_dir)
 
     #Copy files from previous release (a3m, npz, pdb files) for RosetTTAfold structure models that are unchanged 
     #since the last release
     if(args.previous_rosettafold_dir):
+        print("Copying unchanged models from previous release")
         copy_old_files(args.unchanged_list, args.previous_rosettafold_dir, ftp_dir)
 
     #Make the tar archives, one containing everything, the other containing just the pdb files
     #Also create md5 checksums
+    print("Creating tar archives")
     make_archives(ftp_dir)
 
 
@@ -145,16 +148,20 @@ def copy_old_files(unchanged_list, old_rosettafold_dir, ftp_dir):
 
 def make_archives(ftp_dir):
 
+
+
     #Make tar archive of everything
-    if not os.path.exists('RoseTTAfold.full.tar.gz'):
-        tar = subprocess.run(['tar', '-czvf', 'RoseTTAfold.full.tar.gz', ftp_dir], check=True, text=True, capture_output=True)
+    full_archive = "RoseTTAfold.full.tar.gz"
+    if not os.path.exists(full_archive):
+        tar = subprocess.run(['tar', '-czvf', full_archive, ftp_dir], check=True, text=True, capture_output=True)
         if(tar.returncode != 0):
             print(tar.stderr)
 
     #Generate md5 checksum for full tar archive
-    if not os.path.exists('RoseTTAfold.full.gz.md5'):
-        with open('RoseTTAfold.full.tar.gz.md5', 'w') as outfile:
-            md5 = subprocess.run(['md5sum', 'RoseTTAfold.full.tar.gz'], check=True, text=True, stdout=outfile)
+    full_md5 = "RoseTTAfold.full.tar.gz.md5"
+    if not os.path.exists(full_md5):
+        with open(full_md5, 'w') as outfile:
+            md5 = subprocess.run(['md5sum', full_archive], check=True, text=True, stdout=outfile)
             if(md5.returncode != 0):
                 print(md5.stderr)
 
@@ -162,15 +169,17 @@ def make_archives(ftp_dir):
     os.chdir(ftp_dir)
 
     #Make tar archive of pdb files
-    if not os.path.exists('RoseTTAfold.pdb.tar.gz'):
-        tar = subprocess.run(['tar', '-czvf', 'RoseTTAfold.pdb.tar.gz', 'pdb'], check=True, text=True, capture_output=True)
+    pdb_archive = "RoseTTAfold.pdb.tar.gz"
+    if not os.path.exists(pdb_archive):
+        tar = subprocess.run(['tar', '-czvf', pdb_archive, 'pdb'], check=True, text=True, capture_output=True)
         if(tar.returncode != 0):
             print(tar.stderr)
 
     #Generate md5 checksum for pdb tar archive
-    if not os.path.exists('RoseTTAfold.pdb.gz.md5'):
-        with open('RoseTTAfold.full.pdb.gz.md5', 'w') as outfile:
-            md5 = subprocess.run(['md5sum', 'RoseTTAfold.pdb.tar.gz'], check=True, text=True, stdout=outfile)
+    pdb_md5 = "RoseTTAfold.pdb.tar.gz.md5"
+    if not os.path.exists(pdb_md5):
+        with open(pdb_md5, 'w') as outfile:
+            md5 = subprocess.run(['md5sum', pdb_archive], check=True, text=True, stdout=outfile)
             if(md5.returncode != 0):
                 print(md5.stderr)
 

@@ -9,19 +9,18 @@ use DBI;
 use Getopt::Long;
 
 #Script to find out which new families in a release can be submitted for structure prediction
-#by trRosetta and which families need their existing structure model updated.
+#by RoseTTAfold and which families need their existing structure model updated.
 #Where a family needs a new/updated structure model, a job will be submitted to the farm
-#which will first calculate the Neff for the family's uniprot alignment, and if the Neff 
-#is >=50, it will generate an a3m uniprot alignment with a seed sequence into the top of 
+#which will generate an a3m uniprot alignment with a seed sequence into the top of 
 #the a3m file. These alignments will be written to cwd/Alignments. Log files will be written 
-#to the cwd, you should check these for errors.
+#to the Logs/cwd, you should check these for errors.
 #Before running the script, point the pfam config ($PFAM_CONFIG) at the new release db
 #You need to pass in the directory containing the a3m alignments from the previous release
 #on the command line. These alignments are used to find out which families need their model
 #updating (a structure model will need updating if the seed sequence at the top of the a3m
 #alignment has changed/been deleted in the seed alignment).
 #The script will also write two files, one is summary.txt which will list all the Pfam families
-#and tell you which has structure, has an old structural model which is okay and which does not
+#and tell you which has structure, has an old structural model which is okay, and which does not
 #have structural data (PDB or structure model). The other file is keep_old_model.txt which is 
 #a list of famiiles where we can re-use the structure model and contact map from the last release
 
@@ -57,6 +56,12 @@ if($pfamDB->{database} eq "pfam_live") {
     die "Config points to the pfam_live database, but you need to point it at a release database (eg pfam_34_0)\n";
 }
 
+my $logs_dir = "Logs";
+unless(-d $logs_dir) {
+    mkdir($logs_dir, 0755);
+}
+
+
 #Get a list of all families in the new release
 $config = Bio::Pfam::Config->new;
 $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
@@ -67,7 +72,7 @@ my @all_fam =$pfamDB->getSchema->resultset('PfamA')->search();
 my $sth = $dbh->prepare("select sequence from pfamA_reg_seed r, uniprot u where u.uniprot_acc=r.pfamseq_acc and uniprot_id=? and pfamA_acc=? and seq_start=? and seq_end=?");
 
 my $recalculate=0;
-my $no_model_check_neff=0;
+my $no_model=0;
 my $summary_file = "summary.txt";
 my $no_change_file = "keep_old_model.txt";
 open(SUM, ">$summary_file") or die "Couldn't open fh to $summary_file, $!";
@@ -102,26 +107,26 @@ foreach my $pfamA (@all_fam) {
             }
             else {
                 $recalculate++;
-                calculate_neff($pfamA_acc);
+                generate_a3m_alignment($pfamA_acc, $logs_dir);
             }
         }
         else { #Sequence is not in the current seed, so need to re-do structure model
             print SUM "$pfamA_acc\trecalculate\n";
             $recalculate++;
-            calculate_neff($pfamA_acc);
+            generate_a3m_alignment($pfamA_acc, $logs_dir);
         }
 	}
 	else { #No structure model in previous release
-        print SUM "$pfamA_acc\tno_model_check_neff\n";
-        $no_model_check_neff++;
-        calculate_neff($pfamA_acc);
+        print SUM "$pfamA_acc\tno_model\n";
+        $no_model++;
+        generate_a3m_alignment($pfamA_acc, $logs_dir);
     }
 }
 close SUM;
 close NO_CHANGE;
 
 print STDERR "$recalculate/$total_model structural models from the last release need redoing\n";
-print STDERR "$no_model_check_neff families have no structure and no structural model, will create a3m alignment for these where Neff is sufficient in a directory called Alignments\n";
+print STDERR "$no_model families have no structure and no structural model, will try and create a3m alignment for these in a directory called Alignments\n";
 
 sub parse_first_seq {        
 
@@ -156,11 +161,12 @@ sub parse_first_seq {
     return($pfamseq_id, $st, $en, $sequence);
 }
 
-sub calculate_neff {
+sub generate_a3m_alignment {
 
-    my ($pfamA_acc) = @_;
+    my ($pfamA_acc, $logs_dir) = @_;
 
-    #Submit script to the farm that calculates Neff. It Neff is >=50, an a3m alignment will be created in a directory called 'Alignment'
+    #Submit script to the farm that retrieves uniprot alignment from the database and converts it to a3m format. 
+    #The a3m alignment will be created in a directory called 'Alignments'
     #Log files will be writtent to cwd
-	system("bsub -q production-rh74 -M 5000 -R \"rusage[mem=5000]\" -o $pfamA_acc.log -J$pfamA_acc 'uniprot_a3m.pl -pfamA $pfamA_acc'")
+	system("bsub -q production-rh74 -M 5000 -R \"rusage[mem=5000]\" -o $logs_dir/$pfamA_acc.log -J$pfamA_acc 'uniprot_a3m.pl -pfamA $pfamA_acc'");
 }
