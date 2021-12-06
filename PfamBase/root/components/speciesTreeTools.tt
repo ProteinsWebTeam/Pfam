@@ -30,12 +30,12 @@
     </ul>
 
     <h3>Annotation</h3>
-    <ul class="bare"> 
+    <ul class="bare">
       [%- IF entryType == "A" OR entryType == "R" %]
       <li>
-        <a id="seedToggle" 
+        <a id="seedToggle"
            href="#"
-           onclick="toggleHighlightSeed();return false;">Hide</a> highlighting 
+           onclick="toggleHighlightSeed();return false;">Hide</a> highlighting
         of species in seed
       </li>
       [%- END %]
@@ -45,7 +45,7 @@
            onclick="toggleShowSummaries();return false;">Hide</a> summaries
       </li>
       <li>
-        Key: <span class="specSum">species</span>, 
+        Key: <span class="specSum">species</span>,
              <span class="seqSum">sequences</span>,
              <span class="domSum">regions</span>
       </li>
@@ -54,11 +54,11 @@
     <h3>Download tree</h3>
     <ul class="bare">
       <li>
-        <a href="[% c.secure_uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">Save</a> 
+        <a href="[% c.secure_uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">Save</a>
         a text representation
       </li>
     </ul>
-    
+
     <h3>Selected sequences</h3>
     <ul class="bare">
       <li class="small">
@@ -72,11 +72,6 @@
               <span onclick="collectSequences( 'G', '[% acc %]' );"
                     class="link">graphically</span>
             </li>
-              <li>
-                as an
-                <span onclick="collectSequences( 'A', '[% acc %]' );"
-                      class="link">alignment</span>
-              </li>
           </ul>
         </li>
         <li>
@@ -118,7 +113,7 @@
                 class="link">sequence accessions</span>
         </li>
       [%- END %]
-      
+
       <li id="stError"
           style="display: none" ></li>
     </ul>
