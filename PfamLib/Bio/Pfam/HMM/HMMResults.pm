@@ -295,8 +295,8 @@ sub domainBitsCutoffFromEvalue {
   if( $sep < 1 ) {
 	    return $prev->bits();
   }
-  if( $dom->bits < 25 && $prev->bits > 25 ) {
-	  return 25;
+  if( $dom->bits < 27 && $prev->bits > 27 ) {
+	  return 27;
   }
 
   return $dom->bits + sprintf("%.1f",$sep/2);
