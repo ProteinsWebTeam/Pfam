@@ -1,13 +1,14 @@
 # Global section
 set daemon 30
-set log /nfs/production/xfam/pfam-prod/monit-log/monit.log
-set pidfile /nfs/production/xfam/pfam-prod/monit-files/monit.pid
-set idfile /nfs/production/xfam/pfam-prod/monit-files/monit.id
-set statefile /nfs/production/xfam/pfam-prod/monit-files/monit.state
+set log /srv/data/pfam-prod/monit-log/monit.log
+set pidfile /srv-data/pfam-prod/monit-files/monit.pid
+set idfile /srv-data/pfam-prod/monit-files/monit.id
+set statefile /srv/data/pfam-prod/monit-files/monit.state
 
 # Email alerts
 set mailserver localhost
 set alert maq@ebi.ac.uk
+set alert tgrego@ebi.ac.uk
 #set alert apetrov@ebi.ac.uk
 set mail-format {
      from: monit@$HOST
@@ -25,4 +26,4 @@ Action taken: $ACTION
 set httpd port 2812
   allow admin:monit
 
-INCLUDE /nfs/production/xfam/pfam/software/Pfam/PfamConfig/Monit/*.conf
+INCLUDE /srv/data/pfam-prod/pfam/PfamConfig/Monit/*.conf

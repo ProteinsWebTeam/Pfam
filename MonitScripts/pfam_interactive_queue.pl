@@ -7,24 +7,25 @@ use strict;
 use warnings;
 
 # this is to enable this init script to find Daemon::Control
-use lib qw( /nfs/production/xfam/pfam-prod/perllib/lib/perl5/
-            /nfs/production/xfam/pfam-prod/perllib/lib/perl5/lib/perl5/x86_64-linux-thread-multi );
+use lib qw( /srv/data/perllib/lib/perl5/
+            /srv/data/perllib/lib/perl5/x86_64-linux-thread-multi );
 
 use Daemon::Control;
 
-my $INIT_DIR = '/nfs/production/xfam/pfam/software/Pfam';
+my $INIT_DIR = '/srv/data/pfam-prod';
+my $PF_HOME = '/srv/data/pfam-prod/pfam';
 
 my @PERL5LIB = (
-  "/nfs/production/xfam/pfam-prod/perllib/lib/perl5/",
-  "/nfs/production/xfam/pfam-prod/perllib/lib/perl5/lib/perl5/x86_64-linux-thread-multi",
-  "$INIT_DIR/PfamLib",
-  "$INIT_DIR/PfamSchemata"
+  "/srv/data/perllib/lib/perl5/",
+  "/srv/data/perllib/lib/perl5/x86_64-linux-thread-multi",
+  "$PF_HOME/PfamLib",
+  "$PF_HOME/PfamSchemata"
 );
 
 # and this is setting up the environment that's passed onto the dequeuer itself
 $ENV{PERL5LIB}       = join ':', @PERL5LIB;
-$ENV{PATH}          .= ":$INIT_DIR/bin:/nfs/production/xfam/pfam/software/wiki_approvals_app/PfamBackend/scripts:/nfs/production/xfam/pfam/software/init/PfamScripts/search";
-$ENV{PFAM_CONFIG}    = '/nfs/production/xfam/pfam/software/Conf/pfam_svn.conf';
+$ENV{PATH}          .= ":$INIT_DIR/exe/bin:$PF_HOME/PfamBackend/scripts:$PF_HOME/PfamScripts/search";
+$ENV{PFAM_CONFIG}    = "$INIT_DIR/conf/pfam_svn.conf";
 
 $ENV{DEBUG_DEQUEUER} = 1;
 $ENV{BG_DEQUEUER}    = 0; # don't fork in the dequeuer; let Daemon::Control take care of that
@@ -36,10 +37,10 @@ my $options = {
   lsb_sdesc    => 'Dequeuer for running Pfam interactive sequence searches',
   lsb_desc     => 'A queue management daemon that runs jobs that run interative sequence searches against pfam',
 
-  program      => "$INIT_DIR/PfamScripts/search/hmmer_dequeuer.pl",
+  program      => "$PF_HOME/PfamScripts/search/hmmer_dequeuer.pl",
   program_args => [ 'pfama' ],
 
-  pid_file     => "$INIT_DIR/run/pfam_interactive_queue.pid",
+  pid_file     => "$INIT_DIR/monit-files/pfam_interactive_queue.pid",
 
   fork         => 2,
   user         => 'xfm_adm',
