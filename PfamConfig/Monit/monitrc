@@ -1,8 +1,8 @@
 # Global section
 set daemon 30
 set log /srv/data/pfam-prod/monit-log/monit.log
-set pidfile /srv-data/pfam-prod/monit-files/monit.pid
-set idfile /srv-data/pfam-prod/monit-files/monit.id
+set pidfile /srv/data/pfam-prod/monit-files/monit.pid
+set idfile /srv/data/pfam-prod/monit-files/monit.id
 set statefile /srv/data/pfam-prod/monit-files/monit.state
 
 # Email alerts
