@@ -46,6 +46,7 @@ my $options = {
   fork         => 2,
   user         => 'xfm_adm',
   group        => 'xfm_pub',
+
 };
 
 if ( not $ENV{DEBUG_DEQUEUER} ) {

@@ -27,7 +27,7 @@ $ENV{PERL5LIB}       = join ':', @PERL5LIB;
 $ENV{PATH}          .= ":$INIT_DIR/exe/bin:$PF_HOME/PfamBackend/scripts:$PF_HOME/PfamScripts/search";
 $ENV{PFAM_CONFIG}    = "$INIT_DIR/conf/pfam_svn.conf";
 
-$ENV{DEBUG_DEQUEUER} = 1;
+$ENV{DEBUG_DEQUEUER} = 0;
 $ENV{BG_DEQUEUER}    = 0; # don't fork in the dequeuer; let Daemon::Control take care of that
 
 my $options = {
