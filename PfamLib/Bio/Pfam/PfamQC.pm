@@ -1968,7 +1968,7 @@ sub checkCLANDESCSpell {
   my $cwd = cwd;
   my ( $dictionary_file, $path_to_dictionary, $suffix ) = fileparse( $dictionary );
   system("cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p$dictionary check $cwd/tmp.$$") == 0
-    or warn "WARNING: couldn't run spell checker: $!";
+    or warn "WARNING: couldn't run spell checker: $!\n[cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p$dictionary check $cwd/tmp.$$]";
 
   # Now need to put changes back into DESC file
   my ( %editedline, $line_number );
