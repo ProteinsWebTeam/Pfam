@@ -33,7 +33,7 @@ __PACKAGE__->table("pfamA");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 16
+  size: 30
 
 =head2 previous_id
 
@@ -273,7 +273,7 @@ __PACKAGE__->add_columns(
   "pfama_acc",
   { data_type => "varchar", is_nullable => 0, size => 7 },
   "pfama_id",
-  { data_type => "varchar", is_nullable => 0, size => 16 },
+  { data_type => "varchar", is_nullable => 0, size => 30 },
   "previous_id",
   { data_type => "tinytext", is_nullable => 1 },
   "description",
@@ -702,36 +702,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 pfam_a_interactions_pfama_acc_bs
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamAInteraction>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfam_a_interactions_pfama_acc_bs",
-  "PfamLive::Result::PfamAInteraction",
-  { "foreign.pfama_acc_b" => "self.pfama_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 pfam_a_interactions_pfama_accs_a
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamAInteraction>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfam_a_interactions_pfama_accs_a",
-  "PfamLive::Result::PfamAInteraction",
-  { "foreign.pfama_acc_a" => "self.pfama_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 pfam_a_internals
 
 Type: has_many
@@ -943,8 +913,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-12-16 13:56:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lC0Di9Yfu7b9XJJ1eDp20A
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-04-11 14:51:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S7HTbEgt4R7O420DTmJ2RQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
