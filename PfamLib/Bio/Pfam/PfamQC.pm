@@ -650,7 +650,7 @@ sub mulFormatIsOK {
 sub nameFormatIsOK {
   my $family = shift;
 
-  if ( $family =~ /^[A-Za-z0-9_\-]{1,15}$/ ) {
+  if ( $family =~ /^[A-Za-z0-9_\-]{1,30}$/ ) {
     return 1;
   }
   else {
