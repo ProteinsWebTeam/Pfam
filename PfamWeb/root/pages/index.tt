@@ -42,20 +42,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     [% ELSE %]
       <h2>Pfam - Protein Families Database</h2>
     [% END %]
-    <div style="display: flex;align-items: center;background: navajowhite;">
-      <span style="font-size: 4em;color: darkblue;padding: 1rem;">📢</span> 
-      <p>
-        <strong>Powering down the Pfam website</strong>
-        <br>
-        On October 5th, we will start redirecting the traffic from Pfam 
-        (<a href="//pfam.xfam.org">pfam.xfam.org</a>) 
-        to InterPro (<a href="https://www.ebi.ac.uk/interpro" target="_blank" class="ext">www.ebi.ac.uk/interpro</a>). 
-        The Pfam website will be available at 
-        <span style="color: #1779ba; cursor: not-allowed; opacity: .7; text-decoration: none;">legacy.pfam.xfam.org</span> 
-        until January 2023, when it will be decommissioned. 
-        You can read more about the sunset period in our <a href="//xfam.wordpress.com/2022/08/04/pfam-website-decommission/" rel="noreferrer noopener" target="_blank" class="ext">blog post</a>.
-      </p>
-    </div>
     <p>
       The Pfam database is a large collection of protein
       families, each represented by <em>multiple sequence alignments</em>
