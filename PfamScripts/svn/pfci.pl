@@ -269,8 +269,8 @@ if ($onlydesc) {
       and $oldFamObj->DESC->$ftag->{dom} eq $upFamObj->DESC->$ftag->{dom} )
     {
       die
-"There is a differnce in your $tag lines between what is in the SVN repository and this local copy.".
-        " You can not do this when only commint a DESC file!\n";
+"There is a difference in your $tag lines between what is in the SVN repository and this local copy.".
+        " You can not do this when only commit a DESC file!\n";
     }
   }
 
@@ -415,7 +415,7 @@ print<<EOF;
 
   usage: $0 <directory>
   
-  Where the directory contains the files that consitute a Pfam-A entry.
+  Where the directory contains the files that constitute a Pfam-A entry.
   
   Aim: To perform quality control checks on an existing family and commit to the SVN repository.
   
@@ -423,14 +423,16 @@ print<<EOF;
                       flag/option only needs to be added the first time the CL line is added.
   -remove_from_clan - Remove the clan family from the clan. The CL line should have already been
                       deleted from the DESC file.
-  -onlydesc         - Speeds up check-ins a bit by avoiding the QC and onyl updating the contents
+  -change_clan      - Remove the current clan family from the clan and add the family to the clan
+                      specified on the CL line of the DESC file.
+  -onlydesc         - Speeds up check-ins a bit by avoiding the QC and only updating the contents
                       in the DESC file.  Do not change DESC contents that affect the other files,
                       particularly cut-offs.  Useful for when making updates to annotation or 
                       adding a family to a clan. If you are uncertain of what you are doing, do 
                       not use this option.
   -i                - Ignore some of the QC steps to speed up check-in.
   -m                - Specify the message that describes the changes you have made to this family 
-                      on the command line, avoid being prompted for it at a later satge.                   
+                      on the command line, avoid being prompted for it at a later stage.                   
                       
 EOF
 
