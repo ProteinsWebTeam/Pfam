@@ -134,7 +134,7 @@ elsif ( $msg =~ /PFCIRMC:(CL\d{4})\:(PF\d{5})/ ) {
   $txnlook->commitFamily($pfamDB);
 }
 elsif ( $msg =~ /PFCICHC:(CL\d{4})\|(CL\d{4})\:(PF\d{5})/ ) {
-  my ( $clan, $fam );
+  my ( $clan_old, $clan_new, $fam );
   $clan_old = $1;
   $clan_new = $2;
   $fam  = $3;
