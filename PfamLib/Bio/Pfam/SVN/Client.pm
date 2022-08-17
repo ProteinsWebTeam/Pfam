@@ -1238,6 +1238,56 @@ sub addPFCIRMCLog {
   $self->{txn}->log_msg($commit);
 }
 
+sub addPFCICHCLog {
+  my ($self) = @_;
+
+  my $commit = sub {
+    my $passmessage = shift;    #Scalar reference passed by svn binding
+
+    my $clan;
+    unless ( -s ".chc" . $$ ) {
+      die "Could not find the file containing the clan accession!\n";
+    }
+    open( C, ".chc" . $$ ) or die "Could not open .chc\n";
+    while (<C>) {
+      $clan = $_;
+      last;
+    }
+    close(C);
+
+    my $message;
+
+    #See if we have a default$$ messge to use.
+    if ( -s ".default" . $$ . "pfci" ) {
+      open( M, ".default" . $$ . "pfci" )
+        or die "Could not open .default" . $$ . "pfci";
+      while (<M>) {
+        $message .= $_;
+      }
+      close(M);
+    }
+
+    #Else ask for a message
+    if ( !defined $message ) {
+      print "Please give a comment for the changes to this family\n";
+      print "Finish comment by a . on the line by itself\n";
+      while (<STDIN>) {
+        chomp;
+        /^\s*\.\s*$/ && last;
+        $message .= "$_\n";
+      }
+    }
+
+    #Now add the message to the scalar ref
+    $$passmessage .= "PFCICHC:" . $message;
+    $$passmessage .= "\nPFCICHC:" . $clan;
+
+  };
+
+  #Add the commit sub reference
+  $self->{txn}->log_msg($commit);
+}
+
 sub addPFANNLog {
   my ($self) = @_;
 

@@ -133,6 +133,21 @@ elsif ( $msg =~ /PFCIRMC:(CL\d{4})\:(PF\d{5})/ ) {
   #Then commit the family
   $txnlook->commitFamily($pfamDB);
 }
+elsif ( $msg =~ /PFCICHC:(CL\d{4})\|(CL\d{4})\:(PF\d{5})/ ) {
+  my ( $clan, $fam );
+  $clan_old = $1;
+  $clan_new = $2;
+  $fam  = $3;
+
+  #Remove the clan data from the database
+  $txnlook->removeFamilyFromClanMembership( $pfamDB, $clan_old, $fam );
+
+  #Add the clan data to the database
+  $txnlook->updateClanMembership( $pfamDB, $clan_new, $fam );
+
+  #Then commit the family
+  $txnlook->commitFamily($pfamDB);
+}
 elsif ( $msg =~ /^PFNEW:/ ) {
   $txnlook->commitNewFamily($pfamDB);
 }elsif( $msg =~ /PFCIDESC:/){
