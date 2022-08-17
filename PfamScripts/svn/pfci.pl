@@ -20,7 +20,8 @@ use Bio::Pfam::PfamLiveDBManager;
 #-------------------------------------------------------------------------------
 # Deal with all of the options
 
-my ( $message, $ignore, $onlydesc, $addToClan, $removeFromClan, $help );
+my ( $message, $ignore, $onlydesc, $help );
+my ($addToClan, $removeFromClan, $changeClan) = (0, 0, 0);
 
 &GetOptions(
   "m=s"              => \$message,
@@ -28,6 +29,7 @@ my ( $message, $ignore, $onlydesc, $addToClan, $removeFromClan, $help );
   "onlydesc"         => \$onlydesc,
   "add_to_clan"      => \$addToClan,
   "remove_from_clan" => \$removeFromClan,
+  "change_clan"      => \$changeClan,
   "help"             => \$help
 ) or die "Unrecognised option passed in to the script.\n";
 
@@ -49,12 +51,10 @@ if (@ARGV) {
   help();
 }
 
-if ( $removeFromClan and $addToClan ) {
-  warn
-"\n***** You cannot use the -add_family and -remove_family options together *****\n\n";
+if ( $addToClan + $removeFromClan + $changeClan > 1 ) {
+  warn "\n***** You can only use one of -add_to_clan, -remove_from_clan or -change_clan options *****\n\n";
   help();
 }
-
 
 #-------------------------------------------------------------------------------
 my $pwd = getcwd;
@@ -202,9 +202,62 @@ elsif ($removeFromClan) {
   close(C);
 
   $client->addPFCIRMCLog();
-}elsif($onlydesc){
+}
+elsif ($changeClan) {
+  print STDERR "Checking clan information\n";
+
+  #Things to check:
+  # - Does the clan exist?
+  # - Is the family part of a clan?
+  # - That the CL line has been removed
+  # - Ensure that CL line has been removed from the file
+
+  #Check that the clan accession is in the correct format.
+  unless ( defined($oldFamObj->DESC->CL) and $oldFamObj->DESC->CL =~ /CL\d{4}/ ) {
+    die "SVN copy has:|"
+      . ( defined($oldFamObj->DESC->CL) ? $oldFamObj->DESC->CL : "")
+      . "| but this does not look like a clan accession\n";
+  }
+
+  #Does the clan in question exist?
+  $client->checkClanExists( $oldFamObj->DESC->CL );
+
+  #Seems like it does, lets load it!
+  my $old_clanIO = Bio::Pfam::ClanIO->new;
+  my $old_clanObj = $old_clanIO->loadClanFromSVN( $oldFamObj->DESC->CL, $client );
+
+  #Now check the membership.
+  my %old_membership = map { $_ => 1 } @{ $old_clanObj->DESC->MEMB };
+  unless ( $old_membership{ $upFamObj->DESC->AC } ) {
+    die "Trying to remove $family from " . $oldFamObj->DESC->CL . ", yet it does not appear that the $family is part of the clan\n";
+  }
+
+  #Check that the clan accession is in the correct format.
+  unless ( defined($upFamObj->DESC->CL) and $upFamObj->DESC->CL =~ /CL\d{4}/ ) {
+    die "CL line in current family is either not defined or does not look like a clan accession\n";
+  }
+  $client->checkClanExists( $upFamObj->DESC->CL );
+  my $new_clanIO = Bio::Pfam::ClanIO->new;
+  my $new_clanObj = $new_clanIO->loadClanFromSVN( $upFamObj->DESC->CL, $client );
+  my %new_membership;
+  if ( $new_clanObj->DESC->MEMB ) {
+    %new_membership = map { $_ => 1 } @{ $new_clanObj->DESC->MEMB };
+  }
+  if ( $new_membership{ $upFamObj->DESC->AC } ) {
+    die "Trying to add $family to " . $upFamObj->DESC->CL . ", yet it appears that $family is already part of the clan\n";
+  }
+
+  open( C, ">.chc" . $$ ) or die "Could not open .chc:[$!]\n";
+  print C $oldFamObj->DESC->CL . "|" . $upFamObj->DESC->CL . ":" . $oldFamObj->DESC->AC;
+  close(C);
+
+  $client->addPFCICHCLog();
+
+}
+elsif($onlydesc){
   $client->addPFCIDESCLog;
-}else {
+}
+else {
   $client->addPFCILog();
 }
 
@@ -223,34 +276,35 @@ if ( $upFamObj->DESC->ID ne $oldFamObj->DESC->ID ) {
 
 if ( $oldFamObj->DESC->CL ) {
   if ( $upFamObj->DESC->CL ) {
-    unless ( $upFamObj->DESC->CL eq $oldFamObj->DESC->CL ) {
-      die
-"The clan acession in the CL has been changed between the SVN copy and your local copy!:"
+    if ( ! $changeClan && ($upFamObj->DESC->CL ne $oldFamObj->DESC->CL) ) {
+      die "The clan accession in the CL has been changed between the SVN copy and your local copy!:"
         . "From:"
         . $oldFamObj->DESC->CL . " to "
         . $upFamObj->DESC->CL
         . ".  You can not do this!\n"
-        . "(Use pfci with the remove_from_clan option followed by add_to_clan)\n";
+        . "(Use pfci with the change_clan option (or remove_from_clan option followed by add_to_clan)\n";
     }
   }
   else {
     unless ($removeFromClan) {
-      die
-"The SVN copy of this family has a CL line, but this version does not. Either use the -remove_from_clan option or put back.\n";
+      die "The SVN copy of this family has a CL line, but this version does not. Either use the -remove_from_clan option or put back.\n";
     }
   }
 }
 
 #Need to check that if the updated family does have a CL line and that the SVN copy is the same
-#unless the add_to_clan flag is used.
+#unless the add_to_clan or change_clan flag is used.
 if ( $upFamObj->DESC->CL ) {
-  unless ($addToClan) {
-    unless ( $oldFamObj->DESC->CL
-      and $upFamObj->DESC->CL eq $oldFamObj->DESC->CL )
-    {
-      die
-"Found a CL line in this DESC, but it is either not present in the SVN copy or different."
+  if (!$oldFamObj->DESC->CL) {
+    unless ($addToClan) {
+      die "Found a CL line in this DESC, but it is not present in the SVN copy."
         . " Did you mean to use -add_to_clan?\n";
+    }
+  }
+  elsif ($upFamObj->DESC->CL ne $oldFamObj->DESC->CL) {
+    unless ($changeClan) {
+      die "Found a CL line in this DESC, but it is different from the SVN copy."
+        . " Did you mean to use -change_clan?\n";
     }
   }
 }
