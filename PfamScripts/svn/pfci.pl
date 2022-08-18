@@ -454,6 +454,10 @@ if ( -s ".atc" . $$ ) {
   unlink( ".atc" . $$ )
     or die "Could not remove old add to clan check-in message\n";
 }
+if ( -s ".chc" . $$ ) {
+  unlink( ".chc" . $$ )
+    or die "Could not remove old change clan check-in message\n";
+}
 
 #
 if ($caught_cntrl_c) {
