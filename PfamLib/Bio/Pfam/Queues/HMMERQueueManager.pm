@@ -38,8 +38,8 @@ use Bio::Pfam::EbiRestClient;
 my $hmmer_host = "https://www.ebi.ac.uk/Tools/hmmer";
 
 # !!! change this for each release
-# my $pfama_dat_file = "/nfs/production/xfam/pfam/Pfam-A.hmm.dat";
-my $pfama_dat_file = "/nfs/production/xfam/pfam/data/releases/current/Pfam-A.hmm.dat";
+# my $pfama_dat_file = "/fs/production/xfam/pfam/Pfam-A.hmm.dat";
+my $pfama_dat_file = "/srv/data/current-pfam/Pfam-A.hmm.dat";
 
 # public attributes
 

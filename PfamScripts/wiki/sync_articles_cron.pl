@@ -32,7 +32,7 @@ use Log::Log4perl qw(get_logger :levels);
 
 use WikiApprove;
 use PfamLive;
-use RfamDB;  # there is no "RfamLive" DBIC wrapper
+# use RfamDB;  # there is no "RfamLive" DBIC wrapper
 
 #-------------------------------------------------------------------------------
 
@@ -93,18 +93,18 @@ my $pfam_schema =
 
 $log->debug( 'connected to pfam_live' ) if $pfam_schema;
 
-my $rfam_schema =
-  RfamDB->connect(
-    "dbi:mysql:$rfam_conf->{db_name}:$rfam_conf->{db_host}:$rfam_conf->{db_port}",
-    $rfam_conf->{username},
-    $rfam_conf->{password}
-  );
+#my $rfam_schema =
+#  RfamDB->connect(
+#    "dbi:mysql:$rfam_conf->{db_name}:$rfam_conf->{db_host}:$rfam_conf->{db_port}",
+#    $rfam_conf->{username},
+#    $rfam_conf->{password}
+#  );
 
-$log->debug( 'connected to rfam_live' ) if $rfam_schema;
+#$log->debug( 'connected to rfam_live' ) if $rfam_schema;
 
 # if we can't connect to all of these, we're done here
 $log->logdie( "ERROR: couldn't connect to one or more databases" )
-  unless ( $wa_schema and $pfam_schema and $rfam_schema );
+  unless ( $wa_schema and $pfam_schema );
 
 #-------------------------------------------------------------------------------
 # get the Pfam article titles from the live database
@@ -191,65 +191,65 @@ $log->info( 'done with Pfam entries/articles' );
 #-------------------------------------------------------------------------------
 
 # get the Rfam article titles from the live database
-@live_articles =
-  $rfam_schema->resultset('Family')
-              ->search( undef,
-                        { prefetch => 'auto_wiki',
-                          select   => [ qw( rfam_acc auto_wiki.title ) ],
-                          as       => [ qw( acc      title ) ] } );
+#@live_articles =
+#  $rfam_schema->resultset('Family')
+#              ->search( undef,
+#                        { prefetch => 'auto_wiki',
+#                          select   => [ qw( rfam_acc auto_wiki.title ) ],
+#                          as       => [ qw( acc      title ) ] } );
 # Note: because we're using RfamDB as a wrapper for the rfam_live database, there's
 # a mismatch between the table and the table definition. Specifically, the "cmsearch"
 # column doesn't exist in the table in rfam_live, but it's listed in the wrapper. By
 # using the "columns" attribute on the search, we can restrict the columns that are
 # requested in the raw SQL query.
 
-$log->info( 'got ' . scalar @live_articles . ' articles for live Rfams' );
+#$log->info( 'got ' . scalar @live_articles . ' articles for live Rfams' );
 
 # see if there are any dead families which have a title directly in the
 # dead_families table
-@dead_titles =
-  $rfam_schema->resultset('DeadFamily')
-              ->search( { title => { '!=' => undef } },
-                        { select => [ qw( rfam_acc title ) ],
-                          as     => [ qw( acc      title ) ] } );
+#@dead_titles =
+#  $rfam_schema->resultset('DeadFamily')
+#              ->search( { title => { '!=' => undef } },
+#                        { select => [ qw( rfam_acc title ) ],
+#                          as     => [ qw( acc      title ) ] } );
 
-$log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_families' );
+#$log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_families' );
 
 # get the articles that map to the family that a dead family forwards to... if
 # that makes any sense...
-@dead_articles =
-  $rfam_schema->resultset('Family')
-              ->search( undef,
-                        { prefetch => [ qw( from_dead article ) ],
-                          select   => [ qw( from_dead.rfam_acc article.title ) ],
-                          as       => [ qw( acc                title ) ] } );
+#@dead_articles =
+#  $rfam_schema->resultset('Family')
+#              ->search( undef,
+#                        { prefetch => [ qw( from_dead article ) ],
+#                          select   => [ qw( from_dead.rfam_acc article.title ) ],
+#                          as       => [ qw( acc                title ) ] } );
+#
+#$log->info( 'got ' . scalar @dead_articles . ' articles by mapping from dead_families via rfam' );
 
-$log->info( 'got ' . scalar @dead_articles . ' articles by mapping from dead_families via rfam' );
-
-my %rfam_map;
-foreach ( @live_articles, @dead_titles, @dead_articles ) {
-  my $acc   = $_->get_column('acc');
-  my $title = $_->get_column('title');
-  push @{ $rfam_map{$acc} }, $title;
-}
+#my %rfam_map;
+#foreach ( @live_articles, @dead_titles, @dead_articles ) {
+#  my $acc   = $_->get_column('acc');
+#  my $title = $_->get_column('title');
+#  push @{ $rfam_map{$acc} }, $title;
+#}
 
 #-------------------------------------------------------------------------------
 
-foreach my $acc ( keys %rfam_map ) {
-  my $titles = $rfam_map{$acc};
+#foreach my $acc ( keys %rfam_map ) {
+#  my $titles = $rfam_map{$acc};
+#
+#  foreach my $title ( @$titles ) {
+#    $log->debug( "checking Rfam entry/title: |$acc|$title|" );
+#    eval {
+#      add_row( $acc, $title, 'rfam' );
+#    };
+#    if ( $@ ) {
+#      $log->logwarn( $@ );
+#    }
+#  }
+#}
 
-  foreach my $title ( @$titles ) {
-    $log->debug( "checking Rfam entry/title: |$acc|$title|" );
-    eval {
-      add_row( $acc, $title, 'rfam' );
-    };
-    if ( $@ ) {
-      $log->logwarn( $@ );
-    }
-  }
-}
-
-$log->info( 'done with Rfam entries/articles' );
+#$log->info( 'done with Rfam entries/articles' );
 
 #-------------------------------------------------------------------------------
 

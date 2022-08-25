@@ -119,9 +119,6 @@ sub removeFamilyFromClanMembership {
         pfama_acc => $pfamA
       }
     )->delete;
-
-    print STDERR "\n\n****** $result ******\n\n"
-      if ( $result->isa("DBIx::Class::Row") );
   }
   else {
     cluck(

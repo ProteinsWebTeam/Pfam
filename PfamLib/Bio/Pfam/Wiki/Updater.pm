@@ -371,7 +371,7 @@ sub _get_last_edit {
   my ( $this, $title ) = @_;
   $this->logger->debug( "getting wikipedia version for |$title|" );
   $title = _decodeUTF8($title);
-  my @history = $this->_mw_bot->get_history( $title, 1 );
+  my @history = $this->_mw_bot->get_history( $title, {'rvlimit' => 1, 'rvdir' => 'newer'} );
   unless ( @history ) {
     $this->logger->error("Failed to retrieve history for wikipedia article '$title'");
     return;

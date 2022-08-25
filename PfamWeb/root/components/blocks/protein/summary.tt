@@ -64,9 +64,9 @@ END;
 
     <p>
       This is the summary of UniProt entry
-      <a href="http://www.uniprot.org/entry/[% seq_id %]"
+      <a href="https://www.uniprot.org/uniprot/[% seq_id %]"
          class="ext">[% seq_id %]</a>
-      (<a href="http://www.uniprot.org/entry/[% seq_acc %]"
+      (<a href="https://www.uniprot.org/uniprot/[% seq_acc %]"
           class="ext">[% seq_acc %]</a>)[%
       IF from_secondary_acc -%] (via secondary accession <strong>[% from_secondary_acc %]</strong>)[% END %][% seq_source %].
 

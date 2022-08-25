@@ -148,6 +148,25 @@ eval{
     my $view = Bio::Pfam::ViewProcess->new;  
     $view->initiateClanViewProcess($clan, $revlook->author, $revlook->{config} );
     
+  }elsif( $logMessage =~ /PFCICHC:(CL\d{4})\|(CL\d{4}):(PF\d{5})/ ){
+    my $clan_old = $1;
+    my $clan_new = $2;
+    my $fam  = $3;
+
+    #Need to remvoe the family accession from the clam membership list;
+    removeFromClan($clan_old, $fam);
+    #Now recompete and start off the clan view process for all
+    #of the remaining families
+    my $pfamDB = Bio::Pfam::PfamLiveDBManager->new(
+      %{ $config->pfamlive; }
+    );
+
+    my $view = Bio::Pfam::ViewProcess->new;
+    $view->initiateClanViewProcess($clan_old, $revlook->author, $revlook->{config} );
+
+    #Now add family to the new clan.
+    addToClan($clan_new, $fam);
+
   }elsif($logMessage =~ /CLKILL/){
     my @deleted = $revlook->deleted;
     

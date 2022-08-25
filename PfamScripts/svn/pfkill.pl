@@ -84,19 +84,19 @@ unless($family =~ /PF\d{5}/){
     }
     $family = $pfamAcc;
   }else{
-    print STDERR "\n ***** $family does not look like a family accession *****\n\n";
+    print STDERR "\n ***** '$family' does not look like a family accession *****\n\n";
     help();
   }  
 }
 
 unless ( $family =~ /^PF\d{5}$/ ) {
-  warn "\n***** $family does not look like an acccession *****\n\n";
+  warn "\n***** '$family' does not look like an accession *****\n\n";
   help();
 }
 
 if ( $forward and $forward !~ /^PF\d{5}/ ) {
   warn
-"\n***** The family to forward to [ $forward ] does not look like an acccession *****\n\n";
+"\n***** The family to forward to '${forward}' does not look like an accession *****\n\n";
   help();
 }
 
@@ -157,8 +157,12 @@ unless ( $nforward or $forward ) {
         $forward = $acc;
       }
     }
+    elsif ( $_ =~ /^$/ ) {
+      warn "No accession provided...\nFinish with a . on the line by itself to continue without forward.\n";
+    }
     else {
-      warn "$_ does not look like a Pfam accession\n";
+      warn "'$_' does not look like a Pfam accession\n";
+      next;
     }
   }
 }

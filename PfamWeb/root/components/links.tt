@@ -161,7 +161,7 @@ BLOCK buildLink;
 <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% id %]">[% id %]</a>
       [%- END -%]
     [%- CASE "Swiss" -%]
-<a class="ext" href="http://www.uniprot.org/entry/[% id %]">[% id %]</a>
+<a class="ext" href="https://www.uniprot.org/uniprot/[% id %]">[% id %]</a>
     [%- CASE "SMART" -%]
 <a class="ext" href="http://smart.embl-heidelberg.de/smart/do_annotation.pl?BLAST=dummy&amp;DOMAIN=[% id %]">[% id %]</a>
     [%- CASE "TC" -%]
