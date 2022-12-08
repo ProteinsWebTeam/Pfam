@@ -85,15 +85,85 @@ else {
 }
 chdir("../") or $logger->logdie("Couldn't chdir up from backup, $!");
 
-#Drop tables in pfam_live
-$logger->info("Dropping tables from pfam_live. Ignore ERROR 1010 (HY000) - it will drop all the tables, but won't have permission to delete the database");
+#Recreate pfam_live
+# dropping used to trigger ERROR 1010 (HY000) - it will drop all the tables, but won't have permission to delete the database
+# now it does delete the db, so we must create it
+$logger->info("Drop database pfam_live");
 my $drop_db_command="mysql -h ".$pfamDB_live->{host}." -u ".$pfamDB_live->{user}." -p". $pfamDB_live->{password}." -P ".$pfamDB_live->{port}." ".$pfamDB_live->{database}." -e \"drop database pfam_live\"";
 system($drop_db_command);
+
+$logger->info("Create database pfam_live");
+my $create_db_command="mysql -h ".$pfamDB_live->{host}." -u ".$pfamDB_live->{user}." -p". $pfamDB_live->{password}." -P ".$pfamDB_live->{port}." -e \"create database pfam_live\"";
+system($create_db_command);
 
 
 #Copy data from pfam_release into empty pfam_live
 #Tables need to be imported in following order to satisfy FK relationships
-my @tables=qw(ncbi_taxonomy taxonomy pfamA evidence uniprot markup_key wikipedia pfamseq pfamseq_markup pfamseq_disulphide pfamseq_antifam secondary_pfamseq_acc pfamA_reg_seed clan literature_reference _lock clan_database_links clan_lit_ref clan_membership dead_clan dead_family pfamA_database_links pfamA_literature_reference pfamA_wiki current_pfam_version nested_domains version _active_site_hmm_positions  alignment_and_tree architecture clan_alignment_and_relationship clan_architecture complete_proteomes edits gene_ontology interpro nested_locations other_reg pdb pdb_image pdb_pfamA_reg pdb_residue_data pfamA2pfamA_hhsearch pfamA2pfamA_scoop pfamA_architecture pfamA_fasta pfamA_HMM _pfamA_internal pfamA_ncbi pfam_annseq pfamA_reg_full_insignificant pfamA_reg_full_significant uniprot_reg_full pfamA_species_tree pfamA_tax_depth proteome_architecture proteome_regions released_clan_version released_pfam_version pfamA_ncbi_uniprot author sequence_ontology pfamA_author);
+my @tables=qw(
+  ncbi_taxonomy
+  taxonomy
+  pfamA
+  evidence
+  uniprot
+  markup_key
+  wikipedia
+  pfamseq
+  pfamseq_markup
+  pfamseq_disulphide
+  pfamseq_antifam
+  secondary_pfamseq_acc
+  pfamA_reg_seed
+  clan
+  literature_reference
+  _lock
+  clan_database_links
+  clan_lit_ref
+  clan_membership
+  dead_clan
+  dead_family
+  pfamA_database_links
+  pfamA_literature_reference
+  pfamA_wiki
+  current_pfam_version
+  nested_domains
+  version
+  _active_site_hmm_positions
+  alignment_and_tree
+  architecture
+  clan_alignment_and_relationship
+  clan_architecture
+  complete_proteomes
+  edits
+  gene_ontology
+  interpro
+  nested_locations
+  other_reg
+  pdb
+  pdb_image
+  pdb_pfamA_reg
+  pdb_residue_data
+  pfamA2pfamA_hhsearch
+  pfamA2pfamA_scoop
+  pfamA_architecture
+  pfamA_fasta
+  pfamA_HMM
+  _pfamA_internal
+  pfamA_ncbi
+  pfam_annseq
+  pfamA_reg_full_insignificant
+  pfamA_reg_full_significant
+  uniprot_reg_full
+  pfamA_species_tree
+  pfamA_tax_depth
+  proteome_architecture
+  proteome_regions
+  released_clan_version
+  released_pfam_version
+  pfamA_ncbi_uniprot
+  author
+  sequence_ontology
+  pfamA_author
+);
 
 foreach my $table (@tables) {
   $logger->info("Copying $table");
