@@ -103,8 +103,8 @@ if ( !-e "${status_dir}/antifam_hmms_run" ) {
     my @running_jobs = split( "\n", `bjobs -w | grep '_rAFM'| awk '{print \$7}'` );
 
     if (@running_jobs) {
-      $logger->info("AntiFam search still running - checking again in 10 minutes\n");
-      sleep(600);
+      $logger->info("AntiFam search still running - checking again in 30 minutes\n");
+      sleep(1800);
     }
 
     foreach my $antifam_id (@{$antifam_list}) {
