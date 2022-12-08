@@ -10,6 +10,7 @@ use Getopt::Long;
 use Digest::MD5 qw(md5_hex);
 use Text::Wrap;
 use Mail::Mailer;
+use LSF::Job;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
@@ -35,6 +36,7 @@ unless($pfamseq_dir and -e $pfamseq_dir) {
 }
 
 my $cwd = cwd();
+$logger->debug("Using work directory: $cwd\n");
 
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
@@ -51,8 +53,17 @@ if(-s "$pfamseq_dir/reldateRP.txt") {
 }
 else {
   $logger->debug("Copying reldate.txt from uniprot\n");
-  copy("$uniprot_location/reldate.txt", "$pfamseq_dir/reldateRP.txt") or $logger->logdie("Could not copy reldate.txt [$!]\n");
+  # copy("$uniprot_location/reldate.txt", "$pfamseq_dir/reldateRP.txt") or $logger->logdie("Could not copy reldate.txt [$!]\n");
+
+  my $cp_data = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => "reldate_pfamseq", "cp $uniprot_location/reldate.txt $pfamseq_dir/reldateRP.txt");
+
+  $logger->info("Waiting for reldateRP.txt to be copied from uniprot reldate.txt");
+  until(-s "$pfamseq_dir/reldateRP.txt") {
+    sleep 30;
+  }
 }
+
+
 
 if(-e "$status_dir/updated_reference_proteome_version") { 
   $logger->debug("Already updated rdb with reference proteome version\n");
@@ -88,11 +99,21 @@ my @files = qw(uniprot_reference_proteomes.dat.gz);
 foreach my $file (@files) {
   if(-s $file) {
     $logger->debug("Already copied $file");
-  } 
+  }
   else {
-    $logger->debug("Copying $file from $uniprot_location/internal\n");
-    copy("$uniprot_location/internal/$file", "$file") or $logger->logdie("Could not copy $file [$!]\n");
-    $logger->logdie("Couldn't copy $file from $uniprot_location/internal/$file:[$!]\n") unless(-s "$file");
+    $logger->debug("Copying $uniprot_location/internal/$file\n");
+    # copy("$uniprot_location/internal/$file", "$file") or $logger->logdie("Could not copy $file [$!]\n");
+    # $logger->logdie("Couldn't copy $file from $uniprot_location/internal/$file:[$!]\n") unless(-s "$file");
+
+    my $cp_data = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => 'cp_pfamseq', "cp $uniprot_location/internal/$file $file");
+    my $cp_data2 = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -w => "done($cp_data)", -J => 'cp_pfamseq_done', "touch cp_${file}_done");
+
+    $logger->debug("Waiting for copy job to complete...");
+    until(-e "cp_${file}_done") {
+      sleep 60;
+    }
+    $logger->debug("Completed copying $file");
+    unlink("cp_${file}_done");
   }
 }
 

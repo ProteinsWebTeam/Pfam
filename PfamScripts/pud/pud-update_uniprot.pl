@@ -8,10 +8,12 @@ use Cwd;
 use File::Copy;
 use Getopt::Long;
 use Digest::MD5 qw(md5_hex);
+use LSF::Job;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
+use Smart::Comments;
 
 my($status_dir, $pfamseq_dir);
 
@@ -30,6 +32,9 @@ unless($pfamseq_dir and -e $pfamseq_dir) {
   help();
 }
 
+my $cwd = cwd();
+$logger->debug("Using work directory: $cwd\n");
+
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
@@ -44,13 +49,20 @@ if(-s "$pfamseq_dir/reldate.txt") {
 }
 else {
   $logger->debug("Copying reldate.txt from uniprot $uniprot_location\n");
-  copy("$uniprot_location/reldate.txt", "$pfamseq_dir/reldate.txt") or $logger->logdie("Could not copy $uniprot_location/reldate.txt to $pfamseq_dir [$!]\n");
+  # copy("$uniprot_location/reldate.txt", "$pfamseq_dir/reldate.txt") or $logger->logdie("Could not copy $uniprot_location/reldate.txt to $pfamseq_dir [$!]\n");
+
+  my $cp_rel = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => "reldate_uniprot", "cp $uniprot_location/reldate.txt $pfamseq_dir/reldate.txt");
+
+  $logger->info("Waiting for reldate.txt to be copied from uniprot reldate.txt");
+  until(-s "$pfamseq_dir/reldate.txt") {
+    sleep 30;
+  }
 }
 
 #Update swiss prot and tremble version in the db
-if(-e "$status_dir/updated_uniprot_version") { 
+if(-e "$status_dir/updated_uniprot_version") {
   $logger->debug("Already updated rdb with swiss prot and trembl version\n");
-} 
+}
 else {
   $logger->debug("Updating rdb with swiss prot and trembl version\n");
   my ($swiss_prot_rel, $trembl_rel);
@@ -75,24 +87,38 @@ else {
   system("touch $status_dir/updated_uniprot_version") and $logger->logdie("Couldn't touch $status_dir/updated_version:[$!]\n");
 }
 
+chdir($pfamseq_dir) or $logger->logdie("Couldn't change directory into $pfamseq_dir $!\n");
 
 #Get copy of latest uniprot
-my @files = qw(uniprot_sprot.dat uniprot_trembl.dat);
+my @files = qw(uniprot_sprot.dat.gz uniprot_trembl.dat.gz);
 
 foreach my $file (@files) {
-  if(-s "$pfamseq_dir/$file.gz") {
-    $logger->debug("Already copied $file.gz");
-  } 
+  if(-s $file) {
+    $logger->debug("Already copied $file");
+  }
   else {
-    $logger->debug("Copying $file.gz from $uniprot_location\n");
-    copy("$uniprot_location/$file.gz", "$pfamseq_dir/$file.gz") or $logger->logdie("Could not copy $uniprot_location/$file.gz to $pfamseq_dir [$!]\n");
-    $logger->logdie("Couldn't copy $file.gz from $uniprot_location:[$!]\n") unless(-s "$pfamseq_dir/$file.gz");
+    $logger->debug("Copying $uniprot_location/$file\n");
+    # copy("$uniprot_location/$file.gz", "$pfamseq_dir/$file.gz") or $logger->logdie("Could not copy $uniprot_location/$file.gz to $pfamseq_dir [$!]\n");
+    # $logger->logdie("Couldn't copy $file.gz from $uniprot_location:[$!]\n") unless(-s "$pfamseq_dir/$file.gz");
+
+    my $cp_data = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => 'cp_uniprot', "cp $uniprot_location/$file $file");
+    $logger->debug("bsub cmd: cp $uniprot_location/$file $file");
+    ### $cp_data
+    my $cp_data2 = LSF::Job->submit(-q => "production", -o => "/dev/null", -w => "done($cp_data)", -J => 'cp_uniprot_done', "touch cp_${file}_done");
+
+    $logger->debug("Waiting for copy job to complete...");
+    until(-e "cp_${file}_done") {
+      sleep 60;
+    }
+    $logger->debug("Completed copying $file");
+    unlink("cp_${file}_done");
   }
 }
 
 #$logger->logdie("Check that NcbiTaxonomy has been populated, then remove this line!");
 #Parse files
 my $num_seq;
+chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
 if(-e "$status_dir/parsed_uniprotkb") { 
   $logger->debug("Already parsed UniProtKB\n");
 } 
@@ -108,6 +134,7 @@ else {
   open(FASTA, ">$pfamseq_dir/uniprot.fasta") or $logger->logdie("Failed to open filehandle to $pfamseq_dir/uniprot.fasta:[$!]");
   foreach my $file (@files) { 
 
+    $file =~ s/.gz$//;
     $logger->debug("Parsing $file\n");
 
     $/= "//\n";
