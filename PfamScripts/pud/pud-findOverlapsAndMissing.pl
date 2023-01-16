@@ -141,6 +141,9 @@ sub getRegions {
 
   foreach my $fDir ( @{$posOverlaps} ) {
     my $id = $familiesData->{$fDir}->{id};
+    if (!$id) {
+      next;
+    }
     open( SEED, "$families/$fDir/SEED" );
     while (<SEED>) {
       if (/(\w+\.?\S*)\/(\d+)\-(\d+)/) {
@@ -213,7 +216,7 @@ sub checkForOverlap {
 
   print STDERR "Sorting all regions\n";
   system("sort -k1,1 -k8,8g $statusdir/$filePrefix.allRegions.txt > $statusdir/$filePrefix.allRegionsSorted.txt")  #Sort by seq accession first, then by evalue second
-    and $logger->logdie("Failed to sort regions.");
+    and $logger->logdie("Failed to sort regions. $!");
   print STDERR "Finished sorting, looking for overlaps\n";
 
   open( SORTEDREG, "$statusdir/$filePrefix.allRegionsSorted.txt" )
@@ -265,6 +268,12 @@ sub checkForOverlap {
       $overlaps += $overlaps{$f}->{$of};
     }
     $list = '-' unless ( $list =~ /\S+/ );
+
+    my $familiesData_f = $familiesData->{$f};
+
+    if (!$familiesData->{$f}->{id}) {
+      next;
+    }
 
     printf( F "%-7s\t%-20s\t%-8d\t%-8d\t%-8s\t%s\n",
       $f,
@@ -486,6 +495,11 @@ sub filterOverlaps {
       $lengthB = $regionB->length;
 
       my ($s, $e, $d) = $regionA->intersection($regionB);
+
+      if (!$s or !$e or !$d) {
+        next;
+      }
+
       $overlapLength = ($e - $s) + 1;
 
       $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
@@ -522,6 +536,11 @@ sub filterOverlaps {
 
       #$overlapLength = $regionA->intersection($regionB)->length;
       my ($s, $e, $d) = $regionA->intersection($regionB);
+
+      if (!$s or !$e or !$d) {
+        next;
+      }
+
       $overlapLength = ($e - $s) + 1;
 
       $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
@@ -593,6 +612,10 @@ sub filterOverlaps {
 
     foreach my $temp (@temp) {
       $temp_string .= $temp . ":" . $familiesData->{$temp}->{id} . ",";
+    }
+
+    if (!$familiesData->{$family}->{id}) {
+      next;
     }
 
     printf( OFS "%-7s\t%-20s\t%-8s\t%-8s\t%-8s\t%s\n",
