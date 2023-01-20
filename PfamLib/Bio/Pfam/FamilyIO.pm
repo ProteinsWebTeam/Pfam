@@ -312,6 +312,8 @@ sub parseDESC {
       foreach ( my $j = $i ; $j <= $#file ; $j++ ) {
         if ( $file[$j] =~ /^(\w{2})\s{3}(.*)/ ) {
           my $thisTag = $1;
+          $i++;
+
           if ( $ref->{$1} ) {
             $ref->{$1} .= " $2";
           }
@@ -323,6 +325,7 @@ sub parseDESC {
             last REFLINE;
           }
           my ($nextTag) = $file[ $j + 1 ] =~ /^(\w{2})\s{3}/;
+          next if !defined($nextTag);
 
           #Now lets check that the next field is allowed
           if ( $refTags->{$thisTag}->{$nextTag} ) {
