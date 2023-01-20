@@ -270,6 +270,7 @@ sub main {
       $buildOpts{"--hand"} = 0;
       unless ($hand) {
         warn "Found #=RF line, switching on --hand options\n";
+        $hand = 1;
       }
     }
     else {
@@ -289,10 +290,17 @@ sub main {
     unless ($ibm) {
       my $line = $descObj->BM;
       if ( $line =~ /hmmbuild (.*) HMM/ ) {
-        while ( $line =~ /(-{1,2}\w+)\s+([A-Z0-9\.]){0,1}/g ) {
+        my $line_opt = $1;
+
+        while ( $line_opt =~ /(-{1,2}\w+)\s*([^-\s]*)/g ) {
           my $optFlag  = $1;
           my $optParam = $2 if ($2);
 
+          if (!$hand) {
+            if ($optFlag eq '--hand') {
+              warn "BM line contains --hand flag but -hand was not provided to pfbuild\n";
+            }
+          }
           unless ( defined( $buildOpts{$optFlag} ) ) {
             if ($optParam) {
               $buildOpts{$optFlag} = $optParam;
@@ -305,7 +313,7 @@ sub main {
         }
       }
       elsif ( $line =~ /hmmbuild\s+HMM/ ) {
-        ;
+        warn "No flags have been provided to hmmbuild\n";
       }
       else {
         die "Did not recognise BM line " . $descObj->BM . "\n";
