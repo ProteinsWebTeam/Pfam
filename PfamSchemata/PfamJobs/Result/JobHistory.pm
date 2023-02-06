@@ -401,34 +401,3 @@ sub fail {
 
 1;
 # End of lines loaded from '/hps/software/users/agb/pfam/software/Pfam/PfamSchemata/PfamJobs/Result/JobHistory.pm'
-
-# You can replace this text with custom content, and it will be preserved on regeneration
-
-sub run {
-  my $self = shift;
-   $self->update(
-      {
-        status  => 'RUN',
-        started => \'NOW()'
-      });
-}
-
-sub done {
-  my $self = shift;
-  $self->update(
-     {
-       status  => 'DONE',
-       closed => \'NOW()'
-      }) 
-  
-}
-
-sub fail {
-  my $self = shift;
-  $self->update({
-        status  => 'FAIL',
-        closed => \'NOW()'
-      });
-}
-
-1;
