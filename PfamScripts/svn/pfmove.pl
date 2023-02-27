@@ -53,21 +53,18 @@ $family = shift;
 $newName = shift;
 
 unless($family and $family =~ /\S+/){
-  die "Please specifiy the accesion of the family that you want to change the name\n";  
+  die "Please specify the accession of the family that you want to change the name\n";  
 }
 
 unless($newName and $newName =~ /\S+/){
-  die "Please specifiy the new name of the the family\n";  
+  die "Please specify the new name of the the family\n";  
 }
 
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive });
 
 #Check that the family looks like a pfam accession
 unless($family =~ /PF\d{5}/){
   if($config->location eq 'WTSI' or $config->location eq 'EBI'){
-    my $connect = $config->pfamlive;
-    my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
-      %{ $connect }
-    );
     my $pfamAcc = $pfamDB->id2acc($family);
     unless($pfamAcc =~ /PF\d{5}/){
       warn "You passed in something that did not look like an accession.\n"; 
@@ -86,6 +83,16 @@ unless( Bio::Pfam::PfamQC::nameFormatIsOK($newName)) {
   "***** Remember, it should be between 1 and 15 characters and not contain symbols other than _ and/or - *****\n\n";  
 }
 
+# Check if the provided name is already used
+my $existing_fam = $pfamDB->getSchema->resultset('PfamA')->find({ pfama_id => $newName});
+
+if ($existing_fam) {
+  my $existing_fam_acc = $existing_fam->pfama_acc;
+
+  die "\n***** The new name '$newName' appears to be already in use by the family '$existing_fam_acc'. ****\n".
+  "***** Please use a new unused name *****\n\n";
+}
+
 # Now we want to check out the DESC file
 my $pwd = getcwd();
 my $dest = $pwd."/".$family; 
@@ -94,7 +101,7 @@ if (-d $dest ){
   exit(1); 
 }
 
-#Now check that the family exisits in the repository
+#Now check that the family exists in the repository
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkFamilyExists($family);
 
