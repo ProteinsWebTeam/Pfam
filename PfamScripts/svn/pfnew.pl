@@ -237,6 +237,9 @@ unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $newFamObj, $family, undef, u
 open( M, ">.default" . $$ . "pfnew" )
   or die "Could not open .default" . $$ . "pfnew:[$!]\n";
 print M $newFamObj->DESC->ID . " deposited\n";
+if ($message) {
+  print M $message;
+}
 close M;
 $client->addPFNEWLog();
 
