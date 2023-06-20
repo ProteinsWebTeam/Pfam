@@ -8,13 +8,14 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::PfamLiveDBManager;
 use Getopt::Long;
+
 my $config = Bio::Pfam::Config->new;
 
-my ($help, $revision);
+my ($help, $revision, $rev_ver);
 GetOptions(
   "help" => \$help,
-  "rev"  => \$revision
-  
+  "rev"  => \$revision,
+  "ver=i"=> \$rev_ver
  );
 
 help() if($help);
@@ -48,7 +49,7 @@ if ( $family !~ /^(PF\d{5})$/ ) {
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkFamilyExists($family, $config);
 $client->log($family) if($revision);
-$client->catFile( $family, "DESC" );
+$client->catFile( $family, "DESC", undef, $rev_ver );
 
 sub help {
 
@@ -58,7 +59,8 @@ usage: $0 <PFAM ACCESSION>
 
 Now just prints the DESC file.
 
--rev :Prints the SVN revision history for the family. 
+-rev :Prints the SVN revision history for the family.
+-ver <REVISION VERSION> :Prints the DESC file at the svn revision version provided.
 
 If you are WTSI/EBI, you can use family ids.
 
