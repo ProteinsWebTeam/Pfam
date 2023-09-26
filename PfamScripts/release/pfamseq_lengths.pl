@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl
+#! /usr/bin/env perl
 
 # This script takes a list of files and makes a list of (name, length)
 # pairs, scanning for ID lines  
