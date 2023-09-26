@@ -40,7 +40,7 @@ my $log = get_logger();
 
 my $config = Bio::Pfam::Config->new;
 
-my $IP_URL_ROOT = 'ftp://ftp.ebi.ac.uk/pub/databases/interpro';
+my $IP_URL_ROOT = 'https://ftp.ebi.ac.uk/pub/databases/interpro/current_release/';
 my $GO_URL_ROOT = 'http://current.geneontology.org/ontology';
 my $FILE_ROOT = $config->localDbsLoc . '/interpro';
 
