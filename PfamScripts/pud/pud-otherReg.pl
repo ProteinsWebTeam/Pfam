@@ -24,13 +24,14 @@ Log::Log4perl->easy_init($DEBUG);
 my $logger = get_logger();
 
 my ( $statusdir, $pfamseqDir, $split );
-$split = 500;
 
 &GetOptions(
   "statusdir=s"  => \$statusdir,
   "pfamseqdir=s" => \$pfamseqDir,
   "split=i"      => \$split
 ) or $logger->logdie("Invalid option!");
+
+$split //= 500;
 
 #Get the connection to the pfam database.
 my $config = Bio::Pfam::Config->new;
@@ -144,14 +145,10 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
 #phobius
 #iupred - This needs the environment variable IUPred_PATH to be set. Done via cshrc.pfam
 
-  $fh->print(
-    "ncoils -f < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
+  $fh->print("ncoils -c < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
   $fh->print("segmasker -in pfamseq.\$\{LSB_JOBINDEX\} -out seg.\$\{LSB_JOBINDEX\}\n");
-  $fh->print(
-    "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
-  $fh->print(
-    "iupred_multifasta pfamseq.\$\{LSB_JOBINDEX\} long > iupred.\$\{LSB_JOBINDEX\}\n"
-  );
+  $fh->print("phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
+  $fh->print("iupred_multifasta pfamseq.\$\{LSB_JOBINDEX\} long > iupred.\$\{LSB_JOBINDEX\}\n");
   $fh->close;
 
   sleep(60);    #Give them change to get on to the farm queue!
@@ -178,7 +175,7 @@ if(-e "$statusdir/otherReg/doneFarmCheck"){
     if ($jobnum) {
       $logger->info(
         "Will not continue until your $jobnum outstanding jobs have completed."
-        . "Will check again in ten minutes" );
+        . " Will check again in ten minutes" );
       sleep(600);
     }
     else {
@@ -191,7 +188,7 @@ if(-e "$statusdir/otherReg/doneFarmCheck"){
 
 
 #Now we should have every thing back to be joined together and uploaded.
-  $logger->info("Checking all of the files have been retieved from the farm");
+  $logger->info("Checking all of the files have been retrieved from the farm");
   my $error;
   for ( my $i = 1 ; $i <= $n ; $i++ ) {
     foreach my $f (keys %subs) {
@@ -213,9 +210,10 @@ if(-e "$statusdir/otherReg/doneFarmCheck"){
 
 my $orDir = "$pfamseqDir/otherReg";
 
+
 #-------------------------------------------------------------------------------
 #Now parse the data and write to the file
-if(-e "$orDir/allOtherReg.dat"){
+if(-s "$orDir/allOtherReg.dat"){
   $logger->info("Already made database upload file.");
 }else{
   my $fhOut;
@@ -288,7 +286,7 @@ sub getAutos {
 
 sub parseNcoils {
   my ($dir, $file, $fh) = @_;
-  #print STDERR scalar(@{$coilsAR})."$dir, $file\n";
+  # print STDERR "parseNcoils: $dir/$file\n";
 
   $/ = "\n>";
   open( COILS, "$dir/$file" ) or $logger->logdie("Could not open $dir/$file:[$!]\n");
@@ -297,47 +295,21 @@ sub parseNcoils {
     my @entry = split( /\n/, $_ );
     if (@entry) {
       my $acc = $1 if ( $entry[0] =~ /^>?(\S{6,10})\.\d+/ );
-      my $seq = join( "", @entry[ 1 .. $#entry ] );
-      if ( !$acc || !$seq ) {
+      if ( !$acc ) {
         warn "Could not find id or entry for $_\n";
       }
       else {
-
-        #print STDERR "Finding coil\n";
-        &findCoils( $acc, $seq, $fh );
+        foreach my $region ( @entry[ 1 .. $#entry ] ) {
+          if ($region =~ /(\d+)\s+(\d+)/ ) {
+            my $start = $1;
+            my $end = $2;
+            print $fh "\\N\t$acc\t$start\t$end\tcoiled_coil\tncoils\t\\N\t\\N\n";
+          }
+        }
       }
     }
-
-    #print STDERR scalar(@{$coilsAR})."$dir, $file\n";
   }
   $/ = "\n";
-}
-
-sub findCoils {
-  my ( $acc, $seq, $fh ) = @_;
-  my $start;
-  my $end;
-  my $prev = -1;
-  while ( $seq =~ m/x/g ) {
-    my $x_pos = pos $seq;
-    if ( ( $prev + 1 ) == $x_pos ) {
-
-      #$end = $x_pos;
-    }
-    else {
-      $end = $prev;
-      if ($start) {
-
-        #print "\t$acc_auto\t$start\t$end\tcoiled_coil\tncoils\t\t\n";
-        print $fh "\\N\t$acc\t$start\t$end\tcoiled_coil\tncoils\t\\N\t\\N\n";
-      }
-      $start = $x_pos;
-    }
-    $prev = $x_pos;
-  }
-  if ($start) {
-    print $fh "\\N\t$acc\t$start\t$prev\tcoiled_coil\tncoils\t\\N\t\\N\n";
-  }
 }
 
 sub parseSeg {
