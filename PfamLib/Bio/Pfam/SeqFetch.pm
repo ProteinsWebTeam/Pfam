@@ -360,7 +360,7 @@ sub verifySeqs {
             print "Sequence $seqId/"
               . $se->{start} . "-"
               . $se->{end}
-              . " does not match the database\n";
+              . " found but does not match the database. Please check sequence in seed/align file.\n";
           }
 
         }    #End for each
