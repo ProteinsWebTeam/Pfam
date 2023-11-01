@@ -107,7 +107,7 @@ sub read_ignore_list {
     my %ignore;
     open(IGNORE, $ignore_file) or die "Couldn't open fh to $ignore_file, $!";
     while(<IGNORE>) {
-        if(/(PF\d{5}).+(PF\d{5})/) {
+        if(/(PF\d{5}).+?(PF\d{5})/) {
             my ($fam1, $fam2) = ($1, $2);
             $ignore{"$fam1:$fam2"}=1;
             $ignore{"$fam2:$fam1"}=1;
