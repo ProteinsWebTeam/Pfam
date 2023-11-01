@@ -32,8 +32,11 @@ help() if ($help);
 
 my $config = Bio::Pfam::Config->new;
 
-Log::Log4perl->init( $config->productionLoc . "/Logs/log4perl.conf" );
-my $logger = Log::Log4perl->get_logger('fileLogger');
+#Log::Log4perl->init( $config->productionLoc . "/Logs/log4perl.conf" );
+#my $logger = Log::Log4perl->get_logger('fileLogger');
+Log::Log4perl->easy_init($DEBUG);
+my $logger = Log::Log4perl->get_logger();
+
 
 $logger->debug( "Using database:" . $config->pfamlive->{database} );
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
