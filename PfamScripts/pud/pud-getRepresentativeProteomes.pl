@@ -12,6 +12,7 @@ use Log::Log4perl qw(:easy);
 use File::Touch;
 use File::Copy;
 use Cwd;
+use LSF::Job;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -45,23 +46,32 @@ unless ( -d $store_dir ) {
 #Get cwd
 my $cwd = getcwd;
 
+#set uniprot location
+my $uniprot_location = $config->uniprotPrivateLoc;
 
 #These are the different RP levels that are made available via PIR by default.
 my @levels = qw(15 35 55 75);
 
-
 #Copy pir data across
-foreach my $level (@levels) {
-  my $file = "rp-seqs-".$level.".fasta.gz";
-  if(-e "$statusdir/copiedRP".$level) {
-    $logger->debug("Already copied $file.gz");
-  }
-  else {
-    $logger->debug("Copying $file from ".$config->uniprotPrivateLoc."/internal/rps_fromPIR/");
-    copy($config->uniprotPrivateLoc."/internal/rps_fromPIR/$file", "$store_dir/$file") or $logger->logdie("Could not copy ".$config->uniprotPrivateLoc."/internal/rps_fromPIR/$file to $store_dir [$!]");
-    touch("$statusdir/copiedRP$level");
-  }
+if(-e "$statusdir/copiedRP") {
+  $logger->debug("Already copied RP files");
 }
+else {
+  $logger->debug("Copying RP data from ${uniprot_location}/internal/rps_fromPIR/");
+  #copy($config->uniprotPrivateLoc."/internal/rps_fromPIR/$file", "$store_dir/$file") or $logger->logdie("Could not copy ".$config->uniprotPrivateLoc."/internal/rps_fromPIR/$file to $store_dir [$!]");
+  my $last_file;
+  foreach my $level (@levels) {
+    my $file = "rp-seqs-".$level.".fasta.gz";
+    $last_file = $file;
+    my $cp_rp = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => "cp_rp", "cp ${uniprot_location}/internal/rps_fromPIR/${file} ${store_dir}/${file}");
+  }
+  $logger->info("Waiting for RP data to be copied to ${store_dir}");
+  until(-s "${store_dir}/${last_file}") {
+    sleep 30;
+  }
+  touch("$statusdir/copiedRP");
+}
+
 
 #The following update statements.  Note, that when a sequences appears in RP15, the
 #most redundant version, then according to the RP definitions, it is in the
