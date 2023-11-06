@@ -13,8 +13,11 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 my $schema = $pfamDB->getSchema;
 my $dbh_pfam = $pfamDB->getSchema->storage->dbh;
 
+# noah
+#$ENV{TNS_ADMIN}='/ebi/msd/software/common/tns_admin';
 
-$ENV{TNS_ADMIN}='/ebi/msd/software/common/tns_admin';
+# codon
+$ENV{TNS_ADMIN}='/usr/lib/oracle/19.9/client64/network/admin';
 
 my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_pfam", "search_pfam55");
 
