@@ -651,7 +651,7 @@ sub updatePfamALitRefs {
 #Then added the information pfamA_literature_reference table.
   $self->getSchema->resultset('PfamALiteratureReference')
     ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
-  my $cc = $famObj->DESC->CC;
+  my $cc = $famObj->DESC->CC // '';
   if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
     my %cc_refs;
     while ($cc =~ m{\[(\d+)\]}g) {
@@ -1181,6 +1181,15 @@ sub uploadPfamAInternal {
 #      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
 #    }
 #  }
+
+  # clear the alignments before update
+  $self->getSchema->resultset('PfamAInternal')->update_or_create(
+    {
+      pfama_acc => $famObj->DESC->AC,
+      seed => '',
+      full => '',
+    } , { key => 'pfamA_acc' }
+  );
 
   $self->getSchema->resultset('PfamAInternal')->update_or_create(
     {
