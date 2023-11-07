@@ -39,6 +39,8 @@ while(<ALN>) {
         if($aligned_sequence =~ /(\S+)\s+$/) {
             $aligned_sequence = $1;
         }
+        #Make sequence uppercase
+        $aligned_sequence = uc($aligned_sequence);
         
         #Get full length sequence
 		my $sequence = get_sequence($uniprot, $seq_acc);
