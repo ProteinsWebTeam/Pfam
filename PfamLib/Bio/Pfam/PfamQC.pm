@@ -809,6 +809,7 @@ sub sequenceChecker {
             my $uniprot = $sth_uniprot->fetchrow;
             if($uniprot) {
               $inUniprotCount++;
+              print STDERR $seq->id . ".$seq_version is in SEED but not in the pfamseq set in the rdb\n";
             }
             else {
               print STDERR $seq->id . ".$seq_version is in SEED but not in the pfamseq or uniprot set in the rdb\n";
@@ -834,6 +835,7 @@ sub sequenceChecker {
             my $uniprot = $sth_uniprot->fetchrow;
             if($uniprot) {
               $inUniprotCount++;
+              print STDERR $seq->id . "." . $seq->version . " is in SEED but not in the pfamseq set in the rdb\n";
             }    
             else {
               print STDERR $seq->id . "." . $seq->version . " is in SEED but not in the pfamseq or uniprot set in the rdb\n";
@@ -868,7 +870,7 @@ sub sequenceChecker {
 
 
   if($notInPfamseqCount) {
-    print STDERR "\n--- Some seed sequences are not in reference proteomes ---\n\n";
+    print STDERR "\n--- $notInPfamseqCount seed sequences are not in reference proteomes ---\n\n";
   }
 
   if ( $verified_seq == $count and $notInPfamseqCount == $inUniprotCount) { #... and all sequences not in pfamseq are in the uniprot table
