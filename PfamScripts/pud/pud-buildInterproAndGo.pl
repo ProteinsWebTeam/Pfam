@@ -336,8 +336,13 @@ sub edit_abstract {
   $log->info( "fixing abstract for $interpro_id" );
 
   my $abstract_node = ( $node->findnodes('abstract') )[0];
-
   my $abstract = '';
+
+  if (!$abstract_node) {
+    # There is a Pfam accession and possible GO xrefs, but no abstract text
+    return ( \@pfam_accessions, $interpro_id, $abstract );
+  }
+
   my ( $pm_id, $xref_url );
   foreach my $child ( $abstract_node->childNodes ) {
 
