@@ -161,16 +161,16 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect = $config->pfamlive;
   $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
+  #Find out if family is in rdb
+  my $rdb_family = $pfamDB->getPfamData($family);
+
   unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
     print "$0: $family contains errors.  You should rebuild this family.\n";
     exit(1);
   }
 
-  #Find out if family is in rdb
-  my $rdb_family = $pfamDB->getPfamData($family);
-  my %ignore;
-
   #Need to populate the ignore hash with clan and nesting data......
+  my %ignore;
 
   my $overlaps =
     &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, undef, undef);

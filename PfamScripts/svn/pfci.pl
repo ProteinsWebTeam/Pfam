@@ -366,23 +366,22 @@ unless ($ignore) {
       #Find out if family is in rdb
       my $rdb_family = $pfamDB->getPfamData($family);
 
-      my %ignore;
+      unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB ) ) {
+        print "pfci: $family contains errors.  You should rebuild this family.\n";
+        exit(1);
+      }
 
       #Need to populate the ignore hash with clan and nesting data......
+      my %ignore;
 
-    
       my $overlaps =
         &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $upFamObj, undef, undef);
- 
+
       if ($overlaps) {
         print "Looks like your family contains overlaps.\n";
         exit(1);
       }
 
-      unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB ) ) { 
-        print "pfci: $family contains errors.  You should rebuild this family.\n";
-        exit(1);
-      } 
     }
 
     if(-z "$family/ALIGN") {
