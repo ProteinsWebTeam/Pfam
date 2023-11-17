@@ -783,12 +783,13 @@ sub sequenceChecker {
   $sth_rp_seed->execute() or die "Couldn't execute statement ".$sth_rp_seed->errstr."\n";  
   my $rp_seed=$sth_rp_seed->fetchrow;
   
-  my ($notInPfamseqCount, $inUniprotCount) = (0, 0);
+  my ($not_pfamseq_count, $uniprot_count, $not_uniprot_count) = (0, 0, 0);
+  my ($not_pfamseq_log, $not_uniprot_log) = ('', '');
   foreach my $aln (qw(SEED ALIGN)) {
     if(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfamLite'){
 
       foreach my $seq (@{$famObj->$aln->all_nse_with_seq}){
-        my $notInPfamseq;
+        my $not_pfamseq;
         #Check whether seed seq are in pfamseq
         #If seed seq is not in pfamseq set, it must be in the current uniprot set to be valid
         if($aln eq "SEED") {
@@ -803,47 +804,53 @@ sub sequenceChecker {
           $sth_pfamseq->execute($seq_acc, $seq_version) or die "Couldn't execute statement ".$sth_pfamseq->errstr."\n";
           my $pfamseq = $sth_pfamseq->fetchrow;
           unless($pfamseq) {
-            $notInPfamseq=1;
-            $notInPfamseqCount++;
+            $not_pfamseq=1;
+            $not_pfamseq_count++;
             $sth_uniprot->execute($seq_acc, $seq_version) or die "Couldn't execute statement ".$sth_uniprot->errstr."\n";           
             my $uniprot = $sth_uniprot->fetchrow;
             if($uniprot) {
-              $inUniprotCount++;
-              print STDERR $seq->id . ".$seq_version is in SEED but not in the pfamseq set in the rdb\n";
+              $uniprot_count++;
+              $not_pfamseq_log .= $seq->id . "\n";
+              # print STDERR $seq->id . ".$seq_version is in SEED but not in the pfamseq set in the rdb\n";
             }
             else {
-              print STDERR $seq->id . ".$seq_version is in SEED but not in the pfamseq or uniprot set in the rdb\n";
+              $not_uniprot_count++;
+              $not_uniprot_log .= $seq->id . "\n";
+              # print STDERR $seq->id . ".$seq_version is in SEED but not in the pfamseq or uniprot set in the rdb\n";
             }
           }
         }
 
-        unless($notInPfamseq) {
+        unless($not_pfamseq) {
           Bio::Pfam::SeqFetch::addSeqToVerify( $seq->[0], $seq->[1], $seq->[2], $seq->[3], \%allseqs ); 
           $count++;
         }
       }
     }elsif(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfam'){
       foreach my $seq ( $famObj->$aln->each_seq ) {
-        my $notInPfamseq;
+        my $not_pfamseq;
         if($aln eq "SEED") {
           $sth_pfamseq->execute($seq->id, $seq->version) or die "Couldn't execute statement ".$sth_pfamseq->errstr."\n";
           my $pfamseq = $sth_pfamseq->fetchrow;
           unless($pfamseq) {
-            $notInPfamseq=1;
-            $notInPfamseqCount++;
+            $not_pfamseq=1;
+            $not_pfamseq_count++;
             $sth_uniprot->execute($seq->id, $seq->version) or die "Couldn't execute statement ".$sth_uniprot->errstr."\n";     
             my $uniprot = $sth_uniprot->fetchrow;
             if($uniprot) {
-              $inUniprotCount++;
-              print STDERR $seq->id . "." . $seq->version . " is in SEED but not in the pfamseq set in the rdb\n";
+              $uniprot_count++;
+              $not_pfamseq_log .= $seq->id . "." . $seq->version . "\n";
+              # print STDERR $seq->id . "." . $seq->version . " is in SEED but not in the pfamseq set in the rdb\n";
             }    
             else {
-              print STDERR $seq->id . "." . $seq->version . " is in SEED but not in the pfamseq or uniprot set in the rdb\n";
+              $not_uniprot_count++;
+              $not_uniprot_log .= $seq->id . "." . $seq->version . "\n";
+              # print STDERR $seq->id . "." . $seq->version . " is in SEED but not in the pfamseq or uniprot set in the rdb\n";
             }    
           }    
         }
 
-        unless($notInPfamseq) {  
+        unless($not_pfamseq) {  
           $count++;
           my $str_ali = uc( $seq->seq() );
           $str_ali =~ s/[.-]//g;
@@ -856,24 +863,33 @@ sub sequenceChecker {
       }
     }
   }
-  my $verified_seq = Bio::Pfam::SeqFetch::verifySeqs( \%allseqs, $CONFIG->pfamseqLoc . "/pfamseq" );
+
+  if($not_uniprot_count) {
+    print STDERR "\n--- $not_uniprot_count seed sequences are not in pfamseq or uniprot ---\n";
+    print STDERR "$not_uniprot_log\n";
+    $error = 1;
+  }
 
   #Update seedcheck
-  if($notInPfamseqCount) {
-    if($notInPfamseqCount == $inUniprotCount) { #All sequences not in pfamseq are in the uniprot table
+  if($not_pfamseq_count) {
+    if($not_pfamseq_count == $uniprot_count) { #All sequences not in pfamseq are in the uniprot table
       $famObj->seedcheck('pfamseqplus');
     }
+    print STDERR "\n--- " . ($not_pfamseq_count - $not_uniprot_count) . " seed sequences are not in pfamseq ---\n";
+    print STDERR "$not_pfamseq_log\n";
   }
   else {
     $famObj->seedcheck('pfamseq');
   }
 
-
-  if($notInPfamseqCount) {
-    print STDERR "\n--- $notInPfamseqCount seed sequences are not in reference proteomes ---\n\n";
+  if ($error) {
+    # if errors do not verify seqs
+    return 0;
   }
 
-  if ( $verified_seq == $count and $notInPfamseqCount == $inUniprotCount) { #... and all sequences not in pfamseq are in the uniprot table
+  my $verified_seq = Bio::Pfam::SeqFetch::verifySeqs( \%allseqs, $CONFIG->pfamseqLoc . "/pfamseq" );
+
+  if ( $verified_seq == $count and $not_pfamseq_count == $uniprot_count) { #... and all sequences not in pfamseq are in the uniprot table
     print STDERR "\n--- All sequences are in the database ---\n\n";
   }
   else {
@@ -881,7 +897,7 @@ sub sequenceChecker {
     $error = 1;
   }
 
-  if($rp_seed and $notInPfamseqCount) {
+  if($rp_seed and $not_pfamseq_count) {
     print STDERR "\n*** ERROR: SEED alignment for $family used to be on reference proteomes, but now is not ***\n\n";
     $error = 1;
   }
