@@ -187,9 +187,14 @@ unless ($ignore) {
 
     #Find out if family is in rdb
     my $rdb_family = $pfamDB->getPfamData($family);
-    my %ignore;
+
+    unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj, $pfamDB ) ) {
+      print "pfnew: $family contains errors.  You should rebuild this family.\n";
+      exit(1);
+    }
 
     #Need to populate the ignore hash with clan and nesting data......
+    my %ignore;
 
     my $overlaps =
       &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $newFamObj, undef, undef); 
@@ -199,11 +204,6 @@ unless ($ignore) {
       exit(1);
     }
 
-    unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj, $pfamDB ) ) { 
-      print "pfnew: $family contains errors.  You should rebuild this family.\n";
-      exit(1);
-    }
-    
     #Check if the pfamA id is already being used
     my $row = $pfamDB->getSchema->resultset('PfamA')->find({ pfamA_id => $newFamObj->DESC->ID });
     if($row) {
