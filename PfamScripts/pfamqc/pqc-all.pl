@@ -161,6 +161,11 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect = $config->pfamlive;
   $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
+  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
+    print "$0: $family contains errors.  You should rebuild this family.\n";
+    exit(1);
+  }
+
   #Find out if family is in rdb
   my $rdb_family = $pfamDB->getPfamData($family);
   my %ignore;
@@ -181,12 +186,6 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
     print "$0: There are $signal_peptide_overlap->{total} signal peptide overlaps, $signal_peptide_overlap->{seed} in SEED and $signal_peptide_overlap->{align} in ALIGN\n";
     exit(1);
   }
-
-  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
-    print "$0: $family contains errors.  You should rebuild this family.\n";
-    exit(1);
-  }
-
 
   #Check orcids 
   if (defined($famObj->{DESC}->{AU})) {
