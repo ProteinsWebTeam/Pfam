@@ -503,7 +503,7 @@ sub compareAlignToScores {
 =cut
 
 sub moreInSEEDthanALIGN {
-  my ($famObj, $pfamDB) = @_;;
+  my ($famObj, $pfamDB) = @_;
 
   if ( $famObj->SEED->num_sequences > $famObj->ALIGN->num_sequences ) {
 
@@ -519,7 +519,8 @@ sub moreInSEEDthanALIGN {
         }
       }
       if($numRPSeqSeed > $famObj->ALIGN->num_sequences) {
-        return 0;
+        # PF15403 has historically broken this rule...
+        return 0 unless $famObj->DESC->AC eq 'PF15403';
       }
       else {
         return 1;
@@ -877,6 +878,9 @@ sub sequenceChecker {
     }
     print STDERR "\n--- " . ($not_pfamseq_count - $not_uniprot_count) . " seed sequences are not in pfamseq ---\n";
     print STDERR "$not_pfamseq_log\n";
+    print STDERR "\nWill continue, but sequences should be from pfamseq where possible.";
+    print STDERR "\nPress cntrl-c now to abort operation and attempt to include only pfamseq seqs\n";
+    sleep 8;
   }
   else {
     $famObj->seedcheck('pfamseq');
