@@ -443,13 +443,13 @@ if ($onlydesc) {
 else {
   print "Going to commit family\n";
   $client->commitFamily($family);
-}
 
-print "Doing update in Database\n";
-$pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
-$familyIO->updatePfamARegions($upFamObj, $pfamDB);
-$familyIO->uploadPfamAHMM($upFamObj, $pfamDB, $dir, 0);
-$familyIO->uploadPfamAAligns($upFamObj, $pfamDB, $dir, 0);
+  print "Doing update in Database\n";
+  $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+  $familyIO->updatePfamARegions($upFamObj, $pfamDB);
+  $familyIO->uploadPfamAHMM($upFamObj, $pfamDB, $pwd, 0);
+  $familyIO->uploadPfamAAligns($upFamObj, $pfamDB, $pwd, 0);
+}
 
 
 

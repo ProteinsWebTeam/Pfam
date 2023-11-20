@@ -252,8 +252,8 @@ $client->addFamily( $family, $newFamObj->DESC->ID );
 print "Doing update in Database\n";
 $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 $familyIO->updatePfamARegions($newFamObj, $pfamDB);
-$familyIO->uploadPfamAHMM($newFamObj, $pfamDB, $dir, 1);
-$familyIO->uploadPfamAAligns($newFamObj, $pfamDB, $dir, 1);
+$familyIO->uploadPfamAHMM($newFamObj, $pfamDB, $pwd, 1);
+$familyIO->uploadPfamAAligns($newFamObj, $pfamDB, $pwd, 1);
 
 #Remove any file containing the check-in message
 if ( -s ".default" . $$ . "pfnew" ) {
