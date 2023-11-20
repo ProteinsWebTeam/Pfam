@@ -350,18 +350,29 @@ if ($onlydesc) {
 
 }
 
+#Get pfamDB object, use this for various qc checks
+my $pfamDB;
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
+  my $connect = $config->pfamlive;
+  $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+}
+
+#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
+unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, undef, $pfamDB ) ) {
+  exit(1);
+}
+
+
 #These are more sanity checks
 unless ($ignore) {
 
-#Regardless of whether we are just checking in a DESC or the complete set of family files.
+  #Regardless of whether we are just checking in a DESC or the complete set of family files.
   Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
-  my $pfamDB;
+
   unless ($onlydesc) {
 
     #If we are at sanger, perform an overlap check against the database.
     if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
-      my $connect = $config->pfamlive;
-      $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
       #Find out if family is in rdb
       my $rdb_family = $pfamDB->getPfamData($family);
@@ -418,10 +429,6 @@ unless ($ignore) {
 	print STDERR "SEED alignment is ragged\n";
     }
 
-    #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-    unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, undef, $pfamDB ) ) {
-      exit(1);
-    }
   }
 }
 
