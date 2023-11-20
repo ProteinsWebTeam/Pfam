@@ -177,7 +177,10 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 }
 
-
+#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
+unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $newFamObj, $family, undef, undef, $pfamDB ) ) {
+  exit(1);
+}
 
 #These are more sanity checks
 unless ($ignore) {
@@ -228,10 +231,6 @@ unless ($ignore) {
 
 }
 
-#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $newFamObj, $family, undef, undef, $pfamDB ) ) {
-  exit(1);
-}
 
 #Automatically write the 'new' message and add it the binding.
 open( M, ">.default" . $$ . "pfnew" )

@@ -155,11 +155,20 @@ if ( $famObj->DESC->CL ) {
   
 }
 
-#If we are at sanger/ebi, perform an overlap check against the database.
 my $pfamDB;
 if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect = $config->pfamlive;
   $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+}
+
+#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
+unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $famObj, $family, undef, undef, $pfamDB ) ) {
+  exit(1);
+}
+
+
+#If we are at sanger/ebi, perform an overlap check against the database.
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
 
   #Find out if family is in rdb
   my $rdb_family = $pfamDB->getPfamData($family);
@@ -250,7 +259,7 @@ unless ( Bio::Pfam::PfamQC::noFragsInSeed( $family, $famObj ) ) {
 $verbose and print STDERR "$0: Did not find any fragment in the SEED\n";
 
 if  ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $famObj ) ) {
-  print STDERR "$0: SEED is not ragged\n";
+  print STDERR "SEED is not ragged\n";
 } 
 
 unless($isNew){
@@ -263,10 +272,6 @@ unless($isNew){
 
 $verbose and print STDERR "$0: SEED does not apeear to be ragged\n";
 
-#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $famObj, $family, undef, undef, $pfamDB ) ) {
-  exit(1);
-}
 
 #Check all the references have been added
 unless( Bio::Pfam::PfamQC::checkReferencesAdded($famObj)) {
