@@ -445,6 +445,14 @@ else {
   $client->commitFamily($family);
 }
 
+print "Doing update in Database\n";
+$pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+$familyIO->updatePfamARegions($upFamObj, $pfamDB);
+$familyIO->uploadPfamAHMM($upFamObj, $pfamDB, $dir, 0);
+$familyIO->uploadPfamAAligns($upFamObj, $pfamDB, $dir, 0);
+
+
+
 #Remove any file containing the check-in message
 if ( -s ".default" . $$ . "pfci" ) {
   unlink( ".default" . $$ . "pfci" )

@@ -117,9 +117,10 @@ sub commitFamily {
     #Perform QC on the family
     $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg);
     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-    $familyIO->updatePfamARegions($famObj, $pfamDB);
-    $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
-    $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+    # move the heavy rdb updates to client code
+    # $familyIO->updatePfamARegions($famObj, $pfamDB);
+    # $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
+    # $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
     $familyIO->create_or_update_author($pfamDB, $famObj);
 
   }
@@ -158,9 +159,10 @@ sub commitNewFamily {
   #Okay, if we get to here, then we should be okay!
   #Now upload the family to Pfam  
   $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
-  $familyIO->updatePfamARegions($famObj, $pfamDB);
-  $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
-  $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
+  # move the heavy rdb updates to client code
+  # $familyIO->updatePfamARegions($famObj, $pfamDB);
+  # $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
+  # $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);
   $familyIO->create_or_update_author($pfamDB, $famObj);
 
   $guard->commit;

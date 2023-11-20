@@ -249,6 +249,12 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 
 $client->addFamily( $family, $newFamObj->DESC->ID );
 
+print "Doing update in Database\n";
+$pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+$familyIO->updatePfamARegions($newFamObj, $pfamDB);
+$familyIO->uploadPfamAHMM($newFamObj, $pfamDB, $dir, 1);
+$familyIO->uploadPfamAAligns($newFamObj, $pfamDB, $dir, 1);
+
 #Remove any file containing the check-in message
 if ( -s ".default" . $$ . "pfnew" ) {
   unlink( ".default" . $$ . "pfnew" )
