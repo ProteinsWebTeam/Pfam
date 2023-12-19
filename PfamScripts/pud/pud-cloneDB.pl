@@ -49,7 +49,7 @@ if ($schema) {
         die qq(Failure to import schema from $live_dbname to $clone_dbname: $res);
     }
 
-    my $command = "mysql -h$host -P$port -u$user -p$pass $live_dbname -e 'alter table $clone_dbname.pfamseq drop foreign key FK_pfamseq_1'";
+    my $command = "mysql -h$host -P$port -u$user -p$pass $live_dbname -e 'alter table $clone_dbname.pfamseq drop foreign key FK_pfamseq_taxid'";
     my $res = `$command`;
     if ($?) {
         die qq(Failure to drop keys on pfamseq: $res);
