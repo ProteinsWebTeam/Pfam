@@ -35,17 +35,20 @@ $st_initialise_num_uniprot->execute() or die "Failed to set number_uniprot to 0 
 chdir($pfamA_acc) or die "Couldn't chdir into $pfamA_acc, $!";
 
 #Get a copy of the HMM
+print STDERR "Getting HMM\n";
 my $hmmResult = $pfamDB->getSchema->resultset('PfamAHmm')->find({ pfama_acc => $pfamA_acc});
 open(HMM, ">$pfamA_acc.hmm.noGA") or die "Couldn't open fh to $pfamA_acc.hmm.noGA, $!";
 print HMM $hmmResult->hmm;
 close HMM;
 
 #Look up GA thresholds
+print STDERR "Getting GA thresholds\n";
 my $sth=$dbh->prepare("select sequence_GA, domain_GA from pfamA where pfamA_acc='$pfamA_acc'");
 $sth->execute() or die "Couldn't execute statement ".$sth->errstr."\n";
 my ($ga_seq, $ga_dom)=$sth->fetchrow;
 
 #Add GA to HMM
+print STDERR "Adding GA to HMM\n";
 open(NEW, ">$pfamA_acc.hmm") or die "Couldn't open fh to $pfamA_acc.hmm, $!";
 open(HMM, "$pfamA_acc.hmm.noGA") or die "Couldn't open fh to $pfamA_acc.hmm.noGA, $!";
 while(<HMM>) {
@@ -58,20 +61,34 @@ close HMM;
 close NEW;
 
 #Run hmmsearch
+print STDERR "Running hmmsearch\n";
 system("hmmsearch --cut_ga --cpu 4 --domtblout $pfamA_acc.doms -A $pfamA_acc.stockholm $pfamA_acc.hmm $db > /dev/null");
 
 #Reformat the alignment (refomat to pfam style, then remove all blank lines and lines beginning '#'
+print STDERR "Converting the alignment from stockholm to pfam\n";
 system("esl-reformat --informat stockholm pfam $pfamA_acc.stockholm | grep -v \'^#\\|^\$\' > $pfamA_acc.pfam");
 
 #Read in the alignment and upload to db
+print STDERR "Reading the alignment from the db\n";
+# reset the db connection
+$pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
+$dbh = $pfamDB->getSchema->storage->dbh;
 my $aln;
-if(-s "$pfamA_acc.pfam" >= 4000000000) { #If the file is >=4gb in size
+if(-s "$pfamA_acc.pfam" >= 3500000000) { #If the file is >=3.5gb in size
   system("gzip $pfamA_acc.pfam") and die "Couldn't gzip $pfamA_acc.pfam, $!";
   open(ALN, "$pfamA_acc.pfam.gz") or die "Couldn't open fh to $pfamA_acc.pfam.gz, $!"; 
   while(<ALN>) {
     $aln.=$_;
   }
   close ALN;
+
+  # clear before update
+  $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+      pfama_acc => $pfamA_acc,
+      alignment  => '',
+      type       => 'uniprot'
+    }
+  );
 
   $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
       pfama_acc => $pfamA_acc,
@@ -87,6 +104,14 @@ else {
   }
   close ALN;
 
+  # clear before update
+  $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+      pfama_acc => $pfamA_acc,
+      alignment  => '',
+      type       => 'uniprot'
+    }
+  );
+
   $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
       pfama_acc => $pfamA_acc,
       alignment  => Compress::Zlib::memGzip($aln),
@@ -96,9 +121,15 @@ else {
 }
 
 #Delete old regions, if any
+print STDERR "Deleting old regions\n";
 $pfamDB->getSchema->resultset('UniprotRegFull')->search( { pfama_acc => $pfamA_acc} )->delete;
 
+# reset the db connection
+$pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
+$dbh = $pfamDB->getSchema->storage->dbh;
+
 #Upload matches to db
+print STDERR "Uploading matches\n";
 my @upload;
 my $num_full=0;
 open(MATCHES, "$pfamA_acc.doms") or die "Couldn't open fh to $pfamA_acc.doms, $!";
@@ -152,9 +183,12 @@ my $st_clan_membership = $dbh->prepare("select clan_acc from clan_membership whe
 $st_clan_membership->execute() or die "Couldn't execute statement ".$st_clan_membership->errstr."\n";
 my $clan=$st_clan_membership->fetchrow;
 unless($clan) {
+  print STDERR "Updating number_uniprot\n";
   my $st_update_pfamA = $dbh->prepare("update pfamA set number_uniprot='$num_full' where pfamA_acc='$pfamA_acc'");
   $st_update_pfamA->execute() or die "Failed to update number_uniprot in pfamA table ". $st_update_pfamA->errstr."\n";
 }
 
 chdir("../") or die "Couldn't chdir up from $pfamA_acc, $!";
 remove_tree($pfamA_acc);
+
+print STDERR "Done\n";
