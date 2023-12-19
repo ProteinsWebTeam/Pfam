@@ -50,10 +50,14 @@ foreach my $clan (@clans) {
 
   #Compete clan
   Bio::Pfam::Clan::Compete::competeClanUniprot( $clan->clan_acc, $pfamDB );
-  
+
+  $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
+  $dbh = $pfamDB->getSchema->storage->dbh;
+
   #Update clan member alignments, and number_uniprot in pfamA
   my @clanMembers=$pfamDB->getSchema->resultset('ClanMembership')->search( { clan_acc => $clan->clan_acc });  
   my $st_update_pfamA = $dbh->prepare("update pfamA set number_uniprot=? where pfamA_acc=?");
+  print STDERR "Got " . scalar @clanMembers . " members\n";
   foreach my $member (@clanMembers) {
 
     my $pfamA_acc=$member->pfama_acc->pfama_acc;
@@ -105,7 +109,7 @@ foreach my $clan (@clans) {
     
     #Upload competed alignment to db
     my $num_bytes = length($competed_aln); #use bytes statement at top of script means length returns number of bytes
-    if($num_bytes >= 4000000000) { #If the alignment is >=4gb in size
+    if($num_bytes >= 3000000000) { #If the alignment is >=3gb in size
       open(ALN, ">$pfamA_acc.uniprot") or die "Couldn't open fh to $pfamA_acc.uniprot, $!";
       print ALN $competed_aln;
       close ALN;
@@ -120,12 +124,26 @@ foreach my $clan (@clans) {
 
       $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
           pfama_acc => $pfamA_acc,
+          alignment  => '',
+          type       => 'uniprot'
+        }
+      );
+
+      $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+          pfama_acc => $pfamA_acc,
           alignment  => $upload_aln,
           type       => 'uniprot'
         }   
       );  
     }
     else {
+      $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
+          pfama_acc => $pfamA_acc,
+          alignment  => '',
+          type       => 'uniprot'
+        }
+      );
+
       $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
           pfama_acc => $pfamA_acc,
           alignment  => Compress::Zlib::memGzip($competed_aln),
@@ -139,3 +157,5 @@ foreach my $clan (@clans) {
 
   }
 }
+
+print STDERR "Done\n";
