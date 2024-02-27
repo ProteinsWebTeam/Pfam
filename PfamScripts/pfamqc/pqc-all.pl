@@ -258,9 +258,7 @@ unless ( Bio::Pfam::PfamQC::noFragsInSeed( $family, $famObj ) ) {
 
 $verbose and print STDERR "$0: Did not find any fragment in the SEED\n";
 
-if  ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $famObj ) ) {
-  print STDERR "SEED is not ragged\n";
-} 
+Bio::Pfam::PfamQC::nonRaggedSeed( $family, $famObj );
 
 unless($isNew){
   unless(Bio::Pfam::PfamQC::noMissing($famObj, $svnFamObj, $family )){
