@@ -109,7 +109,7 @@ sub main {
     $cpu=16;
   }
   else {
-    $cpu = 4;
+    $cpu = 8;
   }
 
   #Check db and dbsize
@@ -601,11 +601,19 @@ sub main {
           );
         }
         elsif( $config->location eq "EBI") {
-
-          $fh->open( "| bsub -q "
-            . $farmConfig->{lsf}->{queue}
-            . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o pfbuild.log -Jhmmsearch$$"
-          );
+          # Is LSF set up? if not SLURM
+          if ( $ENV{LSF_ENVDIR} ) {
+            $fh->open( "| bsub -q "
+              . $farmConfig->{lsf}->{queue}
+              . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o pfbuild.log -Jhmmsearch$$"
+            );
+          } else {
+            $fh->open( "| sbatch -p "
+              . $farmConfig->{lsf}->{queue}
+              . " --cpus-per-task=$cpu --mem=$memory_mb -o \"pfbuild.log\" -e \"pfbuild.log\" -J hmmsearch$$ --time=2:00:00 "
+            );
+            $fh->print( "#!/bin/bash\n" );
+          }
         }
         else {
           die "Config is not WTSI or EBI, do not know what to do";
