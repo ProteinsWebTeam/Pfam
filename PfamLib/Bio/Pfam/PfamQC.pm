@@ -763,7 +763,7 @@ sub nonRaggedSeed {
 =cut
 
 sub sequenceChecker {
-  my ( $family, $famObj, $pfamDB ) = @_;
+  my ( $family, $famObj, $pfamDB, $fast ) = @_;
 
   unless ($famObj) {
     confess("Undefined family object passed");
@@ -865,30 +865,37 @@ sub sequenceChecker {
     }
   }
 
+
+  #Update seedcheck
+  if($not_pfamseq_count) {
+    if($not_pfamseq_count == $uniprot_count) { #All sequences not in pfamseq are in the uniprot table
+      $famObj->seedcheck('pfamseqplus');
+    } else {
+      #Some sequences not in pfamseq are not in the uniprot table
+      $error = 1;
+    }
+    print STDERR "\n--- " . ($not_pfamseq_count - $not_uniprot_count) . " seed sequences are not in pfamseq ---\n";
+    print STDERR "$not_pfamseq_log\n";
+  }
+  else {
+    $famObj->seedcheck('pfamseq');
+  }
+
   if($not_uniprot_count) {
     print STDERR "\n--- $not_uniprot_count seed sequences are not in pfamseq or uniprot ---\n";
     print STDERR "$not_uniprot_log\n";
     $error = 1;
   }
 
-  #Update seedcheck
-  if($not_pfamseq_count) {
-    if($not_pfamseq_count == $uniprot_count) { #All sequences not in pfamseq are in the uniprot table
-      $famObj->seedcheck('pfamseqplus');
-    }
-    print STDERR "\n--- " . ($not_pfamseq_count - $not_uniprot_count) . " seed sequences are not in pfamseq ---\n";
-    print STDERR "$not_pfamseq_log\n";
-    print STDERR "\nWill continue, but sequences should be from pfamseq where possible.";
-    print STDERR "\nPress cntrl-c now to abort operation and attempt to include only pfamseq seqs\n";
-    sleep 8;
-  }
-  else {
-    $famObj->seedcheck('pfamseq');
-  }
-
   if ($error) {
     # if errors do not verify seqs
     return 0;
+  }
+
+  if ($famObj->seedcheck eq 'pfamseqplus') {
+    print STDERR "\nWill continue, but sequences should be from pfamseq where possible.";
+    print STDERR "\nPress cntrl-c now to abort operation and attempt to include only pfamseq seqs\n";
+    sleep 5 unless $fast;
   }
 
   my $verified_seq = Bio::Pfam::SeqFetch::verifySeqs( \%allseqs, $CONFIG->pfamseqLoc . "/pfamseq" );

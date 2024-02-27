@@ -401,11 +401,22 @@ sub farmJackhmmer {
       . $farmConfig->{lsf}->{queue} . " -o $$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -G pfam-grp" );
   }
   elsif($config->location eq 'EBI') { # EBI memory requirement is specified in Mb
-    $fh->open( "| bsub -q " . $farmConfig->{lsf}->{queue} . 
-      " -o $$.log" .
-      " -Jjackhmmer$$ " .
-      " -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" " . 
-      " -M $memory_mb" ); 
+    # Is LSF set up? if not SLURM
+    if ( $ENV{LSF_ENVDIR} ) {
+      $fh->open( "| bsub -q " . $farmConfig->{lsf}->{queue} .
+        " -o $$.log" .
+        " -Jjackhmmer$$ " .
+        " -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" " .
+        " -M $memory_mb" );
+    } else {
+      $fh->open( "| sbatch -p " . $farmConfig->{lsf}->{queue} .
+        " -o $$.log" .
+        " -e $$.log" .
+        " -J jackhmmer$$ " .
+        " --time=2:00:00 " .
+        " --mem=$memory_mb " );
+      $fh->print( "#!/bin/bash\n" );
+    }
   }
   else {
     $fh->open( "| bsub -q "
