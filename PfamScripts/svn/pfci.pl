@@ -362,6 +362,12 @@ unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, un
   exit(1);
 }
 
+# Check the sequences always
+unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB, $ignore ) ) {
+  print "pfci: $family contains errors.  You should rebuild this family.\n";
+  exit(1);
+}
+
 
 #These are more sanity checks
 unless ($ignore) {
@@ -376,11 +382,6 @@ unless ($ignore) {
 
       #Find out if family is in rdb
       my $rdb_family = $pfamDB->getPfamData($family);
-
-      unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB ) ) {
-        print "pfci: $family contains errors.  You should rebuild this family.\n";
-        exit(1);
-      }
 
       #Need to populate the ignore hash with clan and nesting data......
       my %ignore;
