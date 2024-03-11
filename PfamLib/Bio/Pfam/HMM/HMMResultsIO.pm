@@ -287,6 +287,7 @@ HEAD
 
     );
   }
+  print $fh "//";
 }
 
 #-------------------------------------------------------------------------------
@@ -305,6 +306,7 @@ HEAD
 sub parsePFAMOUT {
   my $self     = shift;
   my $filename = shift;
+  my $eof = 0;
 
   unless ($filename) {
     confess('No filename or filehandle passed to parsePFAMOUT');
@@ -374,12 +376,23 @@ sub parsePFAMOUT {
     elsif (/^$/) {
       next;
     }
+    elsif (/^\/\/$/) {
+      $eof = 1;
+    }
     else {
       warn "Did not parse: |$_|";
     }
   }
   close($fh);
-  return ($hmmRes);
+
+  if ($eof) {
+    return ($hmmRes);
+  }
+  else {
+    # die('Failed to parsePFAMOUT: Did not reach EOF');
+    warn("Failed to parsePFAMOUT: Did not reach EOF.\n... Allowing but this will become an error soon!");
+    return ($hmmRes);
+  }
 }
 
 #-------------------------------------------------------------------------------
