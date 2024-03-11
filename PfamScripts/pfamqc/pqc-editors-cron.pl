@@ -60,13 +60,13 @@ print <<EOF;
 The following families were added between $yesterday and $today
 by untrusted depositors:
 
-accession  ID                    depositor     description
+accession ID                             depositor     description
 EOF
 
 my ( $acc, $id, $desc, $by );
 format = 
-@<<<<<<    @<<<<<<<<<<<<<<<<<    @<<<<<<<<<    @*
-$acc,      $id,                  $by,          $desc
+@<<<<<<   @<<<<<<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<< @*
+$acc,     $id,                           $by,          $desc
 .
 
 foreach my $pfam ( @untrusted ) {
