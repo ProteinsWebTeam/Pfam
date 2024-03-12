@@ -376,7 +376,7 @@ sub parsePFAMOUT {
     elsif (/^$/) {
       next;
     }
-    elsif (/^\/\/$/) {
+    elsif (/^\/\/\n$/) {
       $eof = 1;
     }
     else {
