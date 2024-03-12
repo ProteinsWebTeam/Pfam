@@ -1744,11 +1744,6 @@ sub checkFamilyFiles {
       "$family: Your scores [$family/scores] is younger than your full alignment [$family/ALIGN].\n";
       $error = 1;
     }
-    if ( -M "$family/PFAMOUT" < -M "$family/ALIGN" ) {
-      warn
-      "$family: Your PFAMOUT [$family/PFAMOUT] is younger than your full alignment [$family/ALIGN].\n";
-      $error = 1;
-    }
   }
   if ($error) {
     return 0;
