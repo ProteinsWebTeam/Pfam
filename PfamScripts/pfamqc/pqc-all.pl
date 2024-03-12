@@ -98,7 +98,7 @@ my $dir = File::Temp->newdir( 'CLEANUP' => 1 );
 if ( $famObj->DESC->AC ) {
   $isNew = 0;
   
-  $verbose and  print STDERR "$0: Found an accession, assming the family already exists in the respository\n";
+  $verbose and  print STDERR "$0: Found an accession, assuming the family already exists in the repository\n";
   
   #Check that the family exists in the repository
   $client->checkFamilyExists($famObj->DESC->AC); 
@@ -268,7 +268,7 @@ unless($isNew){
   
 
 
-$verbose and print STDERR "$0: SEED does not apeear to be ragged\n";
+$verbose and print STDERR "$0: SEED does not appear to be ragged\n";
 
 
 #Check all the references have been added
@@ -287,7 +287,7 @@ usage: $0 [options] <PFAM ACCESSION>
 Performs all QC checks on the family.
 
 -help    : print this help message
--verbose : print extra statements as to what checks have been passeed.
+-verbose : print extra statements as to what checks have been passed.
 
 EOF
  
