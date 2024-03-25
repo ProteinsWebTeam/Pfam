@@ -14,7 +14,7 @@ use Bio::Pfam::FamilyIO;
 use Bio::Pfam::Clan::Compete;
 use Bio::Pfam::Clan::ClanGraphics;
 use Bio::Pfam::PfamLiveDBManager;
-use Bio::Pfam::SVN::Client;
+# use Bio::Pfam::SVN::Client;
 use Bio::Pfam::ViewProcess;
 use Digest::MD5 qw(md5_hex);
 
@@ -89,13 +89,9 @@ $job->run;
 $view->logger->debug("Checking clan is in the database");
 my $clanData = $view->pfamdb->getClanData($clanAcc);
 
-#Check that the clan is in the SVN system
-$view->logger->debug("Checking clan is in the SVN repository");
-my $client = Bio::Pfam::SVN::Client->new;
-$client->checkClanExists($clanAcc);
 
-# Check all families exist in both the database and svn
-my $clanSVNObj = $clanIO->loadClanFromSVN( $clanAcc, $client );
+# Get clan and membership info
+my $clan_obj = $clanIO->loadClanFromRDB($clanAcc, $view->pfamdb);
 my $clanMemRef = $view->pfamdb->getClanMembership($clanAcc);
 
 # Xref clan membership in the database and svn
@@ -178,7 +174,7 @@ my $noSpecies = 0;
 
 $view->logger->debug("Writing the clandesc file so that clan can be versioned");
 
-$clanIO->writeCLANDESC($clanSVNObj->DESC, ".");
+$clanIO->writeCLANDESC($clan_obj->DESC, ".");
 open(C, "CLANDESC") or die;
 my @clandesc = <C>;
 close(C);
@@ -207,8 +203,8 @@ $clanData = $clanData->update({ version => $version,
 #Make Stockholm version of CLANDESC
 $view->logger->debug("Writing Stockholm version of CLANDESC");
 
-$clanSVNObj->DESC->AC($clanSVNObj->DESC->AC.".$version");
-$clanIO->writeCLANDESC($clanSVNObj->DESC, ".");
+$clan_obj->DESC->AC($clan_obj->DESC->AC.".$version");
+$clanIO->writeCLANDESC($clan_obj->DESC, ".");
 #Write out again with the version
 open(C, "CLANDESC") or die;
 @clandesc = <C>;
@@ -237,34 +233,35 @@ $view->pfamdb->getSchema
 
 #-------------------------------------------------------------------------------
 # Make clan alignment and relationship images
-if(scalar(@$clanMemAcc) <= 40){ 
-$view->logger->debug("Going to run hhsearch for clan members");
-my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $view );
+# Do not do for any Clan
+# if(scalar(@$clanMemAcc) <= 40){ 
+# $view->logger->debug("Going to run hhsearch for clan members");
+# my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $view );
 
-$view->logger->debug("Making clan alignment");
-makeAlign( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->clan_acc );
-$view->logger->debug("Making clan relationship diagram");
-makeGraph( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->clan_acc );
-}
+# $view->logger->debug("Making clan alignment");
+# makeAlign( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->clan_acc );
+# $view->logger->debug("Making clan relationship diagram");
+# makeGraph( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->clan_acc );
+# }
 
 #-------------------------------------------------------------------------------
-$view->logger->debug("Initiating view process for family members");
+# $view->logger->debug("Initiating view process for family members");
 
-# Set of family view processes 
-my $familyIO = Bio::Pfam::FamilyIO->new;
-foreach my $fam (@$clanMemAcc){
-  my $dir = File::Temp->newdir( 'CLEANUP' => 1 ); 
-  my $famObj;
-  eval{
-    $famObj = $familyIO->loadPfamAFromSVN($fam, $dir, $client, 1);
-  };
-  if($@){
-    $view->mailUserAndFail( "makeclanview: Failed to $fam:[$!]" );  
-  }
-  $view->logger->debug("initiateFamily ViewProcess for $fam");
+# # Set of family view processes 
+# my $familyIO = Bio::Pfam::FamilyIO->new;
+# foreach my $fam (@$clanMemAcc){
+#   my $dir = File::Temp->newdir( 'CLEANUP' => 1 ); 
+#   my $famObj;
+#   eval{
+#     $famObj = $familyIO->loadPfamAFromSVN($fam, $dir, $client, 1);
+#   };
+#   if($@){
+#     $view->mailUserAndFail( "makeclanview: Failed to $fam:[$!]" );  
+#   }
+#   $view->logger->debug("initiateFamily ViewProcess for $fam");
   
-  $view->initiateFamilyViewProcess($famObj, $job->user_id);
-}
+#   $view->initiateFamilyViewProcess($famObj, $job->user_id);
+# }
 
 #-------------------------------------------------------------------------------
 #Set job status to be done!
