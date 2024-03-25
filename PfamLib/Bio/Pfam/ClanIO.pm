@@ -478,7 +478,7 @@ sub parseCLANDESC {
 }
 
 sub writeCLANDESC {
-  my ( $self, $desc, $path ) = @_;
+  my ( $self, $desc, $path, $descfile ) = @_;
 
   unless ( $desc->isa('Bio::Pfam::Clan::DESC') ) {
     confess( "\nYou did not pass in a  Bio::Pfam::Clan::DESC object\n"
@@ -486,13 +486,12 @@ sub writeCLANDESC {
         . "\n" );
   }
 
-  my $descfile;
+  $descfile //= 'CLANDESC';
+
   if ($path) {
-    $descfile = $path . "/CLANDESC";
+    $descfile = $path . "/" . $descfile;
   }
-  else {
-    $descfile = "CLANDESC";
-  }
+
   open( D, ">$descfile" )
     or die "Could not open $descfile file for writing to\n";
 
