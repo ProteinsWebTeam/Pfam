@@ -19,7 +19,7 @@ my $dbh_pfam = $pfamDB->getSchema->storage->dbh;
 # codon
 $ENV{TNS_ADMIN}='/usr/lib/oracle/19.9/client64/network/admin';
 
-my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_pfam", "search_pfam55");
+my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_interpro", "search_interpro55");
 
 my %pdbs;
 
