@@ -427,6 +427,24 @@ sub antifamLoc {
   return $self->{antifamLocation};
 }
 
+=head2 alignmentsLoc
+
+  Title    : alignmentsLoc
+  Usage    : $config->alignmentsLoc
+  Function : Returns the location of the alignments for the current release
+  Args     : None - read only operator
+  Returns  : string containing path to the alignments for the current release
+
+=cut
+
+sub alignmentsLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{alignmentsLocation};
+}
+
 =head2 dbsize
 
   Title    : dbsize
