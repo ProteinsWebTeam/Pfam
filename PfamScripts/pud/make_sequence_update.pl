@@ -36,6 +36,9 @@ unless($new_release_num) {
 #Get cwd
 my $cwd = cwd();
 
+my $config_live = Bio::Pfam::Config->new;
+my $queue = $config_live->{farm}->{lsf}->{queue};
+
 
 #Make pfamseq, status and logs directories
 my $status_dir = "status";
@@ -65,8 +68,6 @@ else {
 
 
 #Make a copy of pfamlive
-my $config_live = Bio::Pfam::Config->new;
-my $queue = $config_live->{farm}->{lsf}->{queue};
 if(-e "$status_dir/cloned_database") {
   $logger->info("Already cloned pfamlive");
 }
@@ -126,20 +127,7 @@ else {
   }
 }
 
-#Add ncbi foreign key back to pfamseq
-#It was removed in pud-cloneDB.pl as NCBI taxonomy and EBI taxonomy may not be in sync)
-if(-e "$status_dir/added_fk_pfamseq") {
-  $logger->info("Already removed foreign key from pfamseq table");
-}
-else { 
-  $logger->info("Adding back ncbi foreign key to pfamseq table");
-  my $command="mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{adminuser}." -p". $pfamDB->{adminpassword}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." -e ";
-  $command.="'alter table pfamseq add constraint FK_pfamseq_1 foreign key (ncbi_taxid) references ncbi_taxonomy (ncbi_taxid) on delete cascade on update no action'";
-  
-  system("$command");
 
-  system("touch $status_dir/added_fk_pfamseq") and $logger->logdie("Could not touch $status_dir/added_fk_pfamseq");
-}
 
 #Update pfamseq and uniprot tables
 if(-e "$status_dir/update_pfamseq" and -e "$status_dir/update_uniprot") {
@@ -149,12 +137,12 @@ else {
   $logger->info("Running scripts to update pfamseq and uniprot tables on the farm");
 
   unless(-e "$status_dir/update_pfamseq") {
-    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq.log", -J => 'pfamseq', -M => 5000, -R => 'rusage[mem=5000]', "pud-update_pfamseq.pl -status_dir status -pfamseq_dir pfamseq");
+    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq.log", -J => 'pfamseq', -M => 8000, -R => 'rusage[mem=8000]', "pud-update_pfamseq.pl -status_dir status -pfamseq_dir pfamseq");
     my $pfamseq_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq.log", -J => 'pfamseq_done', -w => "done($pfamseq_job)", "touch $status_dir/update_pfamseq");
   }
 
   unless(-e "$status_dir/update_uniprot") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 80000, -R => 'rusage[mem=80000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
+    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 200000, -R => 'rusage[mem=200000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
     my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot_done', -w => "done($uniprot_job)", "touch $status_dir/update_uniprot");
   }
 
@@ -163,6 +151,22 @@ else {
     sleep 600;
   }
 }
+
+
+#Add ncbi foreign key back to pfamseq
+#It was removed in pud-cloneDB.pl as NCBI taxonomy and EBI taxonomy may not be in sync)
+if(-e "$status_dir/added_fk_pfamseq") {
+  $logger->info("Already reinstated ncbi foreign key to pfamseq table");
+}
+else { 
+  $logger->info("Adding back ncbi foreign key to pfamseq table");
+  my $command="mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{adminuser}." -p". $pfamDB->{adminpassword}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." -e ";
+  $command.="'alter table pfamseq add constraint FK_pfamseq_taxid foreign key (ncbi_taxid) references ncbi_taxonomy (ncbi_taxid) on delete cascade on update no action'";
+  system("$command");
+
+  system("touch $status_dir/added_fk_pfamseq") and $logger->logdie("Could not touch $status_dir/added_fk_pfamseq");
+}
+
 
 #Run all sequences against antifam and remove any that match
 if(-e "$status_dir/run_antifam") {
@@ -174,6 +178,10 @@ else {
   my $antifam_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/antifam.log", -J => 'antifam', "pud-removeAntiFamMatches.pl -status_dir status -pfamseq_dir pfamseq -logs_dir logs");
   my $antifam_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/antifam.log", -J => 'antifam_done', -w => "done($antifam_job)", "touch $status_dir/run_antifam");
 
+  $logger->info("Waiting for antifam matches to be removed");
+  until(-e "$status_dir/run_antifam") {
+    sleep 600;
+  }
 }
 
 
@@ -185,12 +193,12 @@ else {
   $logger->info("Making pfamseq and uniprot fasta files on the farm");
 
   unless(-e "$status_dir/pfamseq_fasta") {
-    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfameq_fasta', -M => 4000, -R => 'rusage[mem=4000]', "pud-make_pfamseq_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
+    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfameq_fasta', -M => 32000, -R => 'rusage[mem=32000]', "pud-make_pfamseq_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
     my $pfamseq_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfamseq_fasta_done', -w => "done($pfamseq_job)", "touch $status_dir/pfamseq_fasta");
   }
 
   unless(-e "$status_dir/uniprot_fasta") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta', -M => 32000, -R => 'rusage[mem=32000]', "pud-make_uniprot_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
+    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta', -M => 64000, -R => 'rusage[mem=64000]', "pud-make_uniprot_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
     my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta_done', -w => "done($uniprot_job)", "touch $status_dir/uniprot_fasta");
   }
 
@@ -209,7 +217,7 @@ else {
     $logger->info("Updating pfamseq symbolic link");
     my $new_pfamseq = "pfamseq" . $new_release_num;
 
-    chdir("/nfs/production/xfam/pfam/data/") or die "Couldn't chdir into /nfs/production/xfam/pfam/data/, $!";
+    chdir("/nfs/production/agb/pfam/data/") or die "Couldn't chdir into /nfs/production/agb/pfam/data/ $!";
     system("rm -f pfamseq") and die "Couldn't remove old symbolic link, $!";
     system("ln -s $new_pfamseq pfamseq") and $logger->logdie("Couldn't create new symbolic link for pfamseq, $!");
 
@@ -245,7 +253,7 @@ else {
   chdir($pfamseq_dir) or $logger->logdie("Couldn't chdir into $pfamseq_dir, $!");
 
   my $shuffled_dir = $config_live->{shuffled}->{location};
-  my $shuffled_job = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled', -M => 10000, -R => 'rusage[mem=10000]', "esl-shuffle pfamseq > shuffled; esl-sfetch --index shuffled; cp shuffled* $shuffled_dir/.");
+  my $shuffled_job = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled', -M => 16000, -R => 'rusage[mem=16000]', "esl-shuffle pfamseq > shuffled; esl-sfetch --index shuffled; cp shuffled* $shuffled_dir/.");
   my $shuffled_job2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled_done', -w => "done($shuffled_job)", "touch $cwd/$status_dir/shuffled");
 
   chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
@@ -257,12 +265,19 @@ else {
 }
 
 #To do - code this bit (it was done manually for 32.0)
-#Update config for pfamseq, uniprot and shuffled db size
-#Update /nfs/production/xfam/pfam/data/pfam_svn_server.conf with pfamseq and shuffled dbsize with values from $PFAM_CONFIG
+# Update config for pfamseq, uniprot and shuffled db size
+# Update /hps/software/users/agb/pfam/software/conf/pfam_svn.conf with pfamseq and shuffled dbsize with values
+# from $PFAM_CONFIG. Those can be found on the pfamseq_fasta.log, uniprot_fasta.log and shuffled.log
+# Also the config on xfam-svn-hl needs updating:
+# on codon: become xfm_adm
+# ssh xfam-svn-hl
+# vim /nfs/production/xfam/pfam/data/pfam_svn_server.conf
+# and update pfamseq and uniprot db sizes
+
 
 
 #Change config to point to pfam_live
-my $live_config="/nfs/production/xfam/pfam/software/Conf/pfam_svn.conf";
+my $live_config="/hps/software/users/agb/pfam/software/conf/pfam_svn.conf";
 unless(-s $live_config) {
   $logger->logdie("$live_config does not exist");
 }
@@ -321,12 +336,18 @@ else {
      mkdir($seed_surgery_dir, 0755) or $logger->logdie("Couldn't mkdir '$seed_surgery_dir, $!");
    }
 
-  $logger->info("Running seed surgery script");
-  system("pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5");
-  
-  system("touch $status_dir/ran_seed_surgery") and $logger->logdie("Couldn't touch $status_dir/ran_seed_surgery");
+  my $seed_sur = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/seedsurgery.log", -J => 'seedsurgery', -M => 8000, -R => 'rusage[mem=8000]', "pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5");
+  my $seed_sur2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/seedsurgery.log", -J => 'seedsurgery_done', -w => "done($seed_sur)", "touch $status_dir/ran_seed_surgery");
+
+  $logger->info("Waiting for seed surgery script to finish");
+  until(-e "$status_dir/ran_seed_surgery") {
+    sleep 600;
+  }
+  $logger->info("Seed surgery script completed. Exiting");
   exit;
 }
+
+
 
 
 #Populate other_regions table
@@ -336,7 +357,7 @@ if(-e "$status_dir/other_regions") {
 else {
   $logger->info("Going to populate other_reg table");
 
-  my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 48000, -R => 'rusage[mem=48000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
+  my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 64000, -R => 'rusage[mem=64000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
   my $other_reg2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg_done', -w => "done($other_reg)", "touch $status_dir/other_regions");
 
   $logger->info("Waiting for other_reg table to finish populating");
@@ -344,7 +365,6 @@ else {
     sleep 600;
   }
 }
-
 
 #Populate interpro and gene_ontology tables
 if(-e "$status_dir/interpro_and_go") {
@@ -382,6 +402,9 @@ else {
 }
 
 
+
+
+
 #Populate pdb and pdb_residue_data tables 
 if(-e "$status_dir/pdb_data") {
   $logger->info("Already populated pdb and pdb_residue_data tables"); 
@@ -399,6 +422,7 @@ else {
 }
 
 
+
 #Copy released_pfam_version and released_clan_version table data from the last release db to pfam_live db
 #Also put a copy of the release config in the configs directory
 if(-e "$status_dir/released_version_tables") {
@@ -406,9 +430,9 @@ if(-e "$status_dir/released_version_tables") {
 }
 else {
 
-    my $config_dir = "/nfs/production/xfam/pfam/software/Conf";
+    my $config_dir = "/hps/software/users/agb/pfam/software/conf/";
     my $new_rel_config = "pfam".$new_release_num.".conf";
-    $logger->info("Going to copy the pfam release config to $config_dir/$new_rel_config");
+    $logger->info("Going to copy the pfam release config $pfam_release_config to $config_dir/$new_rel_config");
 
     system("cp $pfam_release_config $config_dir/$new_rel_config") and die "Couldn't 'cp $pfam_release_config $config_dir/$new_rel_config, $!";
 
@@ -416,12 +440,32 @@ else {
     my $last_rel_db = "pfam_".$last_release."_0";
     my $last_release_conf = "$config_dir/pfam".$last_release.".conf";
 
+
     $logger->info("Going to copy released_pfam_version and released_clan_version table data from $last_rel_db to pfam_live database");
-    $logger->info("*** Note: If $last_rel_db is not the previous released version of Pfam, you will need to run pud-copy_versions.pl and pass in the config file for the previous release on the command line ***");
+    $logger->info("*** Note: If $last_release_conf is not the previous released version of Pfam, you will need to run pud-copy_versions.pl and pass in the config file for the previous release on the command line ***");
     system("pud-copy_versions.pl -pfam_live_config $live_config -last_release_config $last_release_conf") and die "Couldn't run 'pud-copy_versions.pl -pfam_live_config $live_config -last_release_config $last_release_conf', $!"; 
 
     system("touch $status_dir/released_version_tables") and $logger->logdie("Couldn't touch $status_dir/released_version_tables");
 }
+
+
+
+# Adding sequence database sizes to svn
+# Add the current sequence database size for pfamseq and uniprot to svn. The database size in svn is used by Pfam Docker to see if the user has the current sequence database. The commit messages should follow the format of the previous commit messages for each database and always start with SEQUP.
+
+# Get number of sequences in pfamseq from PFAM_CONFIG
+# cd /nfs/production/agb/pfam/data/Sequences/pfamseq
+# echo <pfamseq_dbsize> > pfamseq   (replace pfamseq_dbsize with the current number)
+# svn commit -m "SEQUP: Pfamseq 34.0 dbsize" pfamseq
+
+# Get number of sequences in uniprot from PFAM_CONFIG
+# cd /nfs/production/xfam/pfam/data/Sequences/uniprotkb
+# echo <uniprot_dbsize > > uniprot (replace uniprot_dbsize with the current number)
+# svn commit -m "SEQUP: Uniprot dbsize for Pfam 34.0" uniprot 
+
+
+
+
 
 sub help {
 
