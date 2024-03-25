@@ -21,11 +21,13 @@ my ( $verbose, $help );
   "help"    => \$help,
 );
 
+help() if ($help);
+
 my $family = shift;
 
 unless($family){
   print STDERR "\n*** No family specified ***\n\n";
-  help(); 
+  help();
 }
 
 $verbose and print STDERR "Going to run PfamQC methods on $family\n";
@@ -284,7 +286,15 @@ print<<EOF;
 
 usage: $0 [options] <PFAM ACCESSION>
 
-Performs all QC checks on the family.
+Performs all QC checks on the family:
+Checks the format of the files for any issues;
+Checks the sequences in the SEED and ALIGN files (as in 'pqc-seqs <PFAM ACCESSION>')
+Checks the alignments for overlaps with filtering set (as in 'pqc-overlap-rdb -filter <PFAM ACCESSION>');
+  The filter is set so that overlaps with a length of <20\% of the lowest scoring matching region length
+  will be permitted (i.e. filtered) if they form <1\% of the regions in the ALIGN file.
+  Filtering params are set on \$PFAM_CONFIG (overlap_rule field).
+Checks the Seed has no fragments, is not ragged, and has no missing sequences;
+Checks authors and references;
 
 -help    : print this help message
 -verbose : print extra statements as to what checks have been passed.
