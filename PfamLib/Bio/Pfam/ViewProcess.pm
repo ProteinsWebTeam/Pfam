@@ -14,13 +14,14 @@ use Text::Wrap;
 use JSON;
 use Data::Printer;
 use File::Touch;
+use File::Copy;
 use DDP;
-use Bio::HMM::Logo;
+#use Bio::HMM::Logo;
 use Bio::Annotation::Collection;
 use Compress::Zlib;
 
 #Need the version from github https://github.com/DaGaMs/Logomat
-use HMM::Profile;
+#use HMM::Profile;
 
 #Pfam Modules
 use Bio::Pfam::Config;
@@ -31,6 +32,7 @@ use Bio::Pfam::ViewProcess::ActiveSite;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::Config;
 use Bio::Pfam::ViewProcess::Consensus;
+
 
 $Text::Wrap::unexpand = 0;
 $Text::Wrap::columns = 75;
@@ -55,7 +57,7 @@ sub new {
 
   $self->logger->debug("Got pfam_job db connection");
   $self->{pfamdb} = Bio::Pfam::PfamLiveDBManager->new( %{ $self->config->pfamliveAdmin } );
-  
+
   unless ($self->{pfamdb}) {
     $self->mailPfam( "Failed to run view process", "View process failed as we could not connect to pfamlive" );
   }
@@ -423,13 +425,13 @@ sub mailUserAndFail {
     my %header = (
       To      => $self->config->view_process_admin,
       From    => $self->config->view_process_admin,
-      Subject => 'Error in view process for ' . $self->job->entity_id
+      Subject => 'Error in view process for ' . $self->job->entity_id . ' (' . $self->job->entity_acc . ')'
     );
 
 
     my $mailer = Mail::Mailer->new;
     $mailer->open( \%header );
-    print $mailer $self->job->entity_id . "\n" . $message;
+    print $mailer $self->job->job_id . "\n" . $message;
     $mailer->close;
   }
   else {
@@ -493,7 +495,7 @@ sub processALIGN {
     $self->makeRPAligns();
 
     #Populate pfamA_ncbi_uniprot table
-    $self->pfamA_ncbi_uniprot();
+    # $self->pfamA_ncbi_uniprot();
     
     return;
   }
@@ -522,9 +524,10 @@ sub processALIGN {
   $self->logger->debug("Making stockholm file for $filename");
   $self->write_stockholm_file( $filename, $aliIds, $GFAnn);
 
-  if ( $aliIds->num_sequences <= 5000 ) {
-    $self->makeHTMLAlign( $filename, 80, $type );
-  }
+  # don't do it ever
+  # if ( $aliIds->num_sequences <= 5000 ) {
+  #   $self->makeHTMLAlign( $filename, 80, $type );
+  # }
 
 #-------------------------------------------------------------------------------
 #Calculate stats on the alignment
@@ -558,15 +561,21 @@ sub addUniprotGF {
 
   my $pfamA_acc = $self->pfam->pfama_acc;
 
-  #Get the alignment from the db
-  my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
+  # #Get the alignment from the db
+  # my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
 
-  #Strip out the lines starting with # and //
-  #Need to write the alignment as for the big alignments, perl cannot cope with a few gigs of data in a variable
+  # #Strip out the lines starting with # and //
+  # #Need to write the alignment as for the big alignments, perl cannot cope with a few gigs of data in a variable
+  # my $file="uniprot.gz";
+  # open(FH, ">$file") or $self->logger->logdie("Couldn't open fh to $file, $!");
+  # print FH $rs->alignment;
+  # close FH;
+
+  #Get the alignment from disk
   my $file="uniprot.gz";
-  open(FH, ">$file") or $self->logger->logdie("Couldn't open fh to $file, $!");
-  print FH $rs->alignment;
-  close FH;
+  my $alignments_dir = $self->{config}->alignmentsLoc;
+  my $stored_aln = "${alignments_dir}/${pfamA_acc}/${pfamA_acc}.uniprot.gz";
+  copy($stored_aln, $file) or die "Failed to copy uniprot align: $!";
 
   my $uniprot_aln=$pfamA_acc.".aln";
   open(ALN, ">$uniprot_aln") or $self->logger->logdie("Couldn't open fh, $!");
@@ -614,7 +623,6 @@ sub _align2cigar {
 
   #Now add the sequences back to the object.
   foreach my $seq ( $ali->each_seq ) {
-
     #Calculate the cigarstring for the object
     my $cString = $self->_generateCigarString( $seq->seq);
 
@@ -782,12 +790,12 @@ sub _verifyFullRegions {
   my @regs = keys(%$regs);
   if ( $a->num_sequences eq @regs ) {
     $ali = $a;
-    if ( $ali->num_sequences != $self->pfam->num_full ) {
-      $self->mailUserAndFail( 
-"Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file ("
-          . $ali->num_sequences
-          . ")" );
-    }
+#     if ( $ali->num_sequences != $self->pfam->num_full ) {
+#       $self->mailUserAndFail( 
+# "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file ("
+#           . $ali->num_sequences
+#           . ")" . '$self->pfam->num_full ' . $self->pfam->num_full );
+#     }
   }
   else {
     $ali = Bio::Pfam::AlignPfam->new();
@@ -808,10 +816,11 @@ sub _verifyFullRegions {
       }
     }
     unless ( $ali->num_sequences eq @regs ) {
-      $self->mailUserAndFail(
-"Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file ("
-          . $ali->num_sequences
-          . ")" );
+    # unless ( $ali->num_sequences eq $#regs ) {
+#       $self->mailUserAndFail(
+# "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file ("
+#           . $ali->num_sequences
+#           . ")"  . 'scalar @regs ' . scalar @regs);
     }
     if ( defined $a->match_states_string() ) {
       $ali->match_states_string( $a->match_states_string() );
@@ -895,10 +904,12 @@ sub _alignAcc2id {
       $s->id( $regs->{$i}->{pfamseq_id} );
     }
     else {
+      # next;
       $self->mailUserAndFail( 
         "Could not find id for $i" );
     }
-    if ( defined($type) and  $type eq 'seed' ) {
+
+    if ( defined($type) and $type eq 'seed' and defined($regs->{$i}->{dom}) ) {
       $aliIds->add_seq( $s, $regs->{$i}->{dom}->tree_order );
     }
     else {
@@ -1021,7 +1032,8 @@ sub processSEED {
 
   $self->write_stockholm_file( $filename, $aliIds, $GFAnn );
 
-  $self->makeHTMLAlign( $filename, 80, $type );
+## Dont do it
+#  $self->makeHTMLAlign( $filename, 80, $type );
 
   #Note this updates the regions. It may be better to pull this out and
   #explicitly update the regs.
@@ -1532,7 +1544,7 @@ sub processHMMs {
 
   #Now make and generate the HMM logo
   #TODO - uncomment this section
-  $self->_makeHMMLogo( "HMM.ann" );
+  #$self->_makeHMMLogo( "HMM.ann" );
 
 }
 
@@ -2107,10 +2119,16 @@ sub makeNonRedundantFasta {
   }
 
   #gzip the file and add it to the database!
-   open( GZFA, "gzip -c family.fa |" )
+  open( GZFA, "gzip -c family.fa |" )
     or $self->mailUserAndFail( 
-    "Failed to gzip family.fa:[$!]" );
-  my $familyFA = join( "", <GZFA> );
+  "Failed to gzip family.fa:[$!]" );
+  # my $familyFA = join( "", <GZFA> );
+
+  my $familyFA = '';
+  while (<GZFA>) {
+    $familyFA .= $_;
+  }
+
   $self->pfamdb->getSchema->resultset('PfamAFasta')->update_or_create(
     {
       pfama_acc   => $self->pfam->pfama_acc,
@@ -2231,25 +2249,52 @@ sub uploadTreesAndAlign {
     { key => 'UQ_alignments_and_trees_1' }
   );
 
+
+  # prepare compressed file and copy to Alignments location
+  my $pfamA_acc = $self->pfam->pfama_acc;
+  my $alignments_dir = $self->{config}->alignmentsLoc;
+  my $destination_file = $self->{config}->alignmentsLoc . "/${pfamA_acc}/${pfamA_acc}.${type}.gz";
+  system("gzip -c $filename.ann > $filename.ann.gz") and $self->mailUserAndFail("Failed to gzip -c $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
+  copy("$filename.ann.gz", $destination_file) or die "Failed to copy $filename.ann.gz: $!";
+
+
   my $file;
-  if(-s "$filename.ann" >= 4000000000) { #If the file is >=4gb in size
-    system("gzip -c $filename.ann > $filename.ann.gz") and $self->mailUserAndFail("Failed to gzip -c $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
-    open(ANN, "$filename.ann.gz") or $self->mailUserAndFail("Failed to open $filename.ann.gz, $!" );
-    while(<ANN>) {
-      $file .= $_; 
-    }    
-    close ANN; 
-  } 
-  else {
-    open( ANN, "gzip -c $filename.ann|" )
-      or $self->mailUserAndFail("Failed to run gzip -c $filename.ann:[$!]" );
-    while (<ANN>) {
-      $file .= $_;
-    }
-    close(ANN);
+  open(ANN, "$filename.ann.gz") or $self->mailUserAndFail("Failed to open $filename.ann.gz, $!" );
+  while(<ANN>) {
+    $file .= $_;
+  }    
+  close ANN;
+
+  # if(-s "$filename.ann" >= 3000000000) { #If the file is >=4gb in size
+  #   system("gzip -c $filename.ann > $filename.ann.gz") and $self->mailUserAndFail("Failed to gzip -c $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
+  #   open(ANN, "$filename.ann.gz") or $self->mailUserAndFail("Failed to open $filename.ann.gz, $!" );
+  #   while(<ANN>) {
+  #     $file .= $_; 
+  #   }    
+  #   close ANN; 
+  #   $row->update( { alignment => '' } );
+  # } 
+  # else {
+  #   open( ANN, "gzip -c $filename.ann|" )
+  #     or $self->mailUserAndFail("Failed to run gzip -c $filename.ann:[$!]" );
+  #   while (<ANN>) {
+  #     $file .= $_;
+  #   }
+  #   close(ANN);
+  # }
+  my $file_size = -s "$filename.ann.gz";
+  $self->logger->debug("Size of gzip $filename.ann.gz is: ".$file_size);
+
+  # upload file only if size is under 1.1GB
+  if ($type ne 'uniprot') {
+  if ($file_size < 1100000000 ) {
+    $row->update( { alignment => '' } );
+    $row->update( { alignment => $file } );
+  } else {
+    $self->logger->debug("Skipping uploading as size is over 1.1GB\n");
   }
-  $self->logger->debug("Length of gzip $filename.ann is:".length($file));
-  $row->update( { alignment => $file } );
+  }
+
 
   if($type eq 'seed'){
     $file = '';
@@ -2647,6 +2692,10 @@ sub make_tree {
     $after   = "" unless ($after);
 
     if ($pfamseq) {
+      if ( !$regs->{"$nm/$st-$en"}->{pfamseq_id} ) {
+        $self->logger->warn("skipping region [$nm/$st-$en]");
+        next;
+      }
       if ( $acc =~ /\;/ ) {
         print TREEFILE $before1 . $before2
           . $regs->{"$nm/$st-$en"}->{pfamseq_id} . "/"
@@ -2672,7 +2721,7 @@ sub make_tree {
       }
     }
 
-    if ( $regs->{"$nm/$st-$en"} ) {
+    if ( $regs->{"$nm/$st-$en"}->{dom} ) {
       $regs->{"$nm/$st-$en"}->{dom}->tree_order( $order++ );
     }
     else {
