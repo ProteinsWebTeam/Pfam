@@ -57,6 +57,9 @@ LINE: while(<>) {
   ## Surname initials, followed by orcid id
   /^\#=GF\s+AU\s{3}(\S+\s)+\S{1,3};(\d{4}-\d{4}-\d{4}-\d{3}[\d|X]$)/ && do {$hash{'AU'}++; next; };
 
+    ## Author name not conforming to "Surname initials", such as "Name1 Name2 Name3", and potentially not having ORCID
+    /^\#=GF\s+AU\s{3}([\w\s]+);(\d{4}-\d{4}-\d{4}-\d{3}[\d|X])?$/ && do {$hash{'AU'}++; next; };
+
 	# Alignment Methods.  This needs changing
 	/^\#=GF\s+AL\s{3}/ && do {$hash{'AL'}++; next; };
 

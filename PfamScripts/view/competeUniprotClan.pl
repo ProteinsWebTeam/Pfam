@@ -15,6 +15,8 @@ use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Compress::Zlib;
 use Getopt::Long;
+use File::Copy;
+use Try::Tiny;
 use bytes; #This changes length function to return number of bytest instead of number of characters
 
 
@@ -74,15 +76,25 @@ foreach my $clan (@clans) {
       $in_full{$acc_se}=1;
     }
     
-    #Get uncompeted alignment from db
-    open(ALN, ">$pfamA_acc.aln.gz") or die "Couldn't open fh to $pfamA_acc.aln.gz, $!";
-    my $rs = $pfamDB->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
-    print ALN $rs->alignment;
-    close ALN;
-    
+    # #Get uncompeted alignment from db
+    # open(ALN, ">$pfamA_acc.aln.gz") or die "Couldn't open fh to $pfamA_acc.aln.gz, $!";
+    # my $rs = $pfamDB->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
+    # print ALN $rs->alignment;
+    # close ALN;
+
+    # Get uncompeted alignment from disk
+    my $alignments_dir = $config->alignmentsLoc;
+    my $fam_aln_dir = "${alignments_dir}/${pfamA_acc}";
+
+    # check required files exist
+    if (! -e "$fam_aln_dir/${pfamA_acc}.uniprot.gz") {
+      die "Missing local alignment file $fam_aln_dir/${pfamA_acc}.uniprot.gz";
+    }
+    copy("$fam_aln_dir/${pfamA_acc}.uniprot.gz", "${pfamA_acc}.uniprot.gz") or die "Copy failed: $!";
+
     my $num_full=0;
     my $competed_aln;
-    open(A, "gunzip -c $pfamA_acc.aln.gz |") or die "Couldn't open fh to 'gunzip -c $pfamA_acc.aln.gz', $!";
+    open(A, "gunzip -c ${pfamA_acc}.uniprot.gz |") or die "Couldn't open fh to \'gunzip -c ${pfamA_acc}.uniprot.gz\', $!";
     while(<A>) {
 
       #Create competed alignment
@@ -105,17 +117,24 @@ foreach my $clan (@clans) {
       }
     }
     close A;
-    unlink("$pfamA_acc.aln.gz");
-    
+    unlink("${pfamA_acc}.uniprot.gz");
+
+    # copy to Alignments directory
+    print STDERR "Replacing local uniprot alignment with competed one\n";
+    open(ALN, ">${pfamA_acc}.uniprot") or die "Couldn't open fh to ${pfamA_acc}.uniprot, $!";
+    print ALN $competed_aln;
+    close ALN;
+    system("gzip ${pfamA_acc}.uniprot") and die "Couldn't run 'gzip ${pfamA_acc}.uniprot', $!";
+    copy("${pfamA_acc}.uniprot.gz", "${fam_aln_dir}/${pfamA_acc}.uniprot.gz") or die "Copy failed: $!";
+
+    #Update num_uniprot in pfamA
+    $st_update_pfamA->execute($num_full, $pfamA_acc);
+
+
     #Upload competed alignment to db
-    my $num_bytes = length($competed_aln); #use bytes statement at top of script means length returns number of bytes
-    if($num_bytes >= 3000000000) { #If the alignment is >=3gb in size
-      open(ALN, ">$pfamA_acc.uniprot") or die "Couldn't open fh to $pfamA_acc.uniprot, $!";
-      print ALN $competed_aln;
-      close ALN;
+    try {
       my $upload_aln;
-      system("gzip $pfamA_acc.uniprot") and die "Couldn't run 'gzip $pfamA_acc.uniprot', $!";
-      open(GZIP, "$pfamA_acc.uniprot.gz") or die "Couldn't open fh to $pfamA_acc.uniprot.gz, $!";
+      open(GZIP, "${pfamA_acc}.uniprot.gz") or die "Couldn't open fh to ${pfamA_acc}.uniprot.gz, $!";
       while(<GZIP>) {
         $upload_aln.=$_;
       }
@@ -133,28 +152,12 @@ foreach my $clan (@clans) {
           pfama_acc => $pfamA_acc,
           alignment  => $upload_aln,
           type       => 'uniprot'
-        }   
-      );  
-    }
-    else {
-      $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
-          pfama_acc => $pfamA_acc,
-          alignment  => '',
-          type       => 'uniprot'
         }
       );
 
-      $pfamDB->getSchema->resultset('AlignmentAndTree')->update_or_create({
-          pfama_acc => $pfamA_acc,
-          alignment  => Compress::Zlib::memGzip($competed_aln),
-          type       => 'uniprot'
-        }
-      );  
-    }
-    
-    #Update num_uniprot in pfamA
-    $st_update_pfamA->execute($num_full, $pfamA_acc);
-
+    } catch {
+      warn "Failed to upload uniprot alignment to database";
+    };
   }
 }
 
