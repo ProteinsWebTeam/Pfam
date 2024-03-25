@@ -342,7 +342,7 @@ else {
       $is_frag = 1 if($record{'DE_FLAG'});
 
       #This will be uploaded into the tmp_pfamseq table.
-      print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\t$record{'SWISSPROT'}\n";
+      print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\t$record{'SWISSPROT'}\n";
       print FASTA ">$record{'AC'}.$record{'SEQ_VER'} $record{'ID'} $description\n$record{'SEQ'}\n";
 
 #count for debugging
@@ -491,8 +491,18 @@ if ( -e "$status_dir/uploaded_pfamseq" ) {
 }
 else {
   $logger->info("Uploading $cwd/$pfamseq_dir/pfamseq.dat to tmp_pfamseq\n");
-  my $sth = $dbh->prepare( 'INSERT into tmp_pfamseq (pfamseq_acc, pfamseq_id, seq_version, crc64, md5, description, evidence, length, species, taxonomy, is_fragment, sequence, created, ncbi_taxid, auto_architecture, treefam_acc, swissprot) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'); 
-  _loadTable( $dbh, "$cwd/$pfamseq_dir/pfamseq.dat", $sth, 17 ); 
+
+  my $sth_setup1 = $dbh->prepare('set foreign_key_checks=0;');
+  $sth_setup1->execute() or $logger->logdie("Failed to set foreign_key_checks for LOAD DATA ".$sth_setup1->errstr."\n");
+
+  my $sth_setup2 = $dbh->prepare('set unique_checks=0;');
+  $sth_setup2->execute() or $logger->logdie("Failed to set unique_checks for LOAD DATA ".$sth_setup2->errstr."\n");
+
+  my $sth_load = $dbh->prepare("LOAD DATA LOCAL INFILE '$cwd/$pfamseq_dir/pfamseq.dat' INTO TABLE tmp_pfamseq;");
+  $sth_load->execute() or $logger->logdie("Failed to set up for LOAD DATA ".$sth_load->errstr."\n");
+
+  # my $sth = $dbh->prepare( 'INSERT into tmp_pfamseq (pfamseq_acc, pfamseq_id, seq_version, crc64, md5, description, evidence, length, species, taxonomy, is_fragment, sequence, created, ncbi_taxid, auto_architecture, treefam_acc, swissprot) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'); 
+  # _loadTable( $dbh, "$cwd/$pfamseq_dir/pfamseq.dat", $sth, 17 ); 
   
   system("touch $status_dir/uploaded_pfamseq")
     and $logger->logdie("Couldn't touch $status_dir/uploaded_pfamseq:[$!]\n");

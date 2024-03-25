@@ -13,7 +13,6 @@ use LSF::Job;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
-use Smart::Comments;
 
 my($status_dir, $pfamseq_dir);
 
@@ -77,7 +76,7 @@ else {
   }
   close REL;
   unless(defined($trembl_rel) and defined($swiss_prot_rel)){
-    $logger->logdie("Faied to get release information for reldate.txt.");  
+    $logger->logdie("Failed to get release information for reldate.txt.");
   }
   my $st_version = $dbh->prepare("update version set swiss_prot_version = \"$swiss_prot_rel\"");
   $st_version->execute() or $logger->logdie("Failed to update version table with swiss prot version ". $st_version->errstr."\n");
@@ -103,7 +102,7 @@ foreach my $file (@files) {
 
     my $cp_data = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => 'cp_uniprot', "cp $uniprot_location/$file $file");
     $logger->debug("bsub cmd: cp $uniprot_location/$file $file");
-    ### $cp_data
+
     my $cp_data2 = LSF::Job->submit(-q => "production", -o => "/dev/null", -w => "done($cp_data)", -J => 'cp_uniprot_done', "touch cp_${file}_done");
 
     $logger->debug("Waiting for copy job to complete...");
@@ -285,7 +284,7 @@ else {
         $complete = 0;
 
       }
-      print UNIPROT "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t$record{'NCBI_TAX'}\t$reference\t$complete\t\\N\t0\t0\t0\t0\n";
+      print UNIPROT "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t$reference\t$complete\t\\N\t0\t0\t0\t0\n";
       print FASTA ">$record{'AC'}.$record{'SEQ_VER'} $record{'ID'} $description\n$record{'SEQ'}\n";
       
       #count for debugging
@@ -332,9 +331,20 @@ else {
 
 
   $logger->info("Uploading $pfamseq_dir/uniprot.dat to database\n");
-  my $sth = $dbh->prepare('INSERT into uniprot (uniprot_acc, uniprot_id, seq_version, crc64, md5, description, evidence, length, species, taxonomy, is_fragment, sequence, created, ncbi_taxid, ref_proteome, complete_proteome, treefam_acc, rp15, rp35, rp55, rp75) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-  _loadTable( $dbh, "$pfamseq_dir/uniprot.dat", $sth, 21 );  
-  
+
+  my $sth_setup1 = $dbh->prepare('set foreign_key_checks=0;');
+  $sth_setup1->execute() or $logger->logdie("Failed to set foreign_key_checks for LOAD DATA ".$sth_setup1->errstr."\n");
+
+  my $sth_setup2 = $dbh->prepare('set unique_checks=0;');
+  $sth_setup2->execute() or $logger->logdie("Failed to set unique_checks for LOAD DATA ".$sth_setup2->errstr."\n");
+
+  my $sth_load = $dbh->prepare("LOAD DATA LOCAL INFILE '$pfamseq_dir/uniprot.dat' INTO TABLE uniprot;");
+  $sth_load->execute() or $logger->logdie("Failed to set up for LOAD DATA ".$sth_load->errstr."\n");
+
+
+  # my $sth = $dbh->prepare('INSERT into uniprot (uniprot_acc, uniprot_id, seq_version, crc64, md5, description, evidence, length, species, taxonomy, is_fragment, sequence, created, ncbi_taxid, ref_proteome, complete_proteome, treefam_acc, rp15, rp35, rp55, rp75) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+  # _loadTable( $dbh, "$pfamseq_dir/uniprot.dat", $sth, 21 );  
+
   system("touch $status_dir/uploaded_uniprot")
     and $logger->logdie("Couldn't touch $status_dir/uploaded_uniprot:[$!]\n");
 }
