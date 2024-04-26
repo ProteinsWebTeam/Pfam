@@ -32,10 +32,10 @@ if($all and $memory_gb) {
 }
 
 #Some families need more memory that is estimated by this script, so hard code them to request extra memory
-my @extra_mem = qw(PF00005 PF00069 PF00072 PF00083 PF00106 PF00115 PF00501 PF00528 PF07690 PF07714 PF13561);
+my @extra_mem = qw(PF00005 PF00069 PF00072 PF00083 PF00106 PF00115 PF00501 PF00528 PF00560 PF07690 PF07714 PF13561);
 my %memory;
 foreach my $f (@extra_mem) {
-  if($f eq "PF00005" or $f eq "PF07690") { #These families need a lot more memory
+  if($f eq "PF00005" or $f eq "PF07690" or $f eq "PF07714") { #These families need a lot more memory
     $memory{$f}=64;
   }
   else {
@@ -118,8 +118,9 @@ sub uniprotSearch {
     $clan_group='/Competeclan';
   }
 
-  my $uniprot_search = "performUniprotSearch.pl";
-  my $group='/Uniprotview';
+  my $uniprot_search = "performUniprotSearch_localdb.pl";
+  # my $group='/Uniprotview';
+  my $group='/Uniprotsearch';
 
   #Loop through each pfamA and run searches
   foreach my $pfamA (@$families) {
@@ -152,10 +153,11 @@ sub uniprotSearch {
     #Submit to farm
     print STDERR "$pfamA_acc\n";
     my $queue = $config->{farm}->{lsf}->{queue};
-    system("bsub -q $queue -J$job_name -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$uniprot_search $pfamA_acc'");
+    system("bsub -q $queue -J$job_name -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$uniprot_search $pfamA_acc $job_name'");
   }
 
   if($clan_acc) {
+    print STDERR "$clan_acc\n";
     my $queue = $config->{farm}->{lsf}->{queue};
     my $clan_name="compete_".$clan_acc;
     system("bsub -q $queue -J$clan_name -o $clan_acc.log -M 16000 -R \"rusage[mem=16000]\" -g $clan_group -w 'done($job_name)' 'competeUniprotClan.pl -clan $clan_acc'"); 
