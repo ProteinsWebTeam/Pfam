@@ -44,7 +44,8 @@ $view->cleanUp();
 #-------------------------------------------------------------------------------
 #Now we have start the work
 $view->getPfamObj;
-
+$view->logger->debug("Family " . $view->pfam->pfama_acc);
+$view->logger->debug("Checking if family has hits");
 #Check whether family has hits (need to know this later when checking if ALIGN file has size)
 my $pfamA=$view->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $view->pfam->pfama_acc  } );
 if($pfamA->num_full == 0) {
@@ -52,6 +53,7 @@ if($pfamA->num_full == 0) {
   $view->{noALIGN}=1;
 }
 
+$view->logger->debug("Getting all files");
 $view->getAllFiles;
 $view->resetStats;
 #Run a md5 checksum on the "raw" files and compared to the release versions......!
@@ -82,7 +84,7 @@ $view->searchShuffled();
 $view->job->done;
 
 #Now Initiate an Ancillary job.
-$view->initiateAncillaryViewProcess;
+# $view->initiateAncillaryViewProcess;
 
 $view->cleanUp();
 $view->logger->debug("Finished");
