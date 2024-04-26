@@ -495,7 +495,7 @@ sub processALIGN {
     $self->makeRPAligns();
 
     #Populate pfamA_ncbi_uniprot table
-    # $self->pfamA_ncbi_uniprot();
+    $self->pfamA_ncbi_uniprot();
     
     return;
   }
@@ -550,6 +550,9 @@ sub processALIGN {
   #Make RP alignments (this is now done using the uniprot alignments)
   #addUniprotGF must be run before making the RP alignments
   $self->makeRPAligns(); 
+
+  #Populate pfamA_ncbi table
+  $self->pfamA_ncbi();
 
   #Populate pfamA_ncbi_uniprot table
   $self->pfamA_ncbi_uniprot();
@@ -1474,11 +1477,12 @@ sub processHMMs {
   #We are going to use this a liogm
   my $pfam = $self->pfam; 
   my $buildline = $self->_cleanBuildLine( $pfam->buildmethod );
+  $buildline =~ s/\s+$//;
 
   $self->logger->debug(
     "Going to run hmmbuild with the following line: $buildline HMM.ann SEED.ann"
   );
-  system( $self->config->hmmer3bin . "/$buildline -o  /dev/null HMM.ann SEED.ann" )
+  system( $self->config->hmmer3bin . "/$buildline -o /dev/null HMM.ann SEED.ann" )
     and $self->mailUserAndFail(
     "Failed to build HMM.ann, using $buildline HMM.ann SEED.ann" );
 
@@ -1499,9 +1503,10 @@ sub processHMMs {
       print HMM_OUT "NC    "
         . $pfam->sequence_nc . " "
         . $pfam->domain_nc . ";\n";
-      print HMM_OUT "BM    ", $self->_cleanBuildLine( $pfam->buildmethod ),
-        "HMM.ann SEED.ann\n";
-      print HMM_OUT "SM    ", $pfam->searchmethod, "\n";
+      print HMM_OUT "BM    "
+        . $buildline . " HMM.ann SEED.ann\n";
+      print HMM_OUT "SM    ".
+        . $pfam->searchmethod . "\n";
       next;
     }
     next if ( $_ =~ /^NC\s+/ or $_ =~ /^TC\s+/ );
@@ -2443,7 +2448,7 @@ sub write_stockholm_file {
   my ( $self, $filename, $aln, $GFAnn) = @_;
 
   my $pfam = $self->pfam;
-  open( ANNFILE, ">$filename.ann" )
+  open( ANNFILE, ">:encoding(utf-8)", "$filename.ann" )
     or $self->mailUserAndExit("Could not open $filename.ann for writing [$!]");
   $self->writeGFAnnotationBlock(\*ANNFILE, $pfam, $GFAnn);
   
@@ -2550,7 +2555,7 @@ sub writeGFAnnotationBlock {
   print $annfile "#=GF NC   " . sprintf "%.2f %.2f;\n", $pfam->sequence_nc,
     $pfam->domain_nc;
   print $annfile "#=GF BM   ", $self->_cleanBuildLine( $pfam->buildmethod ),
-    "HMM.ann SEED.ann\n";
+    " HMM.ann SEED.ann\n";
   print $annfile "#=GF SM   ", $pfam->searchmethod, "\n";
 
   print $annfile "#=GF TP   ", $pfam->type->type, "\n";
@@ -3346,6 +3351,25 @@ sub touchStatus {
   my @files;
   push(@files, $self->options->{statusdir}."/".$file);
   touch(@files);
+}
+
+
+sub pfamA_ncbi {
+  my ($self) = @_;
+
+  $self->logger->info("Updating pfamA_ncbi table");
+  my $pfamA_acc=$self->pfam->pfama_acc;
+
+  my $dbh = $self->pfamdb->getSchema->storage->dbh;
+  
+  #Delete old regions if any
+  my $st_delete = $dbh->prepare("delete from pfamA_ncbi where pfamA_acc='$pfamA_acc'");
+  $st_delete->execute() or $self->logger->logdie("Failed to delete $pfamA_acc from pfamA_ncbi ".$st_delete->errstr);
+
+  #Populate pfamA_ncbi_uniprot
+  my $st_upload = $dbh->prepare("insert into pfamA_ncbi (pfamA_acc, pfamA_id, ncbi_taxid) select r.pfamA_acc, pfamA_id, ncbi_taxid from pfamA_reg_full_significant r, pfamseq p, pfamA where p.pfamseq_acc = r.pfamseq_acc and r.pfamA_acc = pfamA.pfamA_acc and pfamA.pfamA_acc='$pfamA_acc' and in_full=1 group by ncbi_taxid");
+  $st_upload->execute() or $self->logger->logdie("Failed to update pfamA_ncbi_uniprot table for $pfamA_acc ".$st_upload->errstr);
+
 }
 
 sub pfamA_ncbi_uniprot {
