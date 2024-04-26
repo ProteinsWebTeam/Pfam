@@ -109,6 +109,9 @@ foreach my $clan (@clans) {
           $num_full++;
         }
       }
+      elsif(/^#/) {
+        next;
+      }
       elsif(/^\/\//) {
         $competed_aln.=$_;
       }
