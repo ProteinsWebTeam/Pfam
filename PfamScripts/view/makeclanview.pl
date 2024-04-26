@@ -163,14 +163,6 @@ foreach my $fam (@$clanMemAcc) {
   }
 }
 #-------------------------------------------------------------------------------
-# Would be good to add summary data to the clan table.
-my $noArch = 0;
-my $noStruct = 0;
-my $noSeqs = 0;
-my $noSpecies = 0;
-
-
-#-------------------------------------------------------------------------------
 
 $view->logger->debug("Writing the clandesc file so that clan can be versioned");
 
@@ -191,8 +183,26 @@ if($relClanVersion){
   $version = 1;
 }
 
+#-------------------------------------------------------------------------------
+# Would be good to add summary data to the clan table.
+my $noArch = 0;
+my $noStruct = 0;
+# my $noSeqs = 0;
+# my $noSpecies = 0;
 
 $view->logger->debug("Uploading the summary information and version.");
+
+my $dbh = $view->pfamdb->getSchema->storage->dbh;
+
+my $noSeqs_db = $dbh->prepare("select SUM(pa.num_full) from pfamA pa, clan_membership cm where pa.pfamA_acc = cm.pfamA_acc and cm.clan_acc='".$clanData->clan_acc."';");
+$noSeqs_db->execute or $view->logger->logdie("Failed to query pfamseq for size of pfamseq ".$noSeqs_db->errstr."\n");
+my $noSeqs = $noSeqs_db->fetchrow;
+
+my $noSpecies_db = $dbh->prepare("select COUNT(DISTINCT ps.ncbi_taxid) from pfamseq ps, pfamA_reg_full_significant fs, clan_membership cm  where fs.pfamA_acc = cm.pfamA_acc and ps.pfamseq_acc = fs.pfamseq_acc and fs.in_full=1 and cm.clan_acc='".$clanData->clan_acc."';");
+$noSpecies_db->execute or $view->logger->logdie("Failed to query pfamseq for size of pfamseq ".$noSpecies_db ->errstr."\n");
+my $noSpecies = $noSpecies_db->fetchrow;
+
+
 $clanData = $clanData->update({ version => $version,
                     number_structures => $noStruct,
                     number_archs      => $noArch, 
