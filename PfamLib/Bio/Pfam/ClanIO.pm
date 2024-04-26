@@ -57,6 +57,9 @@ use Bio::Pfam::Config;
 use Bio::Pfam::Clan::Clan;
 use Bio::Pfam::Clan::DESC;
 
+use utf8;
+binmode(STDOUT, ":utf8");
+
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -138,6 +141,57 @@ sub loadClanFromRDB {
   $params->{DESC}->{CC} = $clanData->clan_comment
     if ( $clanData->clan_comment );
   $params->{source} = 'database';
+
+  #Add database literature references
+  my @litRefs = $rdbObj->getSchema->resultset('ClanLitRef')->search(
+    { clan_acc => $clan },
+    {
+      join     => [qw(auto_lit)],
+      order_by => 'order_added ASC',
+      prefetch => [qw(auto_lit)]
+    }
+    );
+
+  my @clan_litrefs;
+  foreach my $ref ( @litRefs ) {
+
+    my $clan_litref = {
+      RN => $ref->order_added,
+      RM => $ref->auto_lit->pmid,
+      RT => $ref->auto_lit->title,
+      RA => $ref->auto_lit->author,
+      RL => $ref->auto_lit->journal,
+    };
+
+    if ( ( $ref->comment ) && ( $ref->comment ne "NULL" ) ) {
+      $clan_litref->{RC} =  $ref->comment;
+    }
+
+    push @clan_litrefs, $clan_litref;
+  }
+
+  $params->{DESC}->{REFS} = \@clan_litrefs if @clan_litrefs;
+
+  #Add database Xrefs
+  my @xRefs = $rdbObj->getSchema->resultset('ClanDatabaseLink')
+    ->search( { clan_acc => $clan } );
+
+  my @clan_dbrefs;
+  foreach my $ref ( @xRefs ) {
+
+    my $clan_dbref = {
+      db_id => $ref->db_id,
+      db_link => $ref->db_link,
+      other_params => $ref->other_params,
+      comment => $ref->comment,
+    };
+
+    push @clan_dbrefs, $clan_dbref;
+  }
+
+  $params->{DESC}->{DBREFS} = \@clan_dbrefs if @clan_dbrefs;
+
+  #Add clan membership
   my $membership = $rdbObj->getClanMembership($clan);
 
   my @memberAcc;
