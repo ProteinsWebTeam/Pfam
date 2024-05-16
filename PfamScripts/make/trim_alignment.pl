@@ -81,7 +81,7 @@ if($terminal ne 'N'){
 
 
 #Now remove any columns and write the alignment.
-$msa->column_subset_rename_nse(\@apos);
+$msa->column_subset_rename_nse(\@apos, 1);
 $msa->write_msa( $output, 'pfam');
 
 
