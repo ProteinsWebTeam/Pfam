@@ -225,6 +225,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 clan_wikis
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamAWiki>
+
+=cut
+
+__PACKAGE__->has_many(
+  "clan_wikis",
+  "PfamLive::Result::ClanWiki",
+  { "foreign.clan_acc" => "self.clan_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 clan_database_links
 
 Type: has_many
