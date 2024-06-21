@@ -408,7 +408,7 @@ unless ($ignore) {
 
     unless ( Bio::Pfam::PfamQC::noMissing( $upFamObj, $oldFamObj, $family ) ) {
       print(
-"$0: your family seems to be missing members compared to the DBN copy\n(see $family/missing). Please inspect loss of members.\n"
+"$0: your family seems to be missing members compared to the SVN copy\n(see $family/missing). Please inspect loss of members.\n"
       );
       print("Do you want to continue regardless? [y/n]  ");
       my $reply = <STDIN>;

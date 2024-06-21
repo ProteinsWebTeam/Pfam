@@ -51,11 +51,11 @@ $clan = shift;
 $newClanName = shift;
 
 unless($clan and $clan =~ /\S+/){
-  die "Please specifiy the accesion of the clan that you want to change the name\n";  
+  die "Please specify the accession of the clan that you want to change the name\n";
 }
 
 unless($newClanName and $newClanName =~ /\S+/){
-  die "Please specifiy the new name of the the clan\n";  
+  die "Please specify the new name of the the clan\n";
 }
 
 

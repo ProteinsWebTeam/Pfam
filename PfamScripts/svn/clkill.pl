@@ -89,13 +89,13 @@ if ( $clan !~ /^(CL\d{4})$/ ) {
 }
 
 unless ( $clan =~ /^CL\d{4}$/ ) {
-  warn "\n***** $clan does not look like an acccession *****\n\n";
+  warn "\n***** $clan does not look like an accession *****\n\n";
   help();
 }
 
 if ( $forward and $forward !~ /^CL\d{4}/ ) {
   warn
-"\n***** The clan to forward to [ $forward ] does not look like an acccession *****\n\n";
+"\n***** The clan to forward to [ $forward ] does not look like an accession *****\n\n";
   help();
 }
 
