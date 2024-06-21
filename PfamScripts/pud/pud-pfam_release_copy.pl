@@ -118,6 +118,7 @@ my @tables=qw(
   _lock
   clan_database_links
   clan_lit_ref
+  clan_wiki
   clan_membership
   dead_clan
   dead_family
