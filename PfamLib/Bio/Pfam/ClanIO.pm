@@ -142,6 +142,23 @@ sub loadClanFromRDB {
     if ( $clanData->clan_comment );
   $params->{source} = 'database';
 
+  #Add wikipedia links
+  my @wiki = $rdbObj->getSchema->resultset('ClanWiki')->search(
+    { clan_acc => $clan },
+    {
+      join     => qw(auto_wiki),
+      prefetch => qw(auto_wiki)
+    }
+  );
+
+  my %wiki;
+  foreach my $wiki_obj ( @wiki ) {
+    my $wiki_title = $wiki_obj->auto_wiki->title;
+    $wiki{$wiki_title} = 1;
+  }
+
+  $params->{DESC}->{WIKI} = \%wiki if %wiki;
+
   #Add database literature references
   my @litRefs = $rdbObj->getSchema->resultset('ClanLitRef')->search(
     { clan_acc => $clan },
@@ -281,16 +298,14 @@ sub parseCLANDESC {
       $params{$1} = $2;
       next;
     }
-    elsif ( $file[$i] =~ /^WK\s{3}(.*)\;$/ ) {
-      my $pages = $1;
-      foreach my $p ( split( /\;/, $pages ) ) {
+    elsif ( $file[$i] =~ /^WK\s{3}(.*)$/ ) {
+      my $page = $1;
         if ( defined( $params{"WIKI"} ) ) {
-          $params{"WIKI"}->{$p}++;
+          $params{"WIKI"}->{$page}++;
         }
         else {
-          $params{"WIKI"} = { $p => 1 };
+          $params{"WIKI"} = { $page => 1 };
         }
-      }
     }
     elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
@@ -598,11 +613,11 @@ sub writeCLANDESC {
       }
       elsif ( $tagOrder eq 'WIKI' ) {
         if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
-          my @pages = keys( %{ $desc->$tagOrder } );
-          my $p = join( ";", @pages );
-          $p .= ";";
-          print D wrap( "WK   ", "WK   ", $p );
-          print D "\n";
+          my @pages = sort keys( %{ $desc->$tagOrder } );
+          foreach my $p (@pages){
+            print D wrap( "WK   ", "WK   ", $p );
+            print D "\n"
+          }
         }
       }
       elsif ( $tagOrder eq 'MEMB' ) {
@@ -639,13 +654,10 @@ sub updateClanInRDB {
     $pfamDB->updateClan($clanObj);
   }
 
-  if ( $clanObj->DESC->REFS ) {
-    $pfamDB->updateClanLitRefs($clanObj);
-  }
+  $pfamDB->updateClanWikipedia($clanObj);
+  $pfamDB->updateClanLitRefs($clanObj);
+  $pfamDB->updateClanDbXrefs($clanObj);
 
-  if ( $clanObj->DESC->DBREFS ) {
-    $pfamDB->updateClanDbXrefs($clanObj);
-  }
 }
 
 sub moveClanInRDB {
