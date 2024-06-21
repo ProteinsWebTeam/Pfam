@@ -27,7 +27,7 @@ my ( $message, $help );
 
 my $clan = shift;
 unless ($clan) {
-  warn "\n***** No family passed  *****\n\n";
+  warn "\n***** No clan passed  *****\n\n";
   help();
 }
 chomp($clan);
@@ -37,7 +37,7 @@ if($clan =~ /(\S+)\/$/) { #Remove trailing '/' if present
 }
 
 if (@ARGV) {
-  warn "\n***** $0 no longer supports multiple family check-ins *****\n\n";
+  warn "\n***** $0 no longer supports multiple clan check-ins *****\n\n";
   help();
 }
 
@@ -106,12 +106,12 @@ unless( &Bio::Pfam::PfamQC::checkClanMembership( $clanObj->DESC->MEMB, $clanSVNO
 
 #Make sure that the clan accession and id are the same between the two versions.
 unless($clanObj->DESC->AC eq $clanSVNObj->DESC->AC){
-  die "The clan acession has been changed between the SVN copy and your local copy!:".
+  die "The clan accession has been changed between the SVN copy and your local copy!:".
     "From:".$clanSVNObj->DESC->AC." to ".$clanObj->DESC->AC."\n";
 }
 
 unless($clanObj->DESC->ID eq $clanSVNObj->DESC->ID){
-  die "The clan acession has been changed between the SVN copy and your local copy!:".
+  die "The clan accession has been changed between the SVN copy and your local copy!:".
     "From:".$clanSVNObj->DESC->ID." to ".$clanObj->DESC->ID.".  Use clmove.pl to change the name\n";
 }
 
@@ -138,3 +138,23 @@ if ($caught_cntrl_c) {
   "but this could be very bad.  You really must tell someone about this!\n";
 }
 exit(0);
+
+sub help {
+
+print<<EOF;
+
+  usage: $0 <directory>
+
+  Where the directory contains the files that constitute a Pfam Clan.
+
+  Aim: To perform quality control checks on an existing clan and commit to the SVN repository.
+
+  -m       - Specify the message that describes the changes you have made to this clan
+             on the command line, avoid being prompted for it at a later stage.
+  -help    - Prints this message
+
+EOF
+
+exit(1);
+
+}

@@ -22,7 +22,7 @@ help() unless($ARGV[0]);
 my $clan = shift;
 
 unless(defined $clan){
-  warn "No family name specified\n"; 
+  warn "No clan name specified\n";
 }
 
 if ( $clan !~ /^(CL\d{4})$/ ) {
