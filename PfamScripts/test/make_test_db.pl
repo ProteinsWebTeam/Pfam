@@ -238,12 +238,15 @@ $dbhNew->do( "insert into clan select distinct t.* from "
 
 $logger->info("Inserting Clan related data.");
 foreach my $table (
-  qw(clan_database_links clan_lit_ref released_clan_version))
+  qw(clan_database_links clan_lit_ref clan_wiki released_clan_version))
 {
   $dbhNew->do( "insert into $table select t.* from "
       . $connectParams->{database}
       . ".$table t, clan f where t.clan_acc=f.clan_acc" );
 }
+$dbhNew->do( "insert into wikipedia select distinct t.* from "
+    . $connectParams->{database}
+    . ".wikipedia t, clan_wiki f where t.auto_wiki=f.auto_wiki" );
 $dbhNew->do( "replace literature_reference select t.* from "
     . $connectParams->{database}
     . ".literature_reference t, clan_lit_ref f where t.auto_lit=f.auto_lit" );
