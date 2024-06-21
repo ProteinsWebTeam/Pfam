@@ -229,7 +229,7 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<PfamLive::Result::PfamAWiki>
+Related object: L<PfamLive::Result::ClanWiki>
 
 =cut
 
