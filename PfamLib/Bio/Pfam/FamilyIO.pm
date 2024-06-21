@@ -582,7 +582,7 @@ sub writeDESC {
       }
       elsif ( $tagOrder eq 'WIKI' ) {
         if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
-          my @pages = keys( %{ $desc->$tagOrder } );
+          my @pages = sort keys( %{ $desc->$tagOrder } );
           foreach my $p (@pages){
             print D wrap( "WK   ", "WK   ", $p );
             print D "\n"
