@@ -1505,7 +1505,7 @@ sub processHMMs {
         . $pfam->domain_nc . ";\n";
       print HMM_OUT "BM    "
         . $buildline . " HMM.ann SEED.ann\n";
-      print HMM_OUT "SM    ".
+      print HMM_OUT "SM    "
         . $pfam->searchmethod . "\n";
       next;
     }
