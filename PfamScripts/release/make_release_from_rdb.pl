@@ -322,17 +322,21 @@ $logger->info("Updated clans table");
 #Make pdbmap file
 unless ( -e "$thisRelDir/pdbmap" ) {
   $logger->info("Making pdbmap");
+  # my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
+  my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), pdb_res_start, pdb_start_icode, pdb_res_end, pdb_end_icode, concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
 
-  my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
   $stpdb->execute() or die "Can't executre statement\n";
   my $arrayref = $stpdb->fetchall_arrayref();
     open (PDBFILE, ">$thisRelDir/pdbmap") or die "Can't open file to write\n";
     foreach my $row (@$arrayref){
-      my $st_en_icode=""; #To prevent unitialised warning
-      if($row->[2]) {
-        $st_en_icode=$row->[2];
-      }
-       print PDBFILE $row->[0] . "\t" . $row->[1] . "\t" . $st_en_icode . "\t" . $row->[3] . "\t" . $row->[4] . "\t" . $row->[5] . "\t" . $row->[6] . "\n";
+      my $st = $row->[2];
+      my $st_icode = $row->[3] // '';
+      $st_icode =~ s/^\s+|\s+$//g;
+      my $en = $row->[4];
+      my $en_icode = $row->[5] // '';
+      $en_icode =~ s/^\s+|\s+$//g ;
+      my $st_en_icode = "${st}${st_icode}-${en}${en_icode};";
+      print PDBFILE $row->[0] . "\t" . $row->[1] . "\t" . $st_en_icode . "\t" . $row->[6] . "\t" . $row->[7] . "\t" . $row->[8] . "\t" . $row->[9] . "\n";
    }
    close PDBFILE;
 }
