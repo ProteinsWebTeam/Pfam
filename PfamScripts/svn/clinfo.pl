@@ -13,15 +13,26 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
 use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Client;
-use Bio::Pfam::ClanIO;
 use Bio::Pfam::PfamLiveDBManager;
 
 my $config = Bio::Pfam::Config->new;
 
-#Check that a command line parameter has been padded in.
-help() unless ( $ARGV[0] );
+my ($help, $revision, $rev_ver);
+GetOptions(
+  "help" => \$help,
+  "rev"  => \$revision,
+  "ver=i"=> \$rev_ver
+ );
+
+help() if($help);
+
+unless ( $ARGV[0] ) {
+  help();
+}
+
 my $clan = shift; #- Right we have something
 
 #-------------------------------------------------------------------------------
@@ -57,13 +68,8 @@ if ( $clan !~ /^(CL\d{4})$/ ) {
 #Check that family exists in svn - will die in the subroutine if it does not find it.
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkClanExists($clan);
-
-#Should be good to continue!
-#This prints the revision history to stdout
-$client->log($clan);
-
-#This prints the clandesc file to stdout
-$client->catFile( $clan, "CLANDESC" );
+$client->log($clan) if($revision);
+$client->catFile( $clan, "CLANDESC", undef, $rev_ver );
 
 
 #-------------------------------------------------------------------------------
@@ -84,7 +90,11 @@ sub help {
 
 usage: $0 <CLAN ACCESSION>
 
-Prints the SVN revision history for the family. 
+Prints the SVN revision history for the clan.
+
+-rev :Prints the SVN revision history for the clan.
+-ver <REVISION VERSION> :Prints the CLANDESC file at the svn revision version provided.
+
 At WTSI/EBI this will work with IDs as the database is local.
 
 EOF
