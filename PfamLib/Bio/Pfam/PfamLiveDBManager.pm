@@ -1016,17 +1016,18 @@ sub updateClanDbXrefs {
 #-------------------------------------------------------------------------------
   $self->getSchema->resultset('ClanDatabaseLink')
     ->search( { clan_acc => $clanObj->DESC->AC } )->delete;
-
-  foreach my $dbLink ( @{ $clanObj->DESC->DBREFS } ) {
-    $self->getSchema->resultset('ClanDatabaseLink')->create(
-      {
-        clan_acc     => $clanObj->DESC->AC,
-        db_id        => $dbLink->{db_id},
-        comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
-        db_link      => $dbLink->{db_link},
-        other_params => $dbLink->{other_params} ? $dbLink->{other_params} : ''
-      }
-    );
+  if ( $clanObj->DESC->DBREFS and ref( $clanObj->DESC->DBREFS ) eq 'ARRAY' ) {
+    foreach my $dbLink ( @{ $clanObj->DESC->DBREFS } ) {
+      $self->getSchema->resultset('ClanDatabaseLink')->create(
+        {
+          clan_acc     => $clanObj->DESC->AC,
+          db_id        => $dbLink->{db_id},
+          comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
+          db_link      => $dbLink->{db_link},
+          other_params => $dbLink->{other_params} ? $dbLink->{other_params} : ''
+        }
+      );
+    }
   }
 }
 
@@ -1125,28 +1126,29 @@ sub updateClanLitRefs {
 #Then added the information pfamA_literature_reference table.
   $self->getSchema->resultset('ClanLitRef')->search( { clan_acc => $clanObj->DESC->AC } )
     ->delete;
-
-  foreach my $ref ( @{ $clanObj->DESC->REFS } ) {
-    my $dbRef =
-      $self->getSchema->resultset('LiteratureReference')->find_or_create(
-      {
-        pmid    => $ref->{RM},
-        title   => $ref->{RT} ? $ref->{RT} : '',
-        author  => $ref->{RA} ? $ref->{RA} : '',
-        journal => $ref->{RL} ? $ref->{RL} : ''
+  if ( $clanObj->DESC->REFS and ref( $clanObj->DESC->REFS ) eq 'ARRAY' ) {
+    foreach my $ref ( @{ $clanObj->DESC->REFS } ) {
+      my $dbRef =
+        $self->getSchema->resultset('LiteratureReference')->find_or_create(
+        {
+          pmid    => $ref->{RM},
+          title   => $ref->{RT} ? $ref->{RT} : '',
+          author  => $ref->{RA} ? $ref->{RA} : '',
+          journal => $ref->{RL} ? $ref->{RL} : ''
+        }
+        );
+      unless ( $dbRef->auto_lit ) {
+        confess( "Failed to find references for pmid " . $ref->{RM} . "\n" );
       }
+      $self->getSchema->resultset('ClanLitRef')->create(
+        {
+          clan_acc    => $clanObj->DESC->AC,
+          auto_lit    => $dbRef,
+          comment     => $ref->{RC} ? $ref->{RC} : '',
+          order_added => $ref->{RN}
+        }
       );
-    unless ( $dbRef->auto_lit ) {
-      confess( "Failed to find references for pmid " . $ref->{RM} . "\n" );
     }
-    $self->getSchema->resultset('ClanLitRef')->create(
-      {
-        clan_acc    => $clanObj->DESC->AC,
-        auto_lit    => $dbRef,
-        comment     => $ref->{RC} ? $ref->{RC} : '',
-        order_added => $ref->{RN}
-      }
-    );
   }
 }
 
