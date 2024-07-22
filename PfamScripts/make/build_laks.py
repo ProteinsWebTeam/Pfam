@@ -38,7 +38,8 @@ for filename in files: #EAD9.fa
   os.system(f"sed -i -r 's/\|/_/' seed");
 
   #Submit liftover_alignment, create_alignment, pfbuild and pqc-overlap-rdb to farm
-  os.system(f"bsub -q standard -M 5000 -R \"rusage[mem=5000]\" -o farm.log -J{name} 'liftover_alignment.pl -local -align seed && create_alignment.pl -fasta seed.phmmer -mu > SEED && pfbuild -withpfmake -local && cd .. && pqc-overlap-rdb {name} '");
+  # os.system(f"bsub -q standard -M 5000 -R \"rusage[mem=5000]\" -o farm.log -J{name} 'liftover_alignment.pl -local -align seed && create_alignment.pl -fasta seed.phmmer -mu > SEED && pfbuild -withpfmake -local && cd .. && pqc-overlap-rdb {name} '");
+  os.system(f"sbatch --time=2:00:00 --mem=8G -o \"farm.log\" -e \"farm.log\" -J {name} --wrap=\"liftover_alignment.pl -local -align seed && create_alignment.pl -fasta seed.phmmer -mu > SEED && pfbuild -withpfmake -local && cd .. && pqc-overlap-rdb {name}\"");
 
   os.chdir('../')
 
