@@ -40,7 +40,7 @@ while(<HMM>) {
 	  # start of an entry
 	  $namenum = $acc = $desc = $build = $calibrate = 0;
 	  next;
-  } elsif (/^NAME  ([0-9a-zA-Z\-_]{1,15})$/){
+  } elsif (/^NAME  ([0-9a-zA-Z\-_]{1,31})$/){
 	  $name = $1;
 	  $namenum++;
 	  next;

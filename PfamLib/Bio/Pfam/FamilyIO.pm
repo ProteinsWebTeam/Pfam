@@ -684,7 +684,7 @@ sub create_or_update_author {
           croak("There is more than one author with the name [".$author->{name}."] in the database. You must specify an orcid for ". $author->{name}." in the DESC file to distinguish it from the other author(s) with the same name.\n");
         }
         foreach my $au_entry (@author_entry) { #There will only be one entry in @author_entry if we get to here
-          if($au_entry->orcid eq 'NULL') {
+          if(!$au_entry->orcid || $au_entry->orcid eq 'NULL') {
             $author_entry = $au_entry;
           }
           elsif($au_entry->orcid) {

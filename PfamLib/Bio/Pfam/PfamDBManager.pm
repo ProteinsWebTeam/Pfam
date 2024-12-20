@@ -89,7 +89,7 @@ sub clanId2Acc {
 sub clanAcc2Id {
   my ( $self, $acc ) = @_;
   my $result =
-    $self->getSchema->resultset("PfamA")->find( { "clan_acc" => $acc } );
+    $self->getSchema->resultset("Clan")->find( { "clan_acc" => $acc } );
   if ( $result && $result->clan_id ) {
     return ( $result->clan_id );
   }

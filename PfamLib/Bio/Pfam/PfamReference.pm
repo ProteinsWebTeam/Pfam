@@ -310,7 +310,8 @@ sub get_ref_by_pubmed {
   $ua->agent("AVAce Indexer/1.1");
   $ua->proxy( http => $self->config->proxy ) if($self->config->proxy);
   my $url =
-"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=$pubmed&retmode=text&rettype=medline";
+"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=$pubmed&retmode=text&rettype=medline&api_key=d258381d9ad1c9596cfa117391dd6c5ff408";
+# &api_key can be removed for general access
   my $req = new HTTP::Request GET => $url;
   my $res = $ua->request($req);
   if ( $res->is_success ) {
@@ -392,11 +393,12 @@ sub get_ref_by_pubmed {
       # probably epub prior to print
       $self->epub(1); 
     }else{
-      warn "Falied to match SO line\n";
+      warn "Failed to match SO line\n";
     }
     return 1;
   }
   else {
+    warn "Failed to retrieve data from ncbi API for pmid $pubmed\n";
     return 0;
   }
 }
