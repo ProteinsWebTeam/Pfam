@@ -74,15 +74,10 @@ sub passesAllFormatChecks {
     }
   }
 
-  # TODO need to add code to check that the family name doesn't clash if new family
-  # TODO if family exists, check name and accession match in DB
-
-  # if ($isNew) {
-  #   
-  # }
-  # else {
-  #   print STDERR "check acc vs name\n";
-  # }
+  unless( &checkRefs( $famObj->DESC, $family )) {
+    warn "|$family|: Please check references are correct, this is a warning not an error!\n";
+    sleep 3;
+  }
 
   if ( !&checkSearchMethod( $family, $famObj ) ) {
     warn "$family: Bad search method (SM), databases are different sizes\n";
@@ -695,6 +690,44 @@ sub onlyASCII {
     warn "Your Pfam DESC file contains invalid characters\n";
     return 0;
   }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 checkRefs
+
+ Title    : checkRefs
+ Usage    : &PfamQC::checkRefs($desc)
+ Function : Checks if highest reference in CC exists in REFS list
+ Returns  : 1 if all is OK, 0 if not
+ Args     : DESC object
+
+=cut
+
+sub checkRefs {
+  my ($desc, $family_dir) = @_;
+  print "checkRefs...\n";
+  my $max_ref = 0;
+  if ($desc->REFS) {
+    $max_ref = $desc->REFS->[-1]->{'RN'};
+  }
+
+  my $cc = $desc->CC;
+  my $max_ccref = 0;
+  while ( $cc =~ /\[[\d,-]*(\d+)\]/g ) {
+    my $cc_ref = $1;
+    if ($cc_ref > $max_ccref) {
+      $max_ccref = $cc_ref;
+    }
+  }
+
+  print "going to return\n";
+  if ($max_ccref > $max_ref) {
+    warn "Reference [$max_ccref] seems to be referred in the CC, but the corresponding RN could not be found.\n";
+    return 0;
+  }
+
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
@@ -2072,10 +2105,8 @@ sub checkDESCSpell {
 
   my $config     = Bio::Pfam::Config->new;
   my $dictionary = $config->dictionary;
-
   my (%line);
 
-  #
   unless ($familyIO) {
     $familyIO = Bio::Pfam::FamilyIO->new;
   }
@@ -2084,6 +2115,7 @@ sub checkDESCSpell {
   $familyIO->parseDESC("$fam/DESC");
 
   my ($line) = 0;
+  my $decc;
 
   open( DESC, "$fam/DESC" )
   || die "Can't open DESC file for family $fam:[$!]\n";
@@ -2094,7 +2126,11 @@ sub checkDESCSpell {
       $line{"$line"} = $1;
     }
     elsif (/^CC   (.*)$/) {
-      $line{"$line"} = $1;
+      my $cc_line = $1;
+      $cc_line =~ s/ +/ /g;
+      $cc_line =~ s/ +$//g;
+      $line{"$line"} = $cc_line;
+      $decc .= ' '. $cc_line;
     }
     elsif (/^RC   (.*)$/) {
       $line{"$line"} = $1;
@@ -2102,8 +2138,15 @@ sub checkDESCSpell {
     elsif (/^DC   (.*)$/) {
       $line{"$line"} = $1;
     }
+    elsif (/^ID   (.*)$/) {
+      $decc .= "$1\n";
+    }
     elsif (/^DE   (.*)$/) {
-      $line{"$line"} = $1;
+      my $de_line = $1;
+      $de_line =~ s/ +/ /g;
+      $de_line =~ s/ +$//g;
+      $line{"$line"} = $de_line;
+      $decc .= ' '. $de_line;
     }
     $line++;
   }
@@ -2176,6 +2219,45 @@ sub checkDESCSpell {
 
   # Move DESC across
   copy( "$fam/DESC.$$", "$fam/DESC" );
+
+  if ($decc =~ /(alcholol|analagous|aparrently|archael|assocaited|bacteriaa|batcer|betwwen|caracterized|chlorplasts|conatins|dependant|doamin|domainss|domian|enrty|fsmily|golbin|haeme|homolog |lenght|phague|portein|potein|protien|releated|repersents|represnts|reveales|siganture|specifacally|supress|variousely|This domains|neighbor)/) {
+    my $mispell = $1;
+    print "Common misspell word found.\n";
+    print "The frequently misspelled '$1' is present within ID/DE/CC lines.\n";
+    print "Please check spelling!\n";
+    sleep 5;
+  }
+
+  my $open_rou = () = $decc =~ /\(/g;
+  my $close_rou = () = $decc =~ /\)/g;
+  my $open_squ = () = $decc =~ /\[/g;
+  my $close_squ = () = $decc =~ /\]/g;
+  my $open_cur = () = $decc =~ /\{/g;
+  my $close_cur = () = $decc =~ /\}/g;
+
+  if ($open_rou != $close_rou || $open_squ != $close_squ || $open_cur != $close_cur) {
+    print "Unmatched brackets found.\n";
+    if ($open_rou > $close_rou) {
+      print "Opened round brackets '(' exists with no matching close round brackets.\n";
+    }
+    if ($open_rou < $close_rou) {
+      print "Closed round brackets ')' exists with no matching open round brackets.\n";
+    }
+    if ($open_squ > $close_squ) {
+      print "Opened square brackets '[' exists with no matching close square brackets.\n";
+    }
+    if ($open_squ < $close_squ) {
+      print "Closed square brackets ']' exists with no matching open square brackets.\n";
+    }
+    if ($open_cur > $close_cur) {
+      print "Opened curly brackets '{' exists with no matching close curly brackets.\n";
+    }
+    if ($open_cur < $close_cur) {
+      print "Closed curly brackets '}' exists with no matching open curly brackets.\n";
+    }
+    print "Please check existing brackets!\n";
+    sleep 5;
+  }
 
   # Add spell file to directory so programs can enforce spell check.
   open( S, ">touch $fam/spell" );
