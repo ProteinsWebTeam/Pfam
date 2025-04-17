@@ -45,7 +45,7 @@ while(<SCORES>){
 close SCORES;
 
 
-# Find if any swiss-prots are found in PFAMOUT
+# Find if any swiss-prots are found in PFAMOUT and prepare sp file
 my %accmap;
 my %sp; # Stores sps found
 my %top; # Stores accs of top n scoring proteins.  Will give architecture of these if no swiss-prot are available
@@ -77,6 +77,50 @@ close OUT;
 
 my $found = keys %sp;
 
+# retrieve swissprot seq_info into sp.seq_info file
+my (@info, $all_ids);
+print STDERR "Fetching seq_info for ". scalar(%sp) . " matches, writing to sp.seq_info file\n";
+foreach my $id (keys %sp){
+
+    select(undef, undef, undef, 0.25); # This command makes a 250ms pause. So that UniProt server is not overloaded.
+
+    open(PFETCH, "wget -q -O - \"https://www.uniprot.org/uniprot/$id.txt\" |") or warn "Cannot wget $id\n";
+    my $fail=0;
+    while (<PFETCH>){
+        if (/</){
+            $fail=1;
+            print STDERR "Failed to fetch $id\n";
+            next; # Skip out of loop. This seems to be an xml response.
+        }
+        if ($_ =~ /^(  )\s{3}/){ # Remove sequence lines
+            next;
+        } elsif(/^CC   ---/){
+            next;
+        } elsif (/^CC   Copyrighted/){
+            next;
+        } elsif (/^CC   Distributed/){
+            next;
+        } elsif (/ProtNLM/){
+            push(@info, $_);
+            next;
+        } elsif (/^DT/){
+            next;
+        } elsif (! $fail){
+            push(@info, $_);
+        }
+    }
+    close (PFETCH);
+}
+
+open (SIO, ">sp.seq_info") or die "Cannot write to sp.seq_info file, $!";
+
+foreach (@info){
+    chomp ($_);
+    print SIO "$_\n";
+}
+close SIO;
+
+# enrich with trembl and prepare arch file
 if($found==0) {
   %sp=%top;
   $found = keys %top;
@@ -163,8 +207,9 @@ sub help {
 
 This script finds Swiss-Prot sequences in a PFAMOUT file. It requires a 
 PFAMOUT and scores files in the current working directory. The script 
-creates two files: sp and arch. sp contains the Swiss-Prot matches, while 
-arch contains the architectures of the Swiss-Prot Pfam matches. If no
+creates three files: sp, sp.seq_info and arch. sp contains the Swiss-Prot matches,
+while sp.seq_info contains the full UniProt flatfile record for those matches.
+The arch file contains the architectures of the Swiss-Prot Pfam matches. If no
 Swiss-Prot matches are found, or if the number of Swiss-Prot matches is 
 less than num (default num=5), the arch file will be supplemented with 
 top scoring TrEMBL sequences until it contains num sequences. For example if 
