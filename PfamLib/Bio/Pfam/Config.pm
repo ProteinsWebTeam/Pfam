@@ -896,5 +896,12 @@ sub familyOverlapRule
   return $self->{overlap_rule}->{family_overlap};
 }
 
+sub apicuronKey {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{apicuronKey};
+}
 
 1;
