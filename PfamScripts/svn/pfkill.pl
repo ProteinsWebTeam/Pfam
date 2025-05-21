@@ -195,6 +195,12 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 
 $client->killFamily($family);
 
+# submit to apicuron
+my $api_run = `perl submit_apicuron.pl $family delete_family`;
+if ($api_run ne 'Success') {
+  print "Could not submit curation event to apicuron...\n$api_run\n";
+}
+
 #Remove any file containing the check-in message
 if ( -s ".default".$$."pfkill" ) {
   unlink(".default".$$."pfkill")

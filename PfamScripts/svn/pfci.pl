@@ -452,7 +452,11 @@ else {
   $familyIO->uploadPfamAAligns($upFamObj, $pfamDB, $pwd, 0);
 }
 
-
+# submit to apicuron
+my $api_run = `perl submit_apicuron.pl $family update_family`;
+if ($api_run ne 'Success') {
+  print "Could not submit curation event to apicuron...\n$api_run\n";
+}
 
 #Remove any file containing the check-in message
 if ( -s ".default" . $$ . "pfci" ) {

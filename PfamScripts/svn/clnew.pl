@@ -45,6 +45,12 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 
 $client->addClan($clan, $clanObj->DESC->ID);
 
+# submit to apicuron
+my $api_run = `perl submit_apicuron.pl $clan create_clan`;
+if ($api_run ne 'Success') {
+  print "Could not submit curation event to apicuron...\n$api_run\n";
+}
+
 if ($caught_cntrl_c) {
   print STDERR
 "\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
