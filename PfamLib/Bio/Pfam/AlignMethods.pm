@@ -204,6 +204,7 @@ sub print_alignment {
 
   my $hash   = shift @_;
   my $method = shift;
+  my $order = shift;
 
   # first pass to get the longest id
   my $idlength = 1;
@@ -213,11 +214,12 @@ sub print_alignment {
     }
   }
 
-  my $line;
-  my ( $key, $value );
+  if ( !$order) {
+    @{$order} = (keys %{$hash});
+  }
 
-  while ( ( $key, $value ) = each( %{$hash} ) ) {
-    print sprintf( "%-" . $idlength . "s %s \n", $key, $value );
+  foreach my $key (@{$order}) {
+    print sprintf( "%-" . $idlength . "s %s \n", $key, $hash->{$key} );
   }
 
   return;
@@ -246,7 +248,7 @@ sub extend_alignment {
   my ( $id, $from, $to, $newfrom, $newto, $original_seqno, $retrieved_seqno );
 
 
-  my (%nse, %seqList);
+  my (%nse, %seqList, @order);
 
   my $fa_file = "FA.whole.$$";
 
@@ -259,6 +261,7 @@ sub extend_alignment {
       push(@{$nse{$acc}}, { start => $start, end => $end} );
       $original++;	
       push(@{ $seqList{$acc} }, { whole => 1 });
+      push(@order, $acc);
     }
     elsif(/^\/\//) {
       next;
@@ -293,7 +296,7 @@ sub extend_alignment {
 
 
 
-  foreach my $acc (keys %length) {
+  foreach my $acc (@order) {
 
     foreach my $se (@{$nse{$acc}}) {
       $retrieved++;

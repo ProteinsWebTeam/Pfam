@@ -93,4 +93,4 @@ my %hash=&Bio::Pfam::AlignMethods::create_alignment($sequence,$description,$meth
 
 
 #Print alignment
-&Bio::Pfam::AlignMethods::print_alignment(\%hash, $method);
+&Bio::Pfam::AlignMethods::print_alignment(\%hash, $method, $description);
