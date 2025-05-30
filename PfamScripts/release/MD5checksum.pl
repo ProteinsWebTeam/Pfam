@@ -30,7 +30,9 @@ if(-s $outfile) {
 }
 
 foreach my $file (@sorted_files) {
-  next if(-d $file);
+  next if (-d $file);
+  next if ($file eq 'userman.txt');
+  next if ($file eq 'relnotes.txt');
   print STDERR "Doing $file\n";
   system("md5sum $file >> $outfile") and die "Problem running 'md5sum $file >> $outfile', $!";
 }

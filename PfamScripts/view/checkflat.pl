@@ -287,7 +287,7 @@ LINE: while(<>) {
     }
     
 	
-	if ($hash{'CONSENSUS'} != 1){
+	if ($hash{'CONSENSUS'} != 1 && $size > 0){
 		print "No Consensus sequence for $pfam_id\n"; 
 	}
 

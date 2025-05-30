@@ -74,7 +74,7 @@ foreach my $row (@current) {
 print STDERR "done\n";
 
 
-print STDERR "Retrieving data from released_pfam_version...\n";
+print STDERR "Retrieving data from released_pfam_version...";
 my @released = $pfamDB->getSchema
                       ->resultset('ReleasedPfamVersion')
                       ->search({},);
@@ -85,7 +85,10 @@ foreach my $row (@released) {
     $released{$row->get_column('pfama_acc')}{'desc'}=$row->desc_file;
     $released{$row->get_column('pfama_acc')}{'hmm'}=$row->hmm;
 }
-foreach my $auto (keys %current) {
+
+my $dbh = $pfamDB->getSchema->storage->dbh;
+
+foreach my $auto (sort keys %current) {
 
     if(exists($released{$auto})) {
 
@@ -99,18 +102,25 @@ foreach my $auto (keys %current) {
         $change .= "DESC " unless($released{$auto}{'desc'} eq $current{$auto}{'desc'});
 
 	my $c;
+    my $c_status;
 	if($change) {
 	    $c = "CHANGE   $change";
+        $c_status = "CHANGE";
 	}
 	else {
 	    $c = "NOCHANGE";
+        $c_status = "NOCHANGE";
 	}
 	print sprintf ("%2s  %-11s  %-17s  %-30s \n", "FI", $current{$auto}{'pfamA_acc'}, $current{$auto}{'pfamA_id'}, $c);
+
+    my $upd_status = $dbh->prepare("UPDATE pfamA SET change_status = '$c_status' WHERE pfamA_acc = '$auto'");
+    $upd_status->execute() or die "Failed to update change_status for $auto\n".$upd_status->errstr."\n";
+
     }
 }
 
 
-foreach my $auto (keys %current) {
+foreach my $auto (sort keys %current) {
     unless(exists($released{$auto})) {
 	my $c = "NEW      SEED HMM FULL DESC";
 	print sprintf ("%2s  %-11s  %-17s  %-30s \n", "FI", $current{$auto}{'pfamA_acc'}, $current{$auto}{'pfamA_id'}, $c);
@@ -119,7 +129,7 @@ foreach my $auto (keys %current) {
 
 
 print $dead;
-foreach my $pfamA (keys %old) {
+foreach my $pfamA (sort keys %old) {
 
     unless(exists($pfamA{$pfamA})) {
 	my $c = "DEAD";
@@ -131,13 +141,12 @@ print STDERR "done\n";
 #exit;
 
 print STDERR "Deleting old data from released_pfam_version...";
-my $dbh = $pfamDB->getSchema->storage->dbh;
 my $delete = $dbh->prepare("delete from released_pfam_version");
 $delete->execute() or die "Failed to delete old data from released_pfam_version ".$delete->errstr."\n";
 print STDERR "done\n";
 
 
-print STDERR "Updating released_pfam_version\n";
+print STDERR "Updating released_pfam_version...";
 my $update = $dbh->prepare("INSERT INTO released_pfam_version \(pfamA_acc, seed, align, desc_file, hmm, version\) SELECT c.pfamA_acc, seed, align, desc_file, hmm, version FROM pfamA as a, current_pfam_version as c WHERE a.pfamA_acc = c.pfamA_acc") or die "Can't prepare statement\n";
 $update->execute() or die "Failed to update released_pfam_version\n".$update->errstr."\n";
 print STDERR "done\n";
