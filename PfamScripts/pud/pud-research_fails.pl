@@ -170,6 +170,7 @@ sub pfmake {
   else {
       $memory_mb=4000;
   }
-  system("bsub -q $queue -o pfmake.log -J$fam -M $memory_mb -R \"rusage[mem=$memory_mb]\" pfmake");
+  # system("bsub -q $queue -o pfmake.log -J$fam -M $memory_mb -R \"rusage[mem=$memory_mb]\" pfmake");
+  system("sbatch -p $queue --mem=$memory_mb --time=3:00:00 -o \"pfmake.log\" -e \"pfmake.log\" -J $fam pfmake");
 
 }
