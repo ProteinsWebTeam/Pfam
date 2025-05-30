@@ -121,7 +121,7 @@ sub user_response {
 
     if($reply eq "y") {
         print STDERR "Moving $pfamA_acc to $done_dir\n";
-        move($pfamA_acc, "$done_dir/$pfamA_acc") or die "Couldn't move $pfamA_acc to $done_dir, $!";
+        rename($pfamA_acc, "$done_dir/$pfamA_acc") or die "Couldn't move $pfamA_acc to $done_dir, $!";
     }
     elsif($reply eq "n") {
         print STDERR "Leaving $pfamA_acc in current working directory and moving on to next family\n";
@@ -156,7 +156,7 @@ sub user_response {
     elsif($reply eq "f") {
         pad_ends($pfamA_acc, 10); 
         print STDERR "Moving $pfamA_acc to $done_dir\n";
-        move($pfamA_acc, "$done_dir/$pfamA_acc") or die "Couldn't move $pfamA_acc to $done_dir, $!";
+        rename($pfamA_acc, "$done_dir/$pfamA_acc") or die "Couldn't move $pfamA_acc to $done_dir, $!";
     }
     elsif($reply eq "o") {
         print STDERR "Copying $pfamA_acc/SEED.original to $pfamA_acc/SEED\n";
