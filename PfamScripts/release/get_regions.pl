@@ -47,11 +47,13 @@ my @data = read_file($file);
 foreach my $line (@data){
     if ($line =~ /^pfamseq_acc/ or $line =~ /^uniprot_acc/){
         next;
-    } elsif ($line =~ /(\w{6,10})\s+(PF\d{5})\s+(\d+)\s+(\d+)/){
+    } elsif ($line =~ /(\w{6,10})\s+(PF\d{5})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/){
         my $seq = $1;
         my $pfam = $2;
         my $start = $3;
         my $end = $4;
+        my $ali_start = $3;
+        my $ali_end = $4;
         
         $st->execute($seq);
         my $arrayref = $st->fetchall_arrayref();
@@ -59,7 +61,7 @@ foreach my $line (@data){
         my $crc = $arrayref->[0]->[1];
         my $md5 = $arrayref->[0]->[2];
         
-        print OUTFILE "$seq\t$version\t$crc\t$md5\t$pfam\t$start\t$end\n";
+        print OUTFILE "$seq\t$version\t$crc\t$md5\t$pfam\t$start\t$end\t$ali_start\t$ali_end\n";
 
     }
 }
