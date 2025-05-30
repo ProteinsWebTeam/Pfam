@@ -9,10 +9,10 @@ use Log::Log4perl qw(:easy);
 use Archive::Tar;
 use File::Touch;
 use File::Copy;
+use File::Path qw(rmtree);
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
-
 
 #Start up the logger
 Log::Log4perl->easy_init();
@@ -83,6 +83,13 @@ if (! -e $uniprot_seq_file) {
 
 if ( !-e "${status_dir}/antifam_hmms_run" ) {
 
+  if (-d $logs_dir || -d $matches_dir || -d $hmms_dir) {
+    rmtree($logs_dir) or die "Failed to remove directory '$logs_dir': $!";
+    rmtree($matches_dir) or die "Failed to remove directory '$matches_dir': $!";
+    rmtree($hmms_dir) or die "Failed to remove directory '$hmms_dir': $!";
+    $logger->info("Antifam logs, matches and hmm directories removed.\n");
+  }
+
   mkdir($logs_dir)
     or $logger->logdie("Can't create $logs_dir $!\n");
 
@@ -95,57 +102,70 @@ if ( !-e "${status_dir}/antifam_hmms_run" ) {
   $logger->info("Getting AntiFam data...\n");
   my $antifam_list = &copy_antifam_data($antifam_dir, $hmms_dir);
 
+  my @job_ids;
 
-  my (@completed, @error);
+  foreach my $antifam_id (@{$antifam_list}) {
+    my $matches_file = $matches_dir . '/' . $antifam_id . '_matches';
+    my $log_file = $logs_dir . '/' . $antifam_id . '.log';
+    my $hmm_file = "${hmms_dir}/${antifam_id}.hmm";
 
-  while (scalar @completed + scalar @error != scalar @{$antifam_list}) {
 
-    my @running_jobs = split( "\n", `bjobs -w | grep '_rAFM'| awk '{print \$7}'` );
+    my $command = "sbatch --job-name=${antifam_id}_rAFM --time=6:00:00 --mem=8GB -o '$log_file' -e '$log_file' --wrap=\"hmmsearch --cpu 8 --noali --cut_ga --tblout $matches_file $hmm_file $uniprot_seq_file\" ";
+    # my $command = "sbatch --job-name=${antifam_id}_rAFM --time=10:00 --mem=100 -o '$log_file' -e '$log_file' --wrap=\"echo 'done $antifam_id' > $matches_file; sleep 60\" ";
 
-    if (@running_jobs) {
-      $logger->info("AntiFam search still running - checking again in 30 minutes\n");
-      sleep(1800);
+    my $output = `$command`;  # Run the sbatch command and capture the output
+
+    if ($output =~ /Submitted batch job (\d+)/) {
+        my $job_id = $1;
+        push @job_ids, $job_id;  # Store the job ID
+        $logger->info("Submitted job for $antifam_id with job ID: $job_id\n");
+    } else {
+        $logger->info("Failed to submit job for $antifam_id\n");
     }
 
-    foreach my $antifam_id (@{$antifam_list}) {
-      my $matches_file = $matches_dir . '/' . $antifam_id . '_matches';
-      my $log_file = $logs_dir . '/' . $antifam_id . '.log';
-      my $hmm_file = "${hmms_dir}/${antifam_id}.hmm";
+  }
+  sleep(60);
 
-      if (! -e $log_file) {
-        if ( ! grep /$antifam_id/, @running_jobs ) {
-          my $queue = $config->{farm}->{lsf}->{queue};
-          system("bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -n 8 -M 8000 -o $log_file -g /Pfam_100 -J ${antifam_id}_rAFM hmmsearch --cpu 8 --noali --cut_ga --tblout $matches_file $hmm_file $uniprot_seq_file")
-            and die "Error submitting hmmsearch job:[$!]";
-        }
-      } else {
-        if ( (! grep /$antifam_id/, @error) && (! grep /$antifam_id/, @completed) ) {
-          if (-s $log_file) {
-            open my $log_fh, '<', $log_file or die;
-            my $log = do { local $/; <$log_fh> };
-            if ( $log =~ m/Successfully completed/) {
-              $logger->info("$antifam_id search has completed.\n");
-              push @completed, $antifam_id;
-            } else {
-              $logger->info("Error processing $antifam_id search.\n");
-              push @error, $antifam_id;
-            }
-          } else {
-            $logger->info("$antifam_id search is in progress.\n");
+  # Wait for all jobs to finish
+  my $all_done = 0;
+
+  my $total_jobs = scalar @job_ids;
+
+  my $completed;
+
+  while (!$all_done) {
+      $completed = 0;
+      $all_done = 1;  # Assume all jobs are done unless we find otherwise
+      foreach my $job_id (@job_ids) {
+          # Check the job status
+          my $status = `sacct -j $job_id --format=State --noheader`;
+
+          if ($status =~ /COMPLETED/) {
+              $completed++;
           }
-        }
+
+          # If job is still running or pending, set $all_done to 0 and exit the loop
+          if ($status =~ /RUNNING|PENDING/) {
+              $all_done = 0;
+              last;
+          }
       }
-    }
-
+      
+      # If jobs are not done, wait for 10 seconds before checking again
+      if (!$all_done) {
+          print "AntiFam search still running - checking again in 10 minutes\n";
+          sleep(600);
+      }
   }
-  $logger->info("All AntiFam matches searches have completed.\n");
 
 
-  if (scalar @error) {
-    $logger->logdie("The following searches failed to run: @error\n");
+  if ($completed == $total_jobs) {
+    $logger->info("All jobs have completed successfully!\n");
+    touch("${status_dir}/antifam_hmms_run");
   } else {
-      touch("${status_dir}/antifam_hmms_run");
+    $logger->logdie("Some jobs have failed, please debug and redo...\n");
   }
+
 
 } else {
   $logger->info("Antifam HMMs have been completed previously. Skipping...\n");

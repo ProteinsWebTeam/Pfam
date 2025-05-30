@@ -71,6 +71,7 @@ if ($data) {
                     released_pfam_version released_clan_version author pfamA_author);
 
     foreach my $table (@tables) {
+        print "Working on $table...\n";
         if (my @matched_cols = columns_matched($table)) {
             my $col_str = join(",", @matched_cols);
             my $sth = $dbh->prepare(qq{insert into $clone_dbname.$table ($col_str) select $col_str from pfam_live.$table});
