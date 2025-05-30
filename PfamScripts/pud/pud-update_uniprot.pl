@@ -8,7 +8,7 @@ use Cwd;
 use File::Copy;
 use Getopt::Long;
 use Digest::MD5 qw(md5_hex);
-use LSF::Job;
+# use LSF::Job;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
@@ -50,7 +50,9 @@ else {
   $logger->debug("Copying reldate.txt from uniprot $uniprot_location\n");
   # copy("$uniprot_location/reldate.txt", "$pfamseq_dir/reldate.txt") or $logger->logdie("Could not copy $uniprot_location/reldate.txt to $pfamseq_dir [$!]\n");
 
-  my $cp_rel = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => "reldate_uniprot", "cp $uniprot_location/reldate.txt $pfamseq_dir/reldate.txt");
+  # my $cp_rel = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => "reldate_uniprot", "cp $uniprot_location/reldate.txt $pfamseq_dir/reldate.txt");
+
+  system("sbatch --job-name=reldate_uniprot --time=1:00:00 --mem=1G -p datamover -o '/dev/null' -e '/dev/null' --wrap=\"cp $uniprot_location/reldate.txt $pfamseq_dir/reldate.txt\" ");
 
   $logger->info("Waiting for reldate.txt to be copied from uniprot reldate.txt");
   until(-s "$pfamseq_dir/reldate.txt") {
@@ -100,10 +102,20 @@ foreach my $file (@files) {
     # copy("$uniprot_location/$file.gz", "$pfamseq_dir/$file.gz") or $logger->logdie("Could not copy $uniprot_location/$file.gz to $pfamseq_dir [$!]\n");
     # $logger->logdie("Couldn't copy $file.gz from $uniprot_location:[$!]\n") unless(-s "$pfamseq_dir/$file.gz");
 
-    my $cp_data = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => 'cp_uniprot', "cp $uniprot_location/$file $file");
-    $logger->debug("bsub cmd: cp $uniprot_location/$file $file");
+    # my $cp_data = LSF::Job->submit(-q => "datamover", -o => "/dev/null", -J => 'cp_uniprot', "cp $uniprot_location/$file $file");
+    # $logger->debug("bsub cmd: cp $uniprot_location/$file $file");
 
-    my $cp_data2 = LSF::Job->submit(-q => "production", -o => "/dev/null", -w => "done($cp_data)", -J => 'cp_uniprot_done', "touch cp_${file}_done");
+    # my $cp_data2 = LSF::Job->submit(-q => "production", -o => "/dev/null", -w => "done($cp_data)", -J => 'cp_uniprot_done', "touch cp_${file}_done");
+
+    my $jobid;
+    my $job_res = `sbatch --mem=1GB --time=1:00:00 -J cp_uniprot -p datamover -o '/dev/null' -e '/dev/null' --wrap="cp $uniprot_location/$file $file"`;
+
+    if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+      $jobid = $1;
+    }
+    system("sbatch --job-name=cp_uniprot_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '/dev/null' -e '/dev/null' --wrap=\"touch cp_${file}_done\" ");
+
+
 
     $logger->debug("Waiting for copy job to complete...");
     until(-e "cp_${file}_done") {
