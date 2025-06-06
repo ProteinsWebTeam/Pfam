@@ -66,10 +66,10 @@ foreach (readdir(DIR))  {
     $logger->info("$_ is missing the HMM and/or PFAMOUT file, running pfbuild -withpfmake on family");
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
     if($memory_gb) {
-      system("pfbuild -withpfmake -M $memory_gb") and $logger->logdie("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
+      system("pfbuild -withpfmake -M $memory_gb") and $logger->warn("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
     }
     else {
-      system("pfbuild -withpfmake") and $logger->logdie("pfbuild -withpfmake on $_ failed:[$!]");
+      system("pfbuild -withpfmake") and $logger->warn("pfbuild -withpfmake on $_ failed:[$!]");
     }
     chdir("../");
     $fail++;
@@ -80,10 +80,10 @@ foreach (readdir(DIR))  {
     $logger->info("$_ has a HMM that is younger than SEED, running pfbuild -withpfmake on family");
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
     if($memory_gb) {
-      system("pfbuild -withpfmake -M $memory_gb") and $logger->logdie("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
+      system("pfbuild -withpfmake -M $memory_gb") and $logger->warn("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
     }   
     else {
-      system("pfbuild -withpfmake") and $logger->logdie("pfbuild -withpfmake on $_ failed:[$!]");
+      system("pfbuild -withpfmake") and $logger->warn("pfbuild -withpfmake on $_ failed:[$!]");
     }
     chdir("../");
     $fail++;
@@ -94,10 +94,10 @@ foreach (readdir(DIR))  {
     $logger->info("$_ has a PFAMOUT that is younger than HMM, running pfbuild -withpfmake on family"); 
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
     if($memory_gb) {
-      system("pfbuild -withpfmake -M $memory_gb") and $logger->logdie("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
+      system("pfbuild -withpfmake -M $memory_gb") and $logger->warn("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
     }   
     else {
-      system("pfbuild -withpfmake") and $logger->logdie("pfbuild -withpfmake on $_ failed:[$!]");
+      system("pfbuild -withpfmake") and $logger->warn("pfbuild -withpfmake on $_ failed:[$!]");
     }
     chdir("../");
     $fail++;
