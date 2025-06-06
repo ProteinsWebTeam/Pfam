@@ -302,14 +302,15 @@ sub read_interpro_xml {
 
   my $interpro_xml_string;
   while ( <IPXML> ) {
-    s/\<abstract\>/<abstract><![CDATA[/g;
+    s/\<abstract([^>]*)\>/<abstract$1><![CDATA[/g;
     s/\<\/abstract\>/]]><\/abstract>/g;
     $interpro_xml_string .= $_;
+
   }
 
   close IPXML;
   $log->info( 'read in interpro XML file' );
-
+ 
   return $interpro_xml_string;
 }
 
