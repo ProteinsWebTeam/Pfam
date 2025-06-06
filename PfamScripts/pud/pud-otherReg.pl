@@ -5,8 +5,6 @@ use warnings;
 use Log::Log4perl qw(:easy);
 use Cwd;
 use IO::File;
-use Sys::Hostname;
-use Data::UUID;
 use Net::SCP;
 use Getopt::Long;
 use File::Touch;
@@ -31,7 +29,7 @@ my ( $statusdir, $pfamseqDir, $split );
   "split=i"      => \$split
 ) or $logger->logdie("Invalid option!");
 
-$split //= 500;
+$split //= 1000;
 
 #Get the connection to the pfam database.
 my $config = Bio::Pfam::Config->new;
@@ -68,7 +66,7 @@ unless ( -d "$pfamseqDir/otherReg" ) {
 
 #-------------------------------------------------------------------------------
 #Open and spit pfamseq into bits;
-my $n = 1;
+my $n = 0;
 unless ( -e "$statusdir/otherReg/doneSplit" ) {
   my $dbsize;
   if(-e "$pfamseqDir/DBSIZE"){
@@ -121,20 +119,24 @@ $logger->info("There are $n files to process!");
 
 ##-------------------------------------------------------------------------------
 ##Now submit the searches to the farm
-my $farmConfig = $config->farm;
-my $phost      = hostname;
-my $ug         = new Data::UUID;
-my $uuid       = $ug->to_string( $ug->create() );
-my $fh         = IO::File->new();
-my $user       = $ENV{USER};
 
 unless ( -e "$statusdir/otherReg/doneFarm" ) {
   $logger->info("Submitting jobs to the farm");
 
-  #Set up the job and copy the files over;
-  $fh->open( "| bsub -q "
-    . $farmConfig->{lsf}->{queue}
-    . " -R \"select[mem>4000] rusage[mem=4000]\" -M 2000000 -o $statusdir/otherReg/$uuid.log  -JotherRegs\"[1-$n]\" " );
+  #submit jobs to farm
+  my $fh = IO::File->new("> otherreg.sbatch");
+
+  $fh->print( "#!/bin/bash
+#SBATCH --job-name=otherreg
+#SBATCH --output=$statusdir/otherReg/otherreg.%a.log
+#SBATCH --error=$statusdir/otherReg/otherreg.%a.log
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=24G
+#SBATCH --time=12:00:00
+#SBATCH --array=0-999
+
+");
+
 
   #Change into the directory containing the shattered pfamseq files
   $fh->print("cd $pfamseqDir/otherReg\n");
@@ -145,44 +147,36 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
 #phobius
 #iupred - This needs the environment variable IUPred_PATH to be set. Done via cshrc.pfam
 
-  $fh->print("ncoils -c < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
-  $fh->print("segmasker -in pfamseq.\$\{LSB_JOBINDEX\} -out seg.\$\{LSB_JOBINDEX\}\n");
-  $fh->print("phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
-  $fh->print("iupred_multifasta pfamseq.\$\{LSB_JOBINDEX\} long > iupred.\$\{LSB_JOBINDEX\}\n");
+
+  $fh->print( "
+ncoils -c < pfamseq.\$SLURM_ARRAY_TASK_ID > ncoils.\$SLURM_ARRAY_TASK_ID
+segmasker -in pfamseq.\$SLURM_ARRAY_TASK_ID -out seg.\$SLURM_ARRAY_TASK_ID
+phobius.pl pfamseq.\$SLURM_ARRAY_TASK_ID > phobius.\$SLURM_ARRAY_TASK_ID
+iupred_multifasta pfamseq.\$SLURM_ARRAY_TASK_ID long > iupred.\$SLURM_ARRAY_TASK_ID
+
+echo \"\$SLURM_ARRAY_TASK_ID Successfully completed\"
+
+");
+
   $fh->close;
 
-  sleep(60);    #Give them change to get on to the farm queue!
-  system("touch $statusdir/otherReg/doneFarm");
-}
+  my $jobid;
+  my $job_res = `sbatch otherreg.sbatch`;
 
-#-------------------------------------------------------------------------------
-##Have all of the jobs finished
-if(-e "$statusdir/otherReg/doneFarmCheck"){
-  $logger->info("Already checked the all jobs have completed successfully");
-}else{
-  $logger->info("Waiting for jobs to finish on the farm");
-  my $finished = 0;
-  while ( !$finished ) {
-    open( FH, "bjobs -JotherRegs|" );
-    my $jobnum;
-    while (<FH>) {
-      if (/^\d+/) {
-        $jobnum++;
-      }
-    }
-    close FH;
-
-    if ($jobnum) {
-      $logger->info(
-        "Will not continue until your $jobnum outstanding jobs have completed."
-        . " Will check again in ten minutes" );
-      sleep(600);
-    }
-    else {
-      $finished = 1;
-    }
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
   }
+  unlink("otherreg.sbatch");
 
+  #Touch file in log dir when regions jobs have finished
+  system("sbatch --job-name=otherreg_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '/dev/null' -e '/dev/null' --wrap=\"touch $statusdir/otherReg/doneFarm\" ");
+
+  #have jobs finished?
+  until(-e "$statusdir/otherReg/doneFarm"){
+    $logger->info("OtherReg farm jobs still running - checking again in 10 minutes\n");
+    sleep(600);
+  }
+  $logger->info("OtherReg jobs have completed");
 
 #-------------------------------------------------------------------------------
 
@@ -190,7 +184,7 @@ if(-e "$statusdir/otherReg/doneFarmCheck"){
 #Now we should have every thing back to be joined together and uploaded.
   $logger->info("Checking all of the files have been retrieved from the farm");
   my $error;
-  for ( my $i = 1 ; $i <= $n ; $i++ ) {
+  for ( my $i = 0 ; $i < $n ; $i++ ) {
     foreach my $f (keys %subs) {
       unless ( -s "$pfamseqDir/otherReg/$f.$i" ) {
         $logger->warn("$pfamseqDir/otherReg/$f.$i is missing");
@@ -199,10 +193,10 @@ if(-e "$statusdir/otherReg/doneFarmCheck"){
     }
   }
 
-  $logger->logdie('Some of the files are other region files are missing')
-  if ($error);
-
-  system("touch $statusdir/otherReg/doneFarmCheck");
+  if ($error) {
+    unlink("$statusdir/otherReg/doneFarmCheck");
+    $logger->logdie('Some of the files are other region files are missing')
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -220,7 +214,7 @@ if(-s "$orDir/allOtherReg.dat"){
   open( $fhOut, ">$orDir/allOtherReg.dat" )
     or $logger->logdie("Could not open allOtherReg.dat");
 
-  for ( my $m = 1 ; $m <= $n ; $m++ ) {
+  for ( my $m = 0 ; $m < $n ; $m++ ) {
 #    my $pfamseq = getAutos($m, $orDir, $dbh);
     foreach my $f (keys %subs) {
       $logger->info("Parsing $f.$m");
