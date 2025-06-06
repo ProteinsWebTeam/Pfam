@@ -706,7 +706,7 @@ sub onlyASCII {
 
 sub checkRefs {
   my ($desc, $family_dir) = @_;
-  print "checkRefs...\n";
+
   my $max_ref = 0;
   if ($desc->REFS) {
     $max_ref = $desc->REFS->[-1]->{'RN'};
@@ -721,7 +721,6 @@ sub checkRefs {
     }
   }
 
-  print "going to return\n";
   if ($max_ccref > $max_ref) {
     warn "Reference [$max_ccref] seems to be referred in the CC, but the corresponding RN could not be found.\n";
     return 0;
