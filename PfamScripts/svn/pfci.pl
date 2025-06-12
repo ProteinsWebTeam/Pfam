@@ -453,7 +453,7 @@ else {
 }
 
 # submit to apicuron
-my $api_run = `perl submit_apicuron.pl $family update_family`;
+my $api_run = `submit_apicuron.pl $family update_family`;
 if ($api_run ne 'Success') {
   print "Could not submit curation event to apicuron...\n$api_run\n";
 }

@@ -250,7 +250,7 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 $client->addFamily( $family, $newFamObj->DESC->ID );
 
 # submit to apicuron
-my $api_run = `perl submit_apicuron.pl $family create_family`;
+my $api_run = `submit_apicuron.pl $family create_family`;
 if ($api_run ne 'Success') {
   print "Could not submit curation event to apicuron...\n$api_run\n";
 }
