@@ -294,7 +294,8 @@ sub extend_alignment {
   close(F);
   unlink("$fa_file");  
 
-
+  my %seen;
+  @order = grep { !$seen{$_}++ } @order;
 
   foreach my $acc (@order) {
 
