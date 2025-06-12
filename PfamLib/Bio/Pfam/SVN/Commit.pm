@@ -126,13 +126,13 @@ sub commitFamily {
   }
   $guard->commit;
   
-  #If this family is part of a clan, we need to compete it
-  if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
-    $self->view->initiateClanViewProcess($famObj->DESC->CL, $author);
-  }else{
-    #If we have not died, then we should be good to go! 
-   $self->view->initiateViewProcess($famObj, $author);
-  }
+  # #If this family is part of a clan, we need to compete it
+  # if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
+  #   $self->view->initiateClanViewProcess($famObj->DESC->CL, $author);
+  # }else{
+  #   #If we have not died, then we should be good to go! 
+  #  $self->view->initiateViewProcess($famObj, $author);
+  # }
 
 }
 
@@ -165,13 +165,13 @@ sub commitNewFamily {
   $familyIO->create_or_update_author($pfamDB, $famObj);
 
   $guard->commit;
-  #If this family is part of a clan, we need to compete it
-  if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
-    $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
-  }else{
-    #If we have not died, then we should be good to go! 
-    $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
-  }
+  # #If this family is part of a clan, we need to compete it
+  # if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
+  #   $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
+  # }else{
+  #   #If we have not died, then we should be good to go! 
+  #   $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
+  # }
 }
 
 sub initiateFamilyView {
@@ -181,13 +181,13 @@ sub initiateFamilyView {
   my $familyIO = Bio::Pfam::FamilyIO->new;
   my ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
   
-  #If this family is part of a clan, we need to compete it
-  if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
-    $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
-  }else{
-    #If we have not died, then we should be good to go! 
-    $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
-  }
+  # #If this family is part of a clan, we need to compete it
+  # if($famObj->DESC->CL and $famObj->DESC->CL =~ /CL\d+/){
+  #   $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
+  # }else{
+  #   #If we have not died, then we should be good to go! 
+  #   $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
+  # }
 }
 
 sub commitNewClan {
@@ -419,8 +419,8 @@ sub moveClan {
   my ($clanObj, $clan, $dir) = $self->_getClanObjFromTrans($clanIO, 0);
   $clanIO->moveClanInRDB($clanObj, $pfamDB);
   
-  #If we have not died, then we should be good to go! 
-  $self->view->initiateClanViewProcess($clan, $self->author, $self->{config});
+  # #If we have not died, then we should be good to go! 
+  # $self->view->initiateClanViewProcess($clan, $self->author, $self->{config});
 }
 
 
@@ -463,8 +463,8 @@ sub moveFamily {
   $familyIO->movePfamAInRDB($famObj, $pfamDB);
   $guard->commit;
   
-  #If we have not died, then we should be good to go! 
-  $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
+  # #If we have not died, then we should be good to go! 
+  # $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
 }
 
 sub deleteFamily {
