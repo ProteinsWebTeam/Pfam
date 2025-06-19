@@ -610,7 +610,7 @@ sub main {
           } else {
             $fh->open( "| sbatch -p "
               . $farmConfig->{lsf}->{queue}
-              . " --cpus-per-task=$cpu --mem=$memory_mb -o \"pfbuild.log\" -e \"pfbuild.log\" -J hmmsearch$$ --time=2:00:00 "
+              . " --cpus-per-task=$cpu --mem=$memory_mb -o \"pfbuild.log\" -e \"pfbuild.log\" -J hmmsearch$$ --time=4:00:00 "
             );
             $fh->print( "#!/bin/bash\n" );
           }
