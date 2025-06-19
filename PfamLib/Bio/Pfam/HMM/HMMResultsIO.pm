@@ -389,8 +389,8 @@ sub parsePFAMOUT {
     return ($hmmRes);
   }
   else {
-    # die('Failed to parsePFAMOUT: Did not reach EOF');
-    warn("Failed to parsePFAMOUT: Did not reach EOF. Either local or remote SVN PFAMOUT file does not contain file terminator.\nAllowing for now");
+    die('Failed to parsePFAMOUT: Did not reach EOF');
+    # warn("Failed to parsePFAMOUT: Did not reach EOF. Either local or remote SVN PFAMOUT file does not contain file terminator.\nAllowing for now");
     return ($hmmRes);
   }
 }
