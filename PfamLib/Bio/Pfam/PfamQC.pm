@@ -712,7 +712,7 @@ sub checkRefs {
     $max_ref = $desc->REFS->[-1]->{'RN'};
   }
 
-  my $cc = $desc->CC;
+  my $cc = $desc->CC // '';
   my $max_ccref = 0;
   while ( $cc =~ /\[[\d,-]*(\d+)\]/g ) {
     my $cc_ref = $1;
