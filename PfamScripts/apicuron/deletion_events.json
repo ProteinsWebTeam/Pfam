@@ -1,0 +1,1577 @@
+{
+    "reports": [
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0006",
+            "timestamp": "2022-03-30 15:01:23"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0009",
+            "timestamp": "2022-03-31 16:34:40"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0011",
+            "timestamp": "2022-03-31 21:36:17"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0034",
+            "timestamp": "2022-06-06 11:16:05"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0035",
+            "timestamp": "2022-03-31 20:44:19"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0045",
+            "timestamp": "2024-03-12 16:30:20"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0049",
+            "timestamp": "2022-06-08 17:29:56"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0058",
+            "timestamp": "2022-06-06 11:34:03"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0076",
+            "timestamp": "2022-03-31 20:34:50"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0078",
+            "timestamp": "2022-04-20 11:46:37"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0085",
+            "timestamp": "2022-03-31 10:22:32"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0086",
+            "timestamp": "2022-06-06 10:47:46"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0107",
+            "timestamp": "2022-06-08 17:20:31"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0121",
+            "timestamp": "2023-01-17 12:11:00"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0001-5663-0894",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0147",
+            "timestamp": "2024-03-13 21:06:32"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0151",
+            "timestamp": "2022-06-06 11:09:19"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0160",
+            "timestamp": "2022-06-06 11:04:11"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0162",
+            "timestamp": "2022-04-06 13:51:08"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0206",
+            "timestamp": "2022-06-08 17:18:27"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0246",
+            "timestamp": "2022-03-31 10:37:20"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0256",
+            "timestamp": "2022-06-06 10:49:36"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0275",
+            "timestamp": "2022-03-31 20:33:03"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0294",
+            "timestamp": "2021-11-08 10:30:25"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0295",
+            "timestamp": "2022-03-30 15:19:06"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0325",
+            "timestamp": "2022-03-31 10:47:17"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0332",
+            "timestamp": "2021-12-04 14:04:39"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0372",
+            "timestamp": "2021-12-13 12:45:01"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0384",
+            "timestamp": "2022-06-06 11:10:45"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0390",
+            "timestamp": "2022-03-30 14:59:50"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0393",
+            "timestamp": "2022-03-31 20:38:44"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0401",
+            "timestamp": "2023-12-07 17:30:04"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0434",
+            "timestamp": "2021-12-07 17:13:39"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0450",
+            "timestamp": "2022-03-31 21:41:04"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0455",
+            "timestamp": "2021-07-01 11:56:38"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0483",
+            "timestamp": "2022-03-31 10:45:52"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0503",
+            "timestamp": "2022-03-31 21:20:22"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0527",
+            "timestamp": "2022-06-08 17:17:06"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0553",
+            "timestamp": "2016-09-27 12:43:44"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0556",
+            "timestamp": "2022-03-31 21:24:32"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0566",
+            "timestamp": "2022-03-31 10:33:03"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0569",
+            "timestamp": "2021-12-09 13:48:00"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0575",
+            "timestamp": "2022-03-31 20:37:40"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0585",
+            "timestamp": "2021-12-13 13:41:10"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0594",
+            "timestamp": "2021-12-08 07:46:06"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0610",
+            "timestamp": "2022-06-08 15:47:15"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0624",
+            "timestamp": "2022-06-08 15:45:11"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0638",
+            "timestamp": "2022-06-08 15:43:52"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0699",
+            "timestamp": "2021-11-15 15:46:58"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0739",
+            "timestamp": "2022-04-08 16:43:26"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0744",
+            "timestamp": "2022-05-18 12:21:57"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0784",
+            "timestamp": "2023-05-11 09:43:55"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0811",
+            "timestamp": "2024-03-12 16:09:05"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0837",
+            "timestamp": "2024-02-19 14:23:10"
+        },
+        {
+            "activity_term": "delete_clan",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/set/pfam/CL0863",
+            "timestamp": "2024-11-21 16:26:23"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF00417",
+            "timestamp": "2010-07-23 15:14:35"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF00529",
+            "timestamp": "2025-03-25 11:20:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF01162",
+            "timestamp": "2009-08-04 14:11:22"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF03164",
+            "timestamp": "2019-09-10 14:35:27"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF03183",
+            "timestamp": "2021-08-02 14:53:28"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF03316",
+            "timestamp": "2009-07-29 12:30:27"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF03986",
+            "timestamp": "2020-01-27 12:18:53"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF04156",
+            "timestamp": "2017-03-02 16:29:05"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF04649",
+            "timestamp": "2023-11-23 12:42:33"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF04915",
+            "timestamp": "2016-09-07 15:43:35"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF04918",
+            "timestamp": "2016-09-07 15:44:06"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05174",
+            "timestamp": "2020-02-07 12:50:45"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05371",
+            "timestamp": "2020-03-11 12:37:30"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05441",
+            "timestamp": "2010-05-23 14:59:49"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05442",
+            "timestamp": "2010-05-23 15:00:46"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05664",
+            "timestamp": "2020-04-17 13:34:47"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05665",
+            "timestamp": "2011-05-01 14:43:25"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05776",
+            "timestamp": "2022-08-18 15:50:27"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF05807",
+            "timestamp": "2010-12-16 11:18:09"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06117",
+            "timestamp": "2020-08-05 16:49:47"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06158",
+            "timestamp": "2010-08-22 12:44:07"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06204",
+            "timestamp": "2014-05-15 15:25:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06205",
+            "timestamp": "2014-05-15 15:25:01"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06238",
+            "timestamp": "2017-07-11 14:40:56"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06362",
+            "timestamp": "2025-06-19 17:25:59"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06548",
+            "timestamp": "2015-11-25 16:16:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06582",
+            "timestamp": "2020-09-30 15:19:35"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06631",
+            "timestamp": "2023-11-02 10:44:10"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06650",
+            "timestamp": "2024-10-04 17:39:59"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06669",
+            "timestamp": "2016-08-05 12:35:08"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06704",
+            "timestamp": "2011-03-07 15:02:18"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06709",
+            "timestamp": "2020-05-01 20:44:14"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06756",
+            "timestamp": "2021-08-11 14:05:58"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06915",
+            "timestamp": "2010-03-20 12:05:22"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF06930",
+            "timestamp": "2019-05-10 14:41:58"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07339",
+            "timestamp": "2020-06-09 13:41:22"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07480",
+            "timestamp": "2010-10-06 11:48:53"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07513",
+            "timestamp": "2010-03-22 09:38:23"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07551",
+            "timestamp": "2020-06-15 15:13:09"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07582",
+            "timestamp": "2019-02-15 14:57:13"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0001-6837-2941",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07590",
+            "timestamp": "2023-12-08 15:55:57"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07597",
+            "timestamp": "2020-03-06 13:57:45"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07623",
+            "timestamp": "2020-02-07 12:51:13"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07625",
+            "timestamp": "2020-03-06 13:52:05"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07629",
+            "timestamp": "2020-02-05 09:33:31"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07636",
+            "timestamp": "2022-09-26 12:33:44"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07656",
+            "timestamp": "2012-06-11 15:19:53"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07805",
+            "timestamp": "2016-08-09 15:49:12"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF07871",
+            "timestamp": "2020-02-05 11:59:06"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08217",
+            "timestamp": "2019-09-10 15:57:04"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08333",
+            "timestamp": "2023-09-18 17:10:46"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08342",
+            "timestamp": "2009-08-21 10:35:04"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08371",
+            "timestamp": "2010-07-25 13:52:53"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08390",
+            "timestamp": "2023-01-18 10:22:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08413",
+            "timestamp": "2010-03-08 13:33:08"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08415",
+            "timestamp": "2015-11-05 11:34:54"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08420",
+            "timestamp": "2010-05-26 10:30:28"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08483",
+            "timestamp": "2019-05-03 16:42:38"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08749",
+            "timestamp": "2011-03-07 14:31:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08760",
+            "timestamp": "2023-09-05 15:19:58"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08802",
+            "timestamp": "2020-03-05 13:11:38"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF08851",
+            "timestamp": "2011-03-07 14:30:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF09319",
+            "timestamp": "2010-12-16 11:16:26"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF09333",
+            "timestamp": "2024-10-03 10:36:13"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF09352",
+            "timestamp": "2010-07-25 09:18:20"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF09529",
+            "timestamp": "2022-01-10 11:58:11"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF09854",
+            "timestamp": "2010-07-25 09:20:54"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10010",
+            "timestamp": "2009-07-30 09:27:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10064",
+            "timestamp": "2009-08-03 15:53:24"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10293",
+            "timestamp": "2024-10-04 15:51:57"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10305",
+            "timestamp": "2024-10-04 15:53:19"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10331",
+            "timestamp": "2010-09-01 17:00:26"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10347",
+            "timestamp": "2024-10-04 15:53:47"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10349",
+            "timestamp": "2015-11-05 11:56:06"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10351",
+            "timestamp": "2024-10-04 15:54:22"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10359",
+            "timestamp": "2024-10-04 15:54:55"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10381",
+            "timestamp": "2020-01-27 12:19:26"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10389",
+            "timestamp": "2020-03-11 12:42:42"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10424",
+            "timestamp": "2011-07-22 16:55:17"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10479",
+            "timestamp": "2024-10-05 09:57:44"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10527",
+            "timestamp": "2010-09-18 13:47:37"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10535",
+            "timestamp": "2010-09-18 13:48:23"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10540",
+            "timestamp": "2020-04-17 13:35:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10569",
+            "timestamp": "2017-03-29 17:44:25"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10632",
+            "timestamp": "2019-01-21 16:47:09"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10663",
+            "timestamp": "2011-05-28 14:55:13"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10695",
+            "timestamp": "2011-03-18 16:48:13"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10770",
+            "timestamp": "2011-03-07 14:33:35"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10837",
+            "timestamp": "2020-06-15 14:36:41"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF10855",
+            "timestamp": "2017-07-18 12:51:09"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF11234",
+            "timestamp": "2012-06-12 14:41:50"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF11244",
+            "timestamp": "2023-01-18 10:01:21"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF11270",
+            "timestamp": "2021-09-14 15:22:00"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF11404",
+            "timestamp": "2023-07-08 08:35:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF11665",
+            "timestamp": "2023-08-01 15:41:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF11936",
+            "timestamp": "2020-08-07 16:48:04"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12050",
+            "timestamp": "2010-08-20 17:02:49"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12082",
+            "timestamp": "2010-08-20 13:59:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12238",
+            "timestamp": "2024-02-07 16:39:10"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12272",
+            "timestamp": "2015-06-08 16:07:50"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12303",
+            "timestamp": "2010-11-22 14:03:57"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12370",
+            "timestamp": "2010-11-01 15:35:34"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12418",
+            "timestamp": "2025-03-15 09:57:35"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12427",
+            "timestamp": "2020-07-21 20:46:25"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12431",
+            "timestamp": "2021-11-30 17:21:37"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12466",
+            "timestamp": "2023-01-18 08:36:19"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12504",
+            "timestamp": "2010-11-15 12:57:03"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12649",
+            "timestamp": "2010-05-26 10:31:02"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12665",
+            "timestamp": "2009-11-20 14:18:02"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12676",
+            "timestamp": "2025-04-17 20:28:03"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12700",
+            "timestamp": "2025-03-25 11:42:19"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12711",
+            "timestamp": "2015-11-25 16:17:26"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12718",
+            "timestamp": "2022-06-10 15:32:54"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12782",
+            "timestamp": "2021-09-14 15:22:22"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF12803",
+            "timestamp": "2022-06-09 17:13:55"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13014",
+            "timestamp": "2015-08-20 14:11:07"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13109",
+            "timestamp": "2024-10-05 13:41:20"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13138",
+            "timestamp": "2025-02-05 15:48:24"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13227",
+            "timestamp": "2024-02-28 19:40:58"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13260",
+            "timestamp": "2019-06-20 09:55:26"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13348",
+            "timestamp": "2015-08-28 11:09:50"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13394",
+            "timestamp": "2022-06-06 11:27:38"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13437",
+            "timestamp": "2025-03-26 08:23:54"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13502",
+            "timestamp": "2024-10-05 13:39:36"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13533",
+            "timestamp": "2025-03-26 15:53:58"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13544",
+            "timestamp": "2016-03-31 15:26:12"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13633",
+            "timestamp": "2016-03-31 15:26:47"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13745",
+            "timestamp": "2015-11-05 11:34:17"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13777",
+            "timestamp": "2021-07-01 11:40:19"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13792",
+            "timestamp": "2014-05-16 13:36:35"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13823",
+            "timestamp": "2022-04-08 11:50:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF13849",
+            "timestamp": "2011-11-03 13:09:10"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF14640",
+            "timestamp": "2020-11-05 11:53:01"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF14762",
+            "timestamp": "2021-11-18 15:45:46"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF14878",
+            "timestamp": "2017-02-23 15:56:09"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF14971",
+            "timestamp": "2020-04-22 13:13:37"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF15140",
+            "timestamp": "2024-11-27 10:16:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF15577",
+            "timestamp": "2020-08-05 13:35:39"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16102",
+            "timestamp": "2023-02-16 10:06:00"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16196",
+            "timestamp": "2016-08-04 12:16:44"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16265",
+            "timestamp": "2022-01-10 15:19:13"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16338",
+            "timestamp": "2022-08-11 12:39:15"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16384",
+            "timestamp": "2021-06-23 17:19:48"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16385",
+            "timestamp": "2022-01-10 13:28:13"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16393",
+            "timestamp": "2015-08-19 16:59:12"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16536",
+            "timestamp": "2022-04-21 16:38:33"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16572",
+            "timestamp": "2025-03-25 11:09:17"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16576",
+            "timestamp": "2025-03-25 10:51:38"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16638",
+            "timestamp": "2022-01-07 15:27:46"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16645",
+            "timestamp": "2024-04-28 18:05:27"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16651",
+            "timestamp": "2016-03-30 17:11:23"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16863",
+            "timestamp": "2022-08-11 12:40:50"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16864",
+            "timestamp": "2024-06-24 20:43:35"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16908",
+            "timestamp": "2024-10-04 17:34:39"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16909",
+            "timestamp": "2024-10-04 18:02:12"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16910",
+            "timestamp": "2024-10-04 18:02:37"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16948",
+            "timestamp": "2016-08-09 15:48:29"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF16950",
+            "timestamp": "2016-08-19 14:45:44"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF17134",
+            "timestamp": "2022-06-06 11:43:34"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF17199",
+            "timestamp": "2022-01-07 15:37:01"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF17350",
+            "timestamp": "2021-01-29 15:52:09"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF17355",
+            "timestamp": "2022-08-18 16:34:14"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF17501",
+            "timestamp": "2021-05-18 13:03:02"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF17539",
+            "timestamp": "2023-11-23 12:44:43"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF18056",
+            "timestamp": "2022-08-10 12:29:50"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF18123",
+            "timestamp": "2021-01-06 15:24:47"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF18194",
+            "timestamp": "2022-04-27 12:33:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF18302",
+            "timestamp": "2020-01-26 10:32:42"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF18605",
+            "timestamp": "2020-01-27 16:31:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF19210",
+            "timestamp": "2020-03-28 16:37:12"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF19257",
+            "timestamp": "2025-03-21 17:42:04"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF19357",
+            "timestamp": "2025-03-21 17:46:04"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF19396",
+            "timestamp": "2022-04-11 10:45:24"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF19521",
+            "timestamp": "2021-11-19 15:46:16"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20071",
+            "timestamp": "2022-09-26 12:24:31"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20261",
+            "timestamp": "2021-03-30 20:36:04"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20359",
+            "timestamp": "2021-09-29 10:51:59"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20387",
+            "timestamp": "2024-11-29 17:09:03"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20481",
+            "timestamp": "2025-02-06 13:28:12"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20534",
+            "timestamp": "2021-12-01 13:37:25"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20630",
+            "timestamp": "2024-01-02 11:28:51"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20761",
+            "timestamp": "2023-11-02 15:57:02"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF20928",
+            "timestamp": "2023-09-07 13:48:20"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF21410",
+            "timestamp": "2025-01-17 13:26:41"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF21611",
+            "timestamp": "2023-11-21 15:45:39"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF21675",
+            "timestamp": "2024-10-05 09:50:55"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF21676",
+            "timestamp": "2024-10-03 10:26:18"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF21677",
+            "timestamp": "2024-10-05 10:05:17"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF21679",
+            "timestamp": "2024-10-04 18:03:01"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-2300-8502",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF21723",
+            "timestamp": "2023-09-05 11:04:05"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0001-6837-2941",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF22171",
+            "timestamp": "2024-05-31 11:40:32"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF22197",
+            "timestamp": "2023-09-05 09:28:31"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF22328",
+            "timestamp": "2024-02-14 15:56:57"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF22519",
+            "timestamp": "2024-07-30 10:33:09"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF22577",
+            "timestamp": "2023-11-21 15:06:05"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF22866",
+            "timestamp": "2024-10-16 14:53:43"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0001-6837-2941",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23026",
+            "timestamp": "2023-12-08 17:50:38"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0001-6837-2941",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23027",
+            "timestamp": "2023-12-08 17:51:28"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0001-6837-2941",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23029",
+            "timestamp": "2023-12-08 18:06:40"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23072",
+            "timestamp": "2024-10-05 16:56:18"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23303",
+            "timestamp": "2024-12-10 16:21:33"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0520-0736",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23372",
+            "timestamp": "2024-11-18 15:54:29"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-0450-0091",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23453",
+            "timestamp": "2024-02-22 14:15:26"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23532",
+            "timestamp": "2025-06-19 12:20:40"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23656",
+            "timestamp": "2024-11-06 12:36:55"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0002-6982-4660",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23687",
+            "timestamp": "2025-03-17 12:33:43"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0001-5663-0894",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF23705",
+            "timestamp": "2025-04-14 13:34:42"
+        },
+        {
+            "activity_term": "delete_family",
+            "curator_orcid": "0000-0001-5663-0894",
+            "entity_uri": "https://www.ebi.ac.uk/interpro/entry/pfam/PF24561",
+            "timestamp": "2025-04-17 13:48:11"
+        }
+    ],
+    "resource_id": "pfam"
+}

@@ -2,12 +2,14 @@
 
 # extract_svn_info.py requires a local SVN copy. start and end revisions for boundaries
 
-sbatch --time=1-0 --mem=8GB --cpus-per-task=8 -J "apicuron" --wrap="python extract_svn_info.py --end 1343940 --start 1100000 --svn /hps/nobackup/agb/pfam/svn_repo/SVN_REPOSITORY_BACKUP/pfam/"
+sbatch --time=3-0 --mem=8GB --cpus-per-task=8 -J "apicuron" --wrap="python extract_svn_info.py --end 1387115 --start 1100000 --svn /hps/nobackup/agb/pfam/svn_repo/SVN_REPOSITORY_BACKUP/pfam/"
 
 START: 1100000
-RELEASE 37.0 END: 1343940
+RELEASE 38.0 END: 1387115
+FROM RELEASE 38.0 ALL EVENTS ARE AUTOMATICALLY SENT
 
-RELEASE 37.2 END: 1354438
+
+
 
 
 
