@@ -8,7 +8,7 @@ use Cwd;
 use File::Copy;
 use Getopt::Long;
 use File::Touch;
-use LSF::Job;
+# use LSF::Job;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
@@ -20,10 +20,11 @@ my $logger = get_logger();
 
 
 #Get options
-my ($help, $new_release_num);
+my ($help, $new_release_num, $last_release);
 GetOptions(
   "help"  => \$help,
-  "release=i" => \$new_release_num);
+  "release=i" => \$new_release_num,
+  "last_release=s" => \$last_release);
 
 
 #Check command line parameteres are sensible
@@ -56,15 +57,15 @@ foreach my $dir ($status_dir, $pfamseq_dir, $logs_dir) {
 
 
 #Lock the database
-if(-e "$status_dir/db_locked") {
-  $logger->info("Already locked Pfamlive database");
-}
-else {
-  $logger->info("Locking pfamlive database");
-  my $user = $ENV{USER};
-  system("pflock -l -allow_user $user") and $logger->logdie("Couldnt run 'pflock -l -allow_user $user, $!");
-  system("touch $status_dir/db_locked") and $logger->logdie("Couldn't touch $status_dir/db_locked");
-}
+# if(-e "$status_dir/db_locked") {
+#   $logger->info("Already locked Pfamlive database");
+# }
+# else {
+#   $logger->info("Locking pfamlive database");
+#   my $user = $ENV{USER};
+#   system("pflock -l -allow_user $user") and $logger->logdie("Couldnt run 'pflock -l -allow_user $user, $!");
+#   system("touch $status_dir/db_locked") and $logger->logdie("Couldn't touch $status_dir/db_locked");
+# }
 
 
 #Make a copy of pfamlive
@@ -74,8 +75,14 @@ if(-e "$status_dir/cloned_database") {
 else {
   $logger->info("Cloning pfamlive to pfam_release");
 
-  my $clone_db = LSF::Job->submit(-q => $queue, -o => "$logs_dir/clone_db.log", -J => 'clone_db', "pud-cloneDB.pl -schema -data");
-  my $clone_db2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/clone_db.log", -J => 'clone_db_done', -w => "done($clone_db)", "touch $status_dir/cloned_database");
+  my $jobid;
+  my $job_res = `sbatch --mem=2GB --time=8:00:00 -J clone_db -o '$logs_dir/clone_db.log' -e '$logs_dir/clone_db.log' --wrap="pud-cloneDB.pl -schema -data"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+
+  system("sbatch --job-name=clone_db_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/clone_db_done.log' -e '$logs_dir/clone_db_done.log' --wrap=\"touch $status_dir/cloned_database\" ");
 
   $logger->info("Waiting for cloning of pfamlive to finish");
   until(-e "$status_dir/cloned_database") {
@@ -118,8 +125,14 @@ if(-e "$status_dir/update_taxonomy") {
 else {
   $logger->info("Running scripts to update taxonomy tables on the farm");
 
-  my $tax_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/taxonomy.log", -J => 'taxonomy', -M => 10000, -R => 'rusage[mem=10000]', "pud-ncbiTaxonomy.pl; pud-taxonomy.pl");
-  my $tax_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/taxonomy.log", -J => 'taxonomy_done', -w => "done($tax_job)", "touch $status_dir/update_taxonomy");
+  my $jobid;
+  my $job_res = `sbatch --mem=12GB --time=6:00:00 -J taxonomy -o '$logs_dir/taxonomy.log' -e '$logs_dir/taxonomy.log' --wrap="pud-ncbiTaxonomy.pl; pud-taxonomy.pl"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+
+  system("sbatch --job-name=taxonomy_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/taxonomy_done.log' -e '$logs_dir/taxonomy_done.log' --wrap=\"touch $status_dir/update_taxonomy\" ");
 
   $logger->info("Waiting for taxonomy tables to finish populating");
   until(-e "$status_dir/update_taxonomy") {
@@ -137,13 +150,23 @@ else {
   $logger->info("Running scripts to update pfamseq and uniprot tables on the farm");
 
   unless(-e "$status_dir/update_pfamseq") {
-    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq.log", -J => 'pfamseq', -M => 8000, -R => 'rusage[mem=8000]', "pud-update_pfamseq.pl -status_dir status -pfamseq_dir pfamseq");
-    my $pfamseq_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq.log", -J => 'pfamseq_done', -w => "done($pfamseq_job)", "touch $status_dir/update_pfamseq");
+    my $jobid;
+    my $job_res = `sbatch --mem=8GB --time=3-0 -J pfamseq -o '$logs_dir/pfamseq.log' -e '$logs_dir/pfamseq.log' --wrap="pud-update_pfamseq.pl -status_dir status -pfamseq_dir pfamseq"`;
+
+    if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+      $jobid = $1;
+    }
+    system("sbatch --job-name=pfamseq_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/pfamseq_done.log' -e '$logs_dir/pfamseq_done.log' --wrap=\"touch $status_dir/update_pfamseq\" ");
   }
 
   unless(-e "$status_dir/update_uniprot") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot', -M => 200000, -R => 'rusage[mem=200000]', "pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq");
-    my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot.log", -J => 'uniprot_done', -w => "done($uniprot_job)", "touch $status_dir/update_uniprot");
+    my $jobid;
+    my $job_res = `sbatch --mem=16GB --time=6-0 -J uniprot -o '$logs_dir/uniprot.log' -e '$logs_dir/uniprot.log' --wrap="pud-update_uniprot.pl -status_dir status -pfamseq_dir pfamseq"`;
+
+    if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+      $jobid = $1;
+    }
+    system("sbatch --job-name=uniprot_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/uniprot_done.log' -e '$logs_dir/uniprot_done.log' --wrap=\"touch $status_dir/update_uniprot\" ");
   }
 
   $logger->info("Waiting for pfamseq and uniprot tables to finish populating");
@@ -168,6 +191,8 @@ else {
 }
 
 
+
+
 #Run all sequences against antifam and remove any that match
 if(-e "$status_dir/run_antifam") {
   $logger->info("Already removed sequences that match AntiFam");
@@ -175,8 +200,13 @@ if(-e "$status_dir/run_antifam") {
 else {
   $logger->info("Removing sequences that match AntiFam");
 
-  my $antifam_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/antifam.log", -J => 'antifam', "pud-removeAntiFamMatches.pl -status_dir status -pfamseq_dir pfamseq -logs_dir logs");
-  my $antifam_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/antifam.log", -J => 'antifam_done', -w => "done($antifam_job)", "touch $status_dir/run_antifam");
+  my $jobid;
+  my $job_res = `sbatch --mem=8GB --time=12:00:00 -J antifam -o '$logs_dir/antifam.log' -e '$logs_dir/antifam.log' --wrap="pud-removeAntiFamMatches.pl -status_dir status -pfamseq_dir pfamseq -logs_dir logs"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=antifam_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/antifam_done.log' -e '$logs_dir/antifam_done.log' --wrap=\"touch $status_dir/run_antifam\" ");
 
   $logger->info("Waiting for antifam matches to be removed");
   until(-e "$status_dir/run_antifam") {
@@ -193,13 +223,25 @@ else {
   $logger->info("Making pfamseq and uniprot fasta files on the farm");
 
   unless(-e "$status_dir/pfamseq_fasta") {
-    my $pfamseq_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfameq_fasta', -M => 32000, -R => 'rusage[mem=32000]', "pud-make_pfamseq_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
-    my $pfamseq_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pfamseq_fasta.log", -J => 'pfamseq_fasta_done', -w => "done($pfamseq_job)", "touch $status_dir/pfamseq_fasta");
+
+    my $jobid;
+    my $job_res = `sbatch --mem=32GB --time=2:00:00 -J pfamseq_fasta -o '$logs_dir/pfamseq_fasta.log' -e '$logs_dir/pfamseq_fasta.log' --wrap="pud-make_pfamseq_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num"`;
+
+    if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+      $jobid = $1;
+    }
+    system("sbatch --job-name=pfamseq_fasta_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/pfamseq_fasta_done.log' -e '$logs_dir/pfamseq_fasta_done.log' --wrap=\"touch $status_dir/pfamseq_fasta\" ");
   }
 
   unless(-e "$status_dir/uniprot_fasta") {
-    my $uniprot_job = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta', -M => 64000, -R => 'rusage[mem=64000]', "pud-make_uniprot_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num");
-    my $uniprot_job2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/uniprot_fasta.log", -J => 'uniprot_fasta_done', -w => "done($uniprot_job)", "touch $status_dir/uniprot_fasta");
+
+    my $jobid;
+    my $job_res = `sbatch --mem=64GB --time=4:00:00 -J uniprot_fasta -o '$logs_dir/uniprot_fasta.log' -e '$logs_dir/uniprot_fasta.log' --wrap="pud-make_uniprot_fasta.pl -status_dir status -pfamseq_dir pfamseq -rel $new_release_num"`;
+
+    if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+      $jobid = $1;
+    }
+    system("sbatch --job-name=uniprot_fasta_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/uniprot_fasta_done.log' -e '$logs_dir/uniprot_fasta_done.log' --wrap=\"touch $status_dir/uniprot_fasta\" ");
   }
 
   $logger->info("Waiting for pfamseq and uniprot fasta files to be written");
@@ -233,8 +275,15 @@ if(-e "$status_dir/pfamA_reg_seed") {
 else {
   $logger->info("Updating pfamA_reg_seed table");
   chdir($pfamseq_dir) or $logger->logdie("Couldn't chdir into $pfamseq_dir, $!");
-  my $reg_seed_job = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/pfamA_reg_seed.log", -J => 'pfamA_reg_seed', "pud-update_pfamA_reg_seed.pl");
-  my $reg_seed_job2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/pfamA_reg_seed.log", -J => 'pfamA_reg_seed_done', -w => "done($reg_seed_job)", "touch $cwd/$status_dir/pfamA_reg_seed");
+
+  my $jobid;
+  my $job_res = `sbatch --mem=4GB --time=6:00:00 -J pfamA_reg_seed -o '$cwd/$logs_dir/pfamA_reg_seed.log' -e '$cwd/$logs_dir/pfamA_reg_seed.log' --wrap="pud-update_pfamA_reg_seed.pl"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=pfamA_reg_seed_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$cwd/$logs_dir/pfamA_reg_seed_done.log' -e '$cwd/$logs_dir/pfamA_reg_seed_done.log' --wrap=\"touch $cwd/$status_dir/pfamA_reg_seed\" ");
+
 
   chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
 
@@ -253,8 +302,15 @@ else {
   chdir($pfamseq_dir) or $logger->logdie("Couldn't chdir into $pfamseq_dir, $!");
 
   my $shuffled_dir = $config_live->{shuffled}->{location};
-  my $shuffled_job = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled', -M => 16000, -R => 'rusage[mem=16000]', "esl-shuffle pfamseq > shuffled; esl-sfetch --index shuffled; cp shuffled* $shuffled_dir/.");
-  my $shuffled_job2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/shuffled.log", -J => 'shuffled_done', -w => "done($shuffled_job)", "touch $cwd/$status_dir/shuffled");
+
+  my $jobid;
+  my $job_res = `sbatch --mem=24GB --time=2:00:00 -J shuffled -o '$cwd/$logs_dir/shuffled.log' -e '$cwd/$logs_dir/shuffled.log' --wrap="esl-shuffle pfamseq > shuffled; esl-sfetch --index shuffled; cp shuffled* $shuffled_dir/."`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=shuffled_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$cwd/$logs_dir/shuffled_done.log' -e '$cwd/$logs_dir/shuffled_done.log' --wrap=\"touch $cwd/$status_dir/shuffled\" ");
+
 
   chdir($cwd) or $logger->logdie("Couldn't chdir into $cwd, $!");
 
@@ -262,7 +318,10 @@ else {
   until(-e "$status_dir/shuffled") {
     sleep 600;
   }
+  print "\nReady to update live config. Also xfam-svn-hl also needs updating to new pfamseq.\n\n";
+  exit;
 }
+
 
 #To do - code this bit (it was done manually for 32.0)
 # Update config for pfamseq, uniprot and shuffled db size
@@ -273,6 +332,11 @@ else {
 # ssh xfam-svn-hl
 # vim /nfs/production/xfam/pfam/data/pfam_svn_server.conf
 # and update pfamseq and uniprot db sizes
+# Also copy the new sequence database to xfam-svn-hl
+# on codon, in a screen session:
+# become xfm_adm
+# srun --time=1-0 --mem=2GB -p datamover --pty bash
+# rsync -rtv /nfs/production/agb/pfam/data/pfamseq/ xfam-svn-hl:/nfs/production/xfam/pfam/data/pfamseq
 
 
 
@@ -292,8 +356,14 @@ if(-e "$status_dir/copied_pfam_release") {
 else {
   $logger->info("Backing up pfamlive and copying pfam_release to pfamlive");
 
-  my $copy_pfam_rel = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/mysqldump.log", -J => 'mysqldump', -M => 10000, -R => 'rusage[mem=10000]', "pud-pfam_release_copy.pl -status_dir $status_dir -live_config $live_config -release_config $pfam_release_config");
-  my $copy_pfam_rel2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/mysqldump.log", -J => 'mysqldump_done', -w => "done($copy_pfam_rel)", "touch $status_dir/copied_pfam_release");
+  my $jobid;
+  my $job_res = `sbatch --mem=8GB --time=9-0 -J mysqldump -o '$cwd/$logs_dir/mysqldump.log' -e '$cwd/$logs_dir/mysqldump.log' --wrap="pud-pfam_release_copy.pl -status_dir $status_dir -live_config $live_config -release_config $pfam_release_config"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=mysqldump_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$cwd/$logs_dir/mysqldump_done.log' -e '$cwd/$logs_dir/mysqldump_done.log' --wrap=\"touch $status_dir/copied_pfam_release\" ");
+
 
   $logger->info("Waiting for backup of pfamlive and copy of pfam_release data to pfamlive to finish");
   until(-e "$status_dir/copied_pfam_release") {
@@ -313,8 +383,14 @@ else {
   mkdir($families_dir, 0755) or $logger->logdie("Couldn't mkdir '$families_dir, $!");
   chdir($families_dir) or $logger->logdie("Couldn't chdir into $families_dir, $!");
 
-  my $family_co = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/family_checkout.log", -J => 'pfco_families', "pud-checkoutAllFamilies.pl");
-  my $family_co2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/family_checkout.log", -J => 'pfco_families_done', -w => "done($family_co)", "touch $cwd/$status_dir/checked_out_families");
+  my $jobid;
+  my $job_res = `sbatch --mem=4GB --time=2-0 -J pfco_families -o '$cwd/$logs_dir/family_checkout.log' -e '$cwd/$logs_dir/family_checkout.log' --wrap="pud-checkoutAllFamilies.pl"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=pfco_families_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$cwd/$logs_dir/family_checkout_done.log' -e '$cwd/$logs_dir/family_checkout_done.log' --wrap=\"touch $cwd/$status_dir/checked_out_families\" ");
+
 
   chdir("../") or $logger->logdie("Couldn't chdir up from $families_dir, $!");
 
@@ -331,19 +407,26 @@ if(-e "$status_dir/ran_seed_surgery") {
 }
 else {
   $logger->info("Running seed surgery script");
-   my $seed_surgery_dir= "SeedSurgery";
-   unless(-d $seed_surgery_dir) {
-     mkdir($seed_surgery_dir, 0755) or $logger->logdie("Couldn't mkdir '$seed_surgery_dir, $!");
-   }
+    my $seed_surgery_dir= "SeedSurgery";
+    unless(-d $seed_surgery_dir) {
+    mkdir($seed_surgery_dir, 0755) or $logger->logdie("Couldn't mkdir '$seed_surgery_dir, $!");
+  }
 
-  my $seed_sur = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/seedsurgery.log", -J => 'seedsurgery', -M => 8000, -R => 'rusage[mem=8000]', "pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5");
-  my $seed_sur2 = LSF::Job->submit(-q => $queue, -o => "$cwd/$logs_dir/seedsurgery.log", -J => 'seedsurgery_done', -w => "done($seed_sur)", "touch $status_dir/ran_seed_surgery");
+  my $jobid;
+  my $job_res = `sbatch --mem=16GB --time=3-0 -J seedsurgery -o '$cwd/$logs_dir/seedsurgery.log' -e '$cwd/$logs_dir/seedsurgery.log' --wrap="pud-seedSurgery.pl -families $cwd/Families/ -surgery $cwd/$seed_surgery_dir -md5file $cwd/pfamseq/pfamA_reg_seed.md5"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=seedsurgery_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$cwd/$logs_dir/seedsurgery_done.log' -e '$cwd/$logs_dir/seedsurgery_done.log' --wrap=\"touch $status_dir/ran_seed_surgery\" ");
+
 
   $logger->info("Waiting for seed surgery script to finish");
   until(-e "$status_dir/ran_seed_surgery") {
     sleep 600;
   }
   $logger->info("Seed surgery script completed. Exiting");
+  print "\nReady to start curator SEED surgery and family building.\n\n";
   exit;
 }
 
@@ -357,8 +440,17 @@ if(-e "$status_dir/other_regions") {
 else {
   $logger->info("Going to populate other_reg table");
 
-  my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 64000, -R => 'rusage[mem=64000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
-  my $other_reg2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg_done', -w => "done($other_reg)", "touch $status_dir/other_regions");
+  # my $other_reg = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg', -M => 64000, -R => 'rusage[mem=64000]', "pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir");
+  # my $other_reg2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/other_reg.log", -J => 'other_reg_done', -w => "done($other_reg)", "touch $status_dir/other_regions");
+
+  my $jobid;
+  my $job_res = `sbatch --mem=128GB --time=2-0 -J other_reg -o '$logs_dir/other_reg.log' -e '$logs_dir/other_reg.log' --wrap="pud-otherReg.pl -statusdir $status_dir -pfamseqdir $pfamseq_dir"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=other_reg_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/other_reg_done.log' -e '$logs_dir/other_reg_done.log' --wrap=\"touch $status_dir/other_regions\" ");
+
 
   $logger->info("Waiting for other_reg table to finish populating");
   until(-e "$status_dir/other_regions") {
@@ -373,8 +465,18 @@ if(-e "$status_dir/interpro_and_go") {
 else {
   $logger->info("Going to populate interpro and gene_ontology tables");
 
-  my $interpro_go = LSF::Job->submit(-q => $queue, -o => "$logs_dir/interpro_go.log", -J => 'interpro_go', -M => 4000, -R => 'rusage[mem=4000]', "pud-buildInterproAndGo.pl");
-  my $interpro_go2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/interpro_go.log", -J => 'interpro_go_done', -w => "done($interpro_go)", "touch $status_dir/interpro_and_go");
+  # my $interpro_go = LSF::Job->submit(-q => $queue, -o => "$logs_dir/interpro_go.log", -J => 'interpro_go', -M => 4000, -R => 'rusage[mem=4000]', "pud-buildInterproAndGo.pl");
+  # my $interpro_go2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/interpro_go.log", -J => 'interpro_go_done', -w => "done($interpro_go)", "touch $status_dir/interpro_and_go");
+
+  my $jobid;
+  my $job_res = `sbatch --mem=8GB --time=1-0 -J interpro_go -o '$logs_dir/interpro_go.log' -e '$logs_dir/interpro_go.log' --wrap="pud-buildInterproAndGo.pl"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  system("sbatch --job-name=interpro_go_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o '$logs_dir/interpro_go_done.log' -e '$logs_dir/interpro_go_done.log' --wrap=\"touch $status_dir/interpro_and_go\" ");
+
+
 
   $logger->info("Waiting for interpro and gene_ontology tables to finish populating");
   until(-e "$status_dir/interpro_and_go") {
@@ -383,43 +485,44 @@ else {
 }
 
 
+# NOT DONE 38
 #Populate RP field in uniprot table
 #Need to ensure this is done after the RP have been created for this version of uniprot
 #RP is usually created just before uniprot releases publicly
-if(-e "$status_dir/RP_done") {
-  $logger->info("Already populated RP field in uniprot table"); 
-}
-else {
-  $logger->info("Going to populate RP field in uniprot table");
+# if(-e "$status_dir/RP_done") {
+#   $logger->info("Already populated RP field in uniprot table"); 
+# }
+# else {
+#   $logger->info("Going to populate RP field in uniprot table");
 
-  my $RP = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX', -M => 20000, -R => 'rusage[mem=20000]', "pud-getRepresentativeProteomes.pl -statusdir $status_dir");
-  my $RP2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX_done', -w => "done($RP)", "touch $status_dir/RP_done");
+#   my $RP = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX', -M => 20000, -R => 'rusage[mem=20000]', "pud-getRepresentativeProteomes.pl -statusdir $status_dir");
+#   my $RP2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/RPXX.log", -J => 'RPXX_done', -w => "done($RP)", "touch $status_dir/RP_done");
 
-  $logger->info("Waiting for RP field to finish updating");
-  until(-e "$status_dir/RP_done") {
-    sleep 600;
-  }
-}
-
-
+#   $logger->info("Waiting for RP field to finish updating");
+#   until(-e "$status_dir/RP_done") {
+#     sleep 600;
+#   }
+# }
 
 
 
+
+# NOT DONE 38
 #Populate pdb and pdb_residue_data tables 
-if(-e "$status_dir/pdb_data") {
-  $logger->info("Already populated pdb and pdb_residue_data tables"); 
-}
-else {
-  $logger->info("Going to populate pdb and pdb_residue_data");
+# if(-e "$status_dir/pdb_data") {
+#   $logger->info("Already populated pdb and pdb_residue_data tables"); 
+# }
+# else {
+#   $logger->info("Going to populate pdb and pdb_residue_data");
 
-  my $pdb = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pdb.log", -J => 'pdb', -M => 4000, -R => 'rusage[mem=4000]', "pud-getPdbDataAndMapping.pl");
-  my $pdb2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pdb.log", -J => 'pdb_done', -w => "done($pdb)", "touch $status_dir/pdb_data");
+#   my $pdb = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pdb.log", -J => 'pdb', -M => 4000, -R => 'rusage[mem=4000]', "pud-getPdbDataAndMapping.pl");
+#   my $pdb2 = LSF::Job->submit(-q => $queue, -o => "$logs_dir/pdb.log", -J => 'pdb_done', -w => "done($pdb)", "touch $status_dir/pdb_data");
 
-  $logger->info("Waiting for pdb and pdb_residue_data tables to finish populating");
-  until(-e "$status_dir/pdb_data") {
-    sleep 600;
-  }
-}
+#   $logger->info("Waiting for pdb and pdb_residue_data tables to finish populating");
+#   until(-e "$status_dir/pdb_data") {
+#     sleep 600;
+#   }
+# }
 
 
 
@@ -430,14 +533,19 @@ if(-e "$status_dir/released_version_tables") {
 }
 else {
 
+    unless($last_release) {
+      $logger->info("Please provide last_release as an argument in the format 'XX_X'. ie:\nmake_sequence_update.pl -release 38 -last_release 37_4\n");
+      help();
+    }
+
+
     my $config_dir = "/hps/software/users/agb/pfam/software/conf/";
     my $new_rel_config = "pfam".$new_release_num.".conf";
     $logger->info("Going to copy the pfam release config $pfam_release_config to $config_dir/$new_rel_config");
 
     system("cp $pfam_release_config $config_dir/$new_rel_config") and die "Couldn't 'cp $pfam_release_config $config_dir/$new_rel_config, $!";
 
-    my $last_release = $new_release_num -1;
-    my $last_rel_db = "pfam_".$last_release."_0";
+    my $last_rel_db = "pfam_".$last_release;
     my $last_release_conf = "$config_dir/pfam".$last_release.".conf";
 
 
@@ -448,7 +556,8 @@ else {
     system("touch $status_dir/released_version_tables") and $logger->logdie("Couldn't touch $status_dir/released_version_tables");
 }
 
-
+print "All completed!\nRemember to manually add sequence database sizes to svn.\n";
+exit;
 
 # Adding sequence database sizes to svn
 # Add the current sequence database size for pfamseq and uniprot to svn. The database size in svn is used by Pfam Docker to see if the user has the current sequence database. The commit messages should follow the format of the previous commit messages for each database and always start with SEQUP.
@@ -474,9 +583,9 @@ sub help {
 
 This script runs the sequence update.
 
-Usage: $0 -release <new release number>
+Usage: $0 -release <new release number> -last_release <previous_release_version>
 
-Example:  $0 -release 31 
+Example:  $0 -release 38 -last_release 37_4
 
 The script will create 3 directories in the current working 
 directory: pfamseq, status and logs. Files will be written
