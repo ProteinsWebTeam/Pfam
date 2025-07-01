@@ -15,6 +15,7 @@ use JSON;
 use Data::Printer;
 use File::Touch;
 use File::Copy;
+use List::Util qw(first);
 use DDP;
 #use Bio::HMM::Logo;
 use Bio::Annotation::Collection;
@@ -32,7 +33,6 @@ use Bio::Pfam::ViewProcess::ActiveSite;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::Config;
 use Bio::Pfam::ViewProcess::Consensus;
-
 
 $Text::Wrap::unexpand = 0;
 $Text::Wrap::columns = 75;
@@ -445,6 +445,8 @@ sub mailUserAndFail {
       closed => \'NOW()'
     }
   );
+
+  $self->logger->debug('Fatal Error in view process for ' . $self->job->entity_id . ' (' . $self->job->entity_acc . '): ' . $message);
   exit(1);
 }
 
@@ -557,6 +559,112 @@ sub processALIGN {
   #Populate pfamA_ncbi_uniprot table
   $self->pfamA_ncbi_uniprot();
 }
+
+
+
+
+sub processALIGNlite {
+  my ( $self, $GFAnn ) = @_;
+
+  #Some labels that are fixed.
+  my $filename = 'ALIGN';
+  my $type     = 'full';
+
+  #Check to see if family has members
+  my $pfamA=$self->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $self->pfam->pfama_acc  } );
+  if($pfamA->num_full == 0) {
+    $self->logger->debug("PfamA num_full is 0, noALIGN set to true");
+    $self->{noALIGN}=1;
+  }
+
+  my $a = $self->readAlignment($filename);
+
+#Get all of the region information from the database. This will allows to performs some
+#rudimentary QC and more importantly, exchange accessions for ids in the alignment
+
+  my $regs = $self->_getFullRegions();
+
+  unless(keys %$regs) { #A handful of families will have no regions left after clan competition
+    $self->logger->debug("No regions in ALIGN file to process");
+    $self->pfam->update( { num_full => 0 });
+
+    $self->write_stockholm_file( $filename, {}, $GFAnn);
+    $self->uploadTreesAndAlign( $filename, $type );
+
+    return;
+  }
+
+  my $ali =  $self->_verifyFullRegions( $regs, $a );
+
+#-------------------------------------------------------------------------------
+
+  #Predict active site residues
+  $self->logger->debug("Going to add active site data to FULL");
+  $ali = $self->{asp}->active_site_prediction($ali);
+
+  #By default, the ids are actually accesions. This swaps them over.
+  my $aliIds = $self->_alignAcc2id( $ali, $regs );
+
+  #Populate pdb_pfamA_reg using data from pdb_residue_data for family
+  # $self->pdbPfamAReg();
+  
+  #Add secondary structure strings
+  my ($ssStrings) = $self->addSecondaryStructure( $aliIds, $type );
+
+  #This will caclulcate the consenus at 60% and add the secondary structure consensus
+  $self->addConsensuses( $aliIds, $type, $ssStrings, $filename );
+
+  #Write out the annotated file.
+  $self->logger->debug("Making stockholm file for $filename");
+  $self->write_stockholm_file( $filename, $aliIds, $GFAnn);
+
+  # don't do it ever
+  # if ( $aliIds->num_sequences <= 5000 ) {
+  #   $self->makeHTMLAlign( $filename, 80, $type );
+  # }
+
+#-------------------------------------------------------------------------------
+#Calculate stats on the alignment
+  $self->_fullAlignmentStats( $aliIds, $regs );
+  $self->_align2cigar( $aliIds, $regs );
+
+#-------------------------------------------------------------------------------
+#Addition files derived from the full alignment.
+
+  #Make family non-redundant for fasta
+  $self->logger->debug("Making fasta file for $filename");
+  $self->makeNonRedundantFasta($aliIds);
+
+  #Upload the alignments (stockholm and html) and tree into the database
+  $self->uploadTreesAndAlign( $filename, $type );
+
+  #Add GF annoations to uniprot alignments
+  # $self->addUniprotGF($GFAnn);
+
+  #Make RP alignments (this is now done using the uniprot alignments)
+  #addUniprotGF must be run before making the RP alignments
+  # $self->makeRPAligns(); 
+
+  #Populate pfamA_ncbi table
+  # $self->pfamA_ncbi();
+
+  #Populate pfamA_ncbi_uniprot table
+  # $self->pfamA_ncbi_uniprot();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 sub addUniprotGF {
@@ -770,6 +878,9 @@ sub _getSeedRegions {
       $pfamseq = $self->pfamdb->getSchema->resultset('Uniprot')->find({ uniprot_acc => $row->pfamseq_acc });
       $u=1;
     }
+    unless($pfamseq) {
+      $self->logger->debug("SEED contains sequence " . $row->pfamseq_acc . " but could not be found in pfamseq or uniprot!");
+    }
 
     my $data = $pfamseq->get_column_data;
 
@@ -908,6 +1019,9 @@ sub _alignAcc2id {
     }
     else {
       # next;
+      $self->logger->warn("_alignAcc2id failed: Could not find id for $i");
+      next;
+
       $self->mailUserAndFail( 
         "Could not find id for $i" );
     }
@@ -1475,25 +1589,37 @@ sub processHMMs {
 
   #process the HMM file first
   #We are going to use this a liogm
-  my $pfam = $self->pfam; 
+  my $pfam = $self->pfam;
   my $buildline = $self->_cleanBuildLine( $pfam->buildmethod );
   $buildline =~ s/\s+$//;
 
-  $self->logger->debug(
-    "Going to run hmmbuild with the following line: $buildline HMM.ann SEED.ann"
-  );
-  system( $self->config->hmmer3bin . "/$buildline -o /dev/null HMM.ann SEED.ann" )
-    and $self->mailUserAndFail(
-    "Failed to build HMM.ann, using $buildline HMM.ann SEED.ann" );
+  # $self->logger->debug(
+  #   "Going to run hmmbuild with the following line: $buildline HMM.ann SEED.ann"
+  # );
+  # system( $self->config->hmmer3bin . "/$buildline -o /dev/null HMM.ann SEED.ann" )
+  #   and $self->mailUserAndFail(
+  #   "Failed to build HMM.ann, using $buildline HMM.ann SEED.ann" );
 
   #Take HMM_ls and add the thresholds into the file
-  open( HMM_OUT, ">HMM.ann.tmp" )
-    or $self->mailUserAndFail( "Could not open HMM.ann.tmp for writing" );
-  open( HMM, "HMM.ann" )
+  open( HMM_OUT, ">HMM.ann" )
+    or $self->mailUserAndFail( "Could not open HMM.ann for writing" );
+  open( HMM, "HMM" )
     or $self->mailUserAndFail(
     "Could not open HMM.ann for writing" );
   while (<HMM>) {
-    if (/^GA\s+/) {
+
+    next if ( $_ =~ /^ACC\s+/ or $_ =~ /^DESC\s+/ );
+    next if ( $_ =~ /^GA\s+/ or $_ =~ /^TC\s+/ or $_ =~ /^NC\s+/ or $_ =~ /^BM\s+/ or $_ =~ /^SM\s+/ );
+
+    if (/^NAME\s+/) {
+      print HMM_OUT "NAME  ", $pfam->pfama_id, "\n";
+      print HMM_OUT "ACC   ", $pfam->pfama_acc,   ".", $pfam->version, "\n";
+      print HMM_OUT "DESC  ", $pfam->description, "\n";
+      next;
+    }
+
+    if (/^CKSUM\s+/) {
+      print HMM_OUT $_;
       print HMM_OUT "GA    "
         . $pfam->sequence_ga . " "
         . $pfam->domain_ga . ";\n";
@@ -1509,14 +1635,14 @@ sub processHMMs {
         . $pfam->searchmethod . "\n";
       next;
     }
-    next if ( $_ =~ /^NC\s+/ or $_ =~ /^TC\s+/ );
+
     print HMM_OUT $_;
   }
   close HMM;
   close HMM_OUT;
-  rename( "HMM.ann.tmp", "HMM.ann" )
-    or $self->mailUserAndFail( 
-    "can't rename HMM.ann.tmp to HMM.ann\n" );
+  # rename( "HMM.ann.tmp", "HMM.ann" )
+    # or $self->mailUserAndFail( 
+    # "can't rename HMM.ann.tmp to HMM.ann\n" );
   $self->logger->debug("Going to check the HMM.ann files for errors");
 
   #Now run QC on the HMMs
@@ -2246,7 +2372,7 @@ sub uploadTreesAndAlign {
   $self->logger->debug("Uploading $type trees and alignments");
 
   #Do this is steps.  Two reasons, better error tracking and more memory efficient
-  my $row = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find_or_create(
+  my $row = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create(
     {
       pfama_acc => $self->pfam->pfama_acc,
       type       => $type
@@ -2257,17 +2383,23 @@ sub uploadTreesAndAlign {
 
   # prepare compressed file and copy to Alignments location
   my $pfamA_acc = $self->pfam->pfama_acc;
-  my $alignments_dir = $self->{config}->alignmentsLoc;
-  my $destination_file = $self->{config}->alignmentsLoc . "/${pfamA_acc}/${pfamA_acc}.${type}.gz";
   system("gzip -c $filename.ann > $filename.ann.gz") and $self->mailUserAndFail("Failed to gzip -c $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
-  copy("$filename.ann.gz", $destination_file) or die "Failed to copy $filename.ann.gz: $!";
 
+  if ($self->{config}->alignmentsLoc) {
+    my $destination_folder = $self->{config}->alignmentsLoc . "/${pfamA_acc}";
+    my $destination_file = $self->{config}->alignmentsLoc . "/${pfamA_acc}/${pfamA_acc}.${type}.gz";
+    system("mkdir -p $destination_folder"); 
+    $self->logger->debug("Copying alignment file to $destination_file");
+    copy("$filename.ann.gz", $destination_file) or die "Failed to copy $filename.ann.gz: $!";
+  } else {
+    $self->logger->debug("alignmentsLocation not set on config file. Skip filesystem alignment copy.");
+  }
 
   my $file;
   open(ANN, "$filename.ann.gz") or $self->mailUserAndFail("Failed to open $filename.ann.gz, $!" );
   while(<ANN>) {
     $file .= $_;
-  }    
+  }
   close ANN;
 
   # if(-s "$filename.ann" >= 3000000000) { #If the file is >=4gb in size
@@ -2291,14 +2423,14 @@ sub uploadTreesAndAlign {
   $self->logger->debug("Size of gzip $filename.ann.gz is: ".$file_size);
 
   # upload file only if size is under 1.1GB
-  if ($type ne 'uniprot') {
-  if ($file_size < 1100000000 ) {
+  # if ($file_size < 1500000000 ) {
+  if($type ne 'uniprot'){
     $row->update( { alignment => '' } );
     $row->update( { alignment => $file } );
   } else {
-    $self->logger->debug("Skipping uploading as size is over 1.1GB\n");
+    $self->logger->debug("Skipping uploading to db of uniprot alignments\n");
   }
-  }
+  # }
 
 
   if($type eq 'seed'){
@@ -2359,12 +2491,19 @@ sub versionFiles {
       "Could not version $f:[$!]" );
     my $hmm;
     while (<F>) {
-      $hmm .= $_;
-      unless (/^CKSUM\s+/) {
+
+      next if ( $_ =~ /^NAME\s+/ or $_ =~ /^ACC\s+/ or $_ =~ /^DESC\s+/ );
+      next if ( $_ =~ /^GA\s+/ or $_ =~ /^TC\s+/ or $_ =~ /^NC\s+/);
+      next if ( $_ =~ /^BM\s+/ or $_ =~ /^SM\s+/ or $_ =~ /^DATE\s+/);
+
+      if (/^CKSUM\s+/) {
+        $hmm .= $_;
         $hmm .= "GA    " . $self->pfam->sequence_ga . " " . $self->pfam->domain_ga . ";\n";
         $hmm .= "TC    " . $self->pfam->sequence_tc . " " . $self->pfam->domain_tc . ";\n";
         $hmm .= "NC    " . $self->pfam->sequence_nc . " " . $self->pfam->domain_nc . ";\n";
+        next;
       }
+      $hmm .= $_;
     }
     $fileCheckSums{$f} = md5_hex($hmm);
   }
@@ -2458,6 +2597,8 @@ sub write_stockholm_file {
       foreach my $line (@{ $aln->{GS} }){
         print ANNFILE $line;
       }
+    } else {
+      print ANNFILE "#=GF SQ   0\n";
     }
     if(exists($aln->{GR})){
       foreach my $line ( @{ $aln->{GR} } ) {
