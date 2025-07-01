@@ -1591,7 +1591,7 @@ sub noMissing {
       $previous_id = $seq->id;
     }
   }
-  elsif(!$newFamObj->ALIGN) {
+  elsif(!$oldFamObj->ALIGN) {
     # ALIGN0 This is not populated for families that do not have any reference proteome matches
   } else{
     die "Did not get a Bio::Pfam::AlignPfamLite or Bio::Pfam::AlignPfam object\n";  
