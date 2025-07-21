@@ -52,8 +52,8 @@ foreach my $line (@data){
         my $pfam = $2;
         my $start = $3;
         my $end = $4;
-        my $ali_start = $3;
-        my $ali_end = $4;
+        my $ali_start = $5;
+        my $ali_end = $6;
         
         $st->execute($seq);
         my $arrayref = $st->fetchall_arrayref();
