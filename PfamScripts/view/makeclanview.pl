@@ -110,58 +110,58 @@ Bio::Pfam::Clan::Compete::competeClan( $clanAcc, $view->pfamdb );
 # Now trigger off the view processes for all of the family members.
 # Needs to happen after the competion. Will need to tweak the view process
 # to make sure that the QC does not fail on alignment sizes compared with the database
-my $hmmio = Bio::Pfam::HMM::HMMIO->new;
-unlink("$clanAcc.lib");
-if(scalar(@$clanMemAcc) <= 40){
-foreach my $fam (@$clanMemAcc) {
+# my $hmmio = Bio::Pfam::HMM::HMMIO->new;
+# unlink("$clanAcc.lib");
+# if(scalar(@$clanMemAcc) <= 40){
+# foreach my $fam (@$clanMemAcc) {
 
-  #We are going to need the HMMs and SEED alignmetns
+#   #We are going to need the HMMs and SEED alignmetns
 
-  #First get the HMM
-  my ($hmmObj);
-  eval {
-    my $hmm =
-      $view->pfamdb->getSchema->resultset('PfamAHmm')
-      ->find( { pfama_acc => $clanMemAccAutoMap{$fam} } );
-    $hmmObj = $hmmio->readHMM( $hmm->hmm );
-  };
-  if ($@) {
-    $view->mailUserAndFail( "makeclanview: Problem getting HMM for $fam:[$@]" );
-  }
-  $view->logger->debug("Got hmm from $fam");
+#   #First get the HMM
+#   my ($hmmObj);
+#   eval {
+#     my $hmm =
+#       $view->pfamdb->getSchema->resultset('PfamAHmm')
+#       ->find( { pfama_acc => $clanMemAccAutoMap{$fam} } );
+#     $hmmObj = $hmmio->readHMM( $hmm->hmm );
+#   };
+#   if ($@) {
+#     $view->mailUserAndFail( "makeclanview: Problem getting HMM for $fam:[$@]" );
+#   }
+#   $view->logger->debug("Got hmm from $fam");
 
-  #Set the name
-  $hmmObj->name($fam);
-  $hmmObj->accession($fam);
+#   #Set the name
+#   $hmmObj->name($fam);
+#   $hmmObj->accession($fam);
 
-  #Set the description to undefined (if defined it goes into the hhsearch results
-  #output and screws up reg ex that reads in the hhsearch results)
-  #The HMM description will be defined if the view process has already been run
-  $hmmObj->description("");
+#   #Set the description to undefined (if defined it goes into the hhsearch results
+#   #output and screws up reg ex that reads in the hhsearch results)
+#   #The HMM description will be defined if the view process has already been run
+#   $hmmObj->description("");
   
-  #Write to disk
-  open( H, ">HMM.$fam" )
-    or $view->mailUserAndFail( "makeclanview: Could not open HMM.$fam :[$!]\n" );
-  $hmmio->writeHMM( \*H, $hmmObj );
-  close(H);
+#   #Write to disk
+#   open( H, ">HMM.$fam" )
+#     or $view->mailUserAndFail( "makeclanview: Could not open HMM.$fam :[$!]\n" );
+#   $hmmio->writeHMM( \*H, $hmmObj );
+#   close(H);
 
-  my $align =
-    $view->pfamdb->getSchema->resultset('PfamAInternal')
-    ->find( { pfama_acc => $clanMemAccAutoMap{$fam} } );
+#   my $align =
+#     $view->pfamdb->getSchema->resultset('PfamAInternal')
+#     ->find( { pfama_acc => $clanMemAccAutoMap{$fam} } );
 
-  open( S, ">seed.$fam" );
-  print S Compress::Zlib::memGunzip( $align->seed )
-    or $view->mailUserAndFail( "makeclanview: Failed to uncompress seed alignment for $fam:[$!]" );
-  close(S);
+#   open( S, ">seed.$fam" );
+#   print S Compress::Zlib::memGunzip( $align->seed )
+#     or $view->mailUserAndFail( "makeclanview: Failed to uncompress seed alignment for $fam:[$!]" );
+#   close(S);
 
-  unless ( -s "seed.$fam" ) {
-    $view->mailUserAndFail( "makeclanview: Wrote seed alignment for $fam but it was empty:[$!]" );
-  }
+#   unless ( -s "seed.$fam" ) {
+#     $view->mailUserAndFail( "makeclanview: Wrote seed alignment for $fam but it was empty:[$!]" );
+#   }
   
-  system($view->config->hmmer3bin."/esl-reformat --replace .:- --informat SELEX afa seed.$fam > seed.$fam.afa");
-  system("cat HMM.$fam >> $clanAcc.lib");
-  }
-}
+#   system($view->config->hmmer3bin."/esl-reformat --replace .:- --informat SELEX afa seed.$fam > seed.$fam.afa");
+#   system("cat HMM.$fam >> $clanAcc.lib");
+#   }
+# }
 #-------------------------------------------------------------------------------
 
 $view->logger->debug("Writing the clandesc file so that clan can be versioned");
