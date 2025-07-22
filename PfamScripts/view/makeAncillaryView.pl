@@ -270,16 +270,16 @@ else {
     $proteomeView->touchStatus('doneProteome');
   }
   
-  if(! $proteomeView->statusCheck('doneProteomeTSV')){
-    $logger->debug("Creating proteome TSV files"); 
-    #Each proteome to be searched
-    $proteomeView->submitToFarm(75);
-    #
-    $proteomeView->touchStatus('doneProteomeTSV');
-  }
-  else {
-    $logger->info('Done protome TSV files');
-  }
+  # if(! $proteomeView->statusCheck('doneProteomeTSV')){
+  #   $logger->debug("Creating proteome TSV files"); 
+  #   #Each proteome to be searched
+  #   $proteomeView->submitToFarm(75);
+  #   #
+  #   $proteomeView->touchStatus('doneProteomeTSV');
+  # }
+  # else {
+  #   $logger->info('Done protome TSV files');
+  # }
 
 # }
 
