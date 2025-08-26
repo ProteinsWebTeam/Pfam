@@ -1047,7 +1047,7 @@ sub family_overlaps_with_signal_peptide {
 =cut
 
 sub family_overlaps_with_db {
-  my ( $family, $ignore_ref, $pfamDB, $famObj, $compete, $noFilter) = @_;
+  my ( $family, $ignore_ref, $pfamDB, $famObj, $compete, $noFilter, $ignore_cl) = @_;
   my ( %ignore, @overlaps );
   
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
@@ -1092,7 +1092,7 @@ sub family_overlaps_with_db {
   }
 
   my %clanFam;
-  if ( $famObj->DESC->CL ) {
+  if ( $famObj->DESC->CL && !$ignore_cl) {
 
     #Okay, we have a family that is part of a clan
     my $clanMem = $pfamDB->getClanMembership( $famObj->DESC->CL );

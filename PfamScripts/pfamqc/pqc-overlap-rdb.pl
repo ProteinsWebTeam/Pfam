@@ -12,13 +12,14 @@ use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::PfamLiveDBManager;
 
-my ( @ignore, $help, $compete, $no_sigP, $all, $filter );
+my ( @ignore, $help, $compete, $no_sigP, $all, $filter, $ignore_cl );
 
 &GetOptions( "i=s@"     => \@ignore,
              "help"     => \$help,
              "compete"  => \$compete,
              "no_sigP"  => \$no_sigP,
              "filter"   => \$filter,
+             "ignore_cl"=> \$ignore_cl,
            ) or die "Incorrect option passed in\n";
 
 
@@ -88,10 +89,10 @@ print STDERR "Successfully loaded $family through middleware\n";
 
 my $overlaps;
 if($filter) {
- $overlaps=&Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete,  undef );
+ $overlaps=&Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete, undef, $ignore_cl );
 }
 else {
-  $overlaps=&Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete,  1 );
+  $overlaps=&Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete, 1, $ignore_cl );
 }
 warn "$family: found $overlaps overlaps\n";
 
@@ -131,6 +132,7 @@ Addional options:
   -compete               :Compete family before checking for overlaps
   -no_sigP               :Do not check whether family overlaps with signal peptide
   -filter                :Filter overlaps
+  -ignore_cl             :Ignore clan assignment
 
 
 EOF
