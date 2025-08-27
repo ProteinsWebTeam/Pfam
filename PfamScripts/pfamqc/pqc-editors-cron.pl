@@ -88,7 +88,7 @@ foreach my $pfam ( @modified ) {
 
 
 # if there were no families, we're done
-exit unless @untrusted && @modified_full;
+exit unless @untrusted || @modified_full;
 
 print "\n" . scalar @untrusted . " families were added and " . scalar @modified_full . " families were updated between $yesterday and $today.\n";
 
