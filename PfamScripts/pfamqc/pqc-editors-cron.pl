@@ -90,10 +90,11 @@ foreach my $pfam ( @modified ) {
 # if there were no families, we're done
 exit unless @untrusted && @modified_full;
 
+print "\n" . scalar @untrusted . " families were added and " . scalar @modified_full . " families were updated between $yesterday and $today.\n";
 
 if (@untrusted) {
 	# print out the list
-	print "\nThe following families were added between $yesterday and $today:\n\n";
+	print "\nThe following families were added:\n\n";
 
 	printf "%-10s   %-30s %-12s %s\n", "Accession", "Identifier", "Depositor", "Description";
 
@@ -105,19 +106,18 @@ if (@untrusted) {
 	  printf "%-10s   %-30s %-12s %s\n", $acc, $id, $by, $desc;
 	}
 
-	print "\n\n";
+	print "\n";
 
 }
 
 if (@modified_full) {
 	# print out the list
 
-	print "\nThe following families were updated between $yesterday and $today:\n\n";
+	print "\nThe following families were updated:\n\n";
 
 	printf "%-10s   %-30s %-12s %s\n", "Accession", "Identifier", "Author", "Message";
 
 	foreach my $pfam ( @modified_full ) {
-	  ## $pfam
 	  my $acc  = $pfam->{acc};
 	  my $id   = $pfam->{id};
 	  my $author= $pfam->{author};
@@ -125,9 +125,5 @@ if (@modified_full) {
 	  printf "%-10s   %-30s %-12s %s\n", $acc, $id, $author, $msg;
 	}
 
-	print "\n\n";
+	print "\n";
 }
-
-print scalar @untrusted . " families were added and " . scalar @modified_full . " families were updated.";
-print "\n";
-
