@@ -51,31 +51,83 @@ while ( my $pfam = $new_families_rs->next ) {
   push @untrusted, $pfam unless $trusted{ $pfam->deposited_by };
 }
 
-# if there were no families, we're done
-exit unless @untrusted;
 
-# print out the list
-print <<EOF;
 
-The following families were added between $yesterday and $today
-by untrusted depositors:
+# get the list of families that were updated in the last 24 hours
+my $updated_families_rs = $pfam_live_schema->resultset('PfamA')
+                                       ->search( { updated => { '>=', $yesterday },
+                                       'me.updated' => { '!=' => \'me.created' }, }, {} );
 
-accession ID                             depositor     description
-EOF
-
-my ( $acc, $id, $desc, $by );
-format = 
-@<<<<<<   @<<<<<<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<< @*
-$acc,     $id,                           $by,          $desc
-.
-
-foreach my $pfam ( @untrusted ) {
-  $acc  = $pfam->pfama_acc;
-  $id   = $pfam->pfama_id;
-  $by   = $pfam->deposited_by;
-  $desc = $pfam->description;
-  write;
+my @modified;
+while ( my $pfam = $updated_families_rs->next ) {
+  push @modified, $pfam;
 }
 
+my @modified_full;
+foreach my $pfam ( @modified ) {
+	my $acc  = $pfam->pfama_acc;
+
+	my $svn_log = `svn log --xml --limit 1 https://xfam-svn-hl.ebi.ac.uk/svn/pfam/trunk/Data/Families/$acc`;
+
+	my ($author, $msg);
+	if ($svn_log =~ /<author>(.*)<\/author>/) {
+		$author = $1;
+	}
+	if ($svn_log =~ /<msg>(.*)<\/msg>/s) {
+		$msg = $1;
+		$msg =~ s/\n/ /g;
+	}
+	push @modified_full, {
+		acc => $pfam->pfama_acc,
+		id  => $pfam->pfama_id,
+		author => $author,
+		msg => $msg
+	};
+}
+
+
+
+# if there were no families, we're done
+exit unless @untrusted && @modified_full;
+
+
+if (@untrusted) {
+	# print out the list
+	print "\nThe following families were added between $yesterday and $today:\n\n";
+
+	printf "%-10s   %-30s %-12s %s\n", "Accession", "Identifier", "Depositor", "Description";
+
+	foreach my $pfam ( @untrusted ) {
+	  my $acc  = $pfam->pfama_acc;
+	  my $id   = $pfam->pfama_id;
+	  my $by   = $pfam->deposited_by;
+	  my $desc = $pfam->description;
+	  printf "%-10s   %-30s %-12s %s\n", $acc, $id, $by, $desc;
+	}
+
+	print "\n\n";
+
+}
+
+if (@modified_full) {
+	# print out the list
+
+	print "\nThe following families were updated between $yesterday and $today:\n\n";
+
+	printf "%-10s   %-30s %-12s %s\n", "Accession", "Identifier", "Author", "Message";
+
+	foreach my $pfam ( @modified_full ) {
+	  ## $pfam
+	  my $acc  = $pfam->{acc};
+	  my $id   = $pfam->{id};
+	  my $author= $pfam->{author};
+	  my $msg  = $pfam->{msg};
+	  printf "%-10s   %-30s %-12s %s\n", $acc, $id, $author, $msg;
+	}
+
+	print "\n\n";
+}
+
+print scalar @untrusted . " families were added and " . scalar @modified_full . " families were updated.";
 print "\n";
 
