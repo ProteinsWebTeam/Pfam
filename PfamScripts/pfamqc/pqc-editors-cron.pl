@@ -86,17 +86,31 @@ foreach my $pfam ( @modified ) {
 }
 
 
+# get the list of families that were killed in the last 24 hours
+my $killed_families_rs = $pfam_live_schema->resultset('DeadFamily')
+                                       ->search( { killed => { '>=', $yesterday } }, {} );
+
+my @killed;
+while ( my $pfam = $killed_families_rs->next ) {
+  push @killed, $pfam;
+}
+
 
 # if there were no families, we're done
-exit unless @untrusted || @modified_full;
+exit unless @untrusted || @modified_full || @killed;
 
-print "\n" . scalar @untrusted . " families were added and " . scalar @modified_full . " families were updated between $yesterday and $today.\n";
+
+print "\nSummary of family changes between $yesterday and $today\n";
+print "Created: " . scalar @untrusted . "\n";
+print "Updated: " . scalar @modified_full . "\n";
+print "Deleted: " . scalar @killed . "\n";
+print "\n";
 
 if (@untrusted) {
 	# print out the list
-	print "\nThe following families were added:\n\n";
+	print "\nThe following families were created:\n\n";
 
-	printf "%-10s   %-30s %-12s %s\n", "Accession", "Identifier", "Depositor", "Description";
+	printf "%-10s   %-30s %-12s %s\n", "Accession", "Identifier", "Author", "Description";
 
 	foreach my $pfam ( @untrusted ) {
 	  my $acc  = $pfam->pfama_acc;
@@ -123,6 +137,25 @@ if (@modified_full) {
 	  my $author= $pfam->{author};
 	  my $msg  = $pfam->{msg};
 	  printf "%-10s   %-30s %-12s %s\n", $acc, $id, $author, $msg;
+	}
+
+	print "\n";
+}
+
+
+if (@killed) {
+	# print out the list
+
+	print "\nThe following families were deleted:\n\n";
+
+	printf "%-10s   %-30s %-12s %s\n", "Accession", "Identifier", "Author", "Comment";
+
+	foreach my $pfam ( @killed ) {
+	  my $acc  = $pfam->pfama_acc;
+	  my $id   = $pfam->pfama_id;
+	  my $by   = $pfam->user;
+	  my $desc = $pfam->comment;
+	  printf "%-10s   %-30s %-12s %s\n", $acc, $id, $by, $desc;
 	}
 
 	print "\n";
