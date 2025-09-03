@@ -21,6 +21,7 @@ use DateTime::Format::MySQL;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
+use XML::Simple;
 
 $ENV{DBIC_DT_SEARCH_OK}=1; #This is to prevent a warning that is otherwise displayed
 
@@ -63,28 +64,35 @@ while ( my $pfam = $updated_families_rs->next ) {
   push @modified, $pfam;
 }
 
+# Format to SVN-compatible: YYYY-MM-DDTHH:MM
+my $yesterday_str = format_svn_datetime($yesterday);
+my $today_str     = format_svn_datetime($today);
+
+
 my @modified_full;
 foreach my $pfam ( @modified ) {
 	my $acc  = $pfam->pfama_acc;
+	my $svn_log = `svn log --xml -r {$yesterday_str}:{$today_str} https://xfam-svn-hl.ebi.ac.uk/svn/pfam/trunk/Data/Families/$acc`;
 
-	my $svn_log = `svn log --xml --limit 1 https://xfam-svn-hl.ebi.ac.uk/svn/pfam/trunk/Data/Families/$acc`;
+    my $xml = XML::Simple->new;
+    my $data = $xml->XMLin($svn_log, ForceArray => ['logentry']);
 
-	my ($author, $msg);
-	if ($svn_log =~ /<author>(.*)<\/author>/) {
-		$author = $1;
+    my @commits;
+	foreach my $entry (@{ $data->{logentry} }) {
+	    my $author = $entry->{author} || '';
+	    my $msg    = $entry->{msg}    || '';
+	    next if $author eq 'xfm_adm';
+	    next if $msg =~ /^PFNEW:/;
+	    $msg =~ s/\n/ /g;
+	    push @commits, { author => $author, msg => $msg };
 	}
-	if ($svn_log =~ /<msg>(.*)<\/msg>/s) {
-		$msg = $1;
-		$msg =~ s/\n/ /g;
-	}
+
 	push @modified_full, {
 		acc => $pfam->pfama_acc,
 		id  => $pfam->pfama_id,
-		author => $author,
-		msg => $msg
+		commits => [@commits]
 	};
 }
-
 
 # get the list of families that were killed in the last 24 hours
 my $killed_families_rs = $pfam_live_schema->resultset('DeadFamily')
@@ -134,9 +142,12 @@ if (@modified_full) {
 	foreach my $pfam ( @modified_full ) {
 	  my $acc  = $pfam->{acc};
 	  my $id   = $pfam->{id};
-	  my $author= $pfam->{author};
-	  my $msg  = $pfam->{msg};
-	  printf "%-10s   %-30s %-12s %s\n", $acc, $id, $author, $msg;
+
+      foreach my $commit (@{$pfam->{commits}}) {
+      	my $author= $commit->{author};
+	  	my $msg  = $commit->{msg};
+	  	printf "%-10s   %-30s %-12s %s\n", $acc, $id, $author, $msg;
+	  }
 	}
 
 	print "\n";
@@ -159,4 +170,16 @@ if (@killed) {
 	}
 
 	print "\n";
+}
+
+
+sub format_svn_datetime {
+    my ($dt) = @_;
+    
+    # YYYY-MM-DD
+    my $date = $dt->ymd;
+    my $hour = sprintf "%02d", $dt->hour;
+    my $min  = sprintf "%02d", $dt->minute;
+
+    return "${date}T${hour}:${min}";
 }
