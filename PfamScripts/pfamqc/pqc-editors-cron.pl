@@ -180,6 +180,7 @@ sub format_svn_datetime {
     my $date = $dt->ymd;
     my $hour = sprintf "%02d", $dt->hour;
     my $min  = sprintf "%02d", $dt->minute;
+    my $sec  = sprintf "%02d", $dt->second;
 
-    return "${date}T${hour}:${min}";
+    return "${date}T${hour}:${min}:${sec}";
 }
