@@ -74,9 +74,9 @@ sub passesAllFormatChecks {
     }
   }
 
-  unless( &checkRefs( $famObj->DESC, $family )) {
-    warn "|$family|: Please check references are correct, this is a warning not an error!\n";
-    sleep 3;
+  unless( &checkReferences( $famObj )) {
+    $error = 1;
+    warn "|$family|: Please check references\n";
   }
 
   if ( !&checkSearchMethod( $family, $famObj ) ) {
@@ -690,43 +690,6 @@ sub onlyASCII {
     warn "Your Pfam DESC file contains invalid characters\n";
     return 0;
   }
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 checkRefs
-
- Title    : checkRefs
- Usage    : &PfamQC::checkRefs($desc)
- Function : Checks if highest reference in CC exists in REFS list
- Returns  : 1 if all is OK, 0 if not
- Args     : DESC object
-
-=cut
-
-sub checkRefs {
-  my ($desc, $family_dir) = @_;
-
-  my $max_ref = 0;
-  if ($desc->REFS) {
-    $max_ref = $desc->REFS->[-1]->{'RN'};
-  }
-
-  my $cc = $desc->CC // '';
-  my $max_ccref = 0;
-  while ( $cc =~ /\[[\d,-]*(\d+)\]/g ) {
-    my $cc_ref = $1;
-    if ($cc_ref > $max_ccref) {
-      $max_ccref = $cc_ref;
-    }
-  }
-
-  if ($max_ccref > $max_ref) {
-    warn "Reference [$max_ccref] seems to be referred in the CC, but the corresponding RN could not be found.\n";
-    return 0;
-  }
-
-  return 1;
 }
 
 #-------------------------------------------------------------------------------
@@ -2402,10 +2365,10 @@ sub seedOnReferenceProteome {
 }
 
 
-=head2 checkReferencesAdded
+=head2 checkReferences
 
-  Title    : checkReferencesAdded
-  Usage    : checkReferencesAdded($famObj) 
+  Title    : checkReferences
+  Usage    : checkReferences($famObj)
   Function : Checks whether all the references in the CC lines have been added to DESC file
   Args     : $famObj
   Returns  : 1 if there are errors, 0 if everthing is fine 
@@ -2413,40 +2376,50 @@ sub seedOnReferenceProteome {
 
 =cut
 
-sub checkReferencesAdded {
+sub checkReferences {
   my $famObj = shift;
-  
+
   my $error;
   my $cc = $famObj->DESC->CC;
-  
-  if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
-    my %cc_refs;
-    while ($cc =~ m{\[(\d+)\]}g) {
-        $cc_refs{$1} = 1; 
-    }    
-    foreach my $r (map { $_->{RN} } @{ $famObj->DESC->REFS }) { 
-        delete $cc_refs{$r};
-    }    
-    if(keys %cc_refs) {
-      print STDERR "\n*** ERROR: found literature references in CC lines that have not been added to the DESC file: ".  join(",", keys(%cc_refs)) ." ***\n\n";    
-      $error=1;
-    }
-  }
-  else {
-    my (@refs) = $cc =~ m{\[(\d+)\]}g;
-    if (@refs) {
-      print STDERR "\n*** ERROR: found literature references in CC lines that have not been added to the DESC file: " . join(",", @refs) . " ***\n\n";
-      $error=1;
+
+  my @bracket_blocks = $cc =~ /\[([^\]]+)\]/g;
+
+  my %cc_refs;
+  foreach my $block (@bracket_blocks) {
+    # Remove whitespace around commas and split
+    my @parts = split /\s*,\s*/, $block;
+
+    foreach my $part (@parts) {
+      if ($part =~ /^(\d+)\s*-\s*(\d+)$/) {
+        my ($start, $end) = ($1, $2);
+        $cc_refs{$_} = 1 for ($start <= $end ? $start .. $end : $end .. $start);
+      }
+      elsif ($part =~ /^\d+$/) {
+        $cc_refs{$part} = 1;
+      }
     }
   }
 
-  if ($error) {
-    return 0;
+  if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
+    foreach my $r (map { $_->{RN} } @{ $famObj->DESC->REFS }) {
+
+      if ($cc_refs{$r}) {
+        delete $cc_refs{$r};
+      } else {
+        print STDERR "\n*** WARNING: literature reference [$r] is not used in CC. ***\n";
+      }
+    }
   }
-  else {
-    return 1;
+
+  if (keys %cc_refs) {
+    print STDERR "\n*** ERROR: found literature references in CC that have not been added to the DESC file: "
+      . join(", ", sort { $a <=> $b } keys %cc_refs) . " ***\n\n";
+    $error = 1;
   }
+
+  return $error ? 0 : 1;
 }
+
 
 
 =head1 COPYRIGHT

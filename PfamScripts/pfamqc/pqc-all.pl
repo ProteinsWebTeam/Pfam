@@ -267,17 +267,8 @@ unless($isNew){
     print STDERR "$0: It appears you are missing sequences compared to the SVN copy\n";  
   }
 }
-  
-
 
 $verbose and print STDERR "$0: SEED does not appear to be ragged\n";
-
-
-#Check all the references have been added
-unless( Bio::Pfam::PfamQC::checkReferencesAdded($famObj)) {
-    print STDERR "$0: Not all literature references in the CC lines have been added to the DESC file\n";
-    exit(1);
-}
 
 
 sub help {
