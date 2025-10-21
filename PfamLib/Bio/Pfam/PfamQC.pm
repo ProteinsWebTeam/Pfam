@@ -2382,7 +2382,8 @@ sub checkReferences {
   my $error;
   my $cc = $famObj->DESC->CC;
 
-  my @bracket_blocks = $cc =~ /\[([^\]]+)\]/g;
+  # Ignore brackets that are bordered by a word character or dash
+  my @bracket_blocks = $cc =~ /[^\w-]\[([^\]]+)\][^\w-]/g;
 
   my %cc_refs;
   foreach my $block (@bracket_blocks) {
