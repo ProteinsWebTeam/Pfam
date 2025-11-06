@@ -5,6 +5,8 @@ use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Cwd;
 use Getopt::Long;
+use LWP::UserAgent;
+use URI::Escape;
 
 # Jiffy script that attempts to identify Swiss-Prot sequences from a PFAMOUT file
 # You run it in the Pfam family directory itself and it will look for the PFAMOUT file
@@ -77,48 +79,46 @@ close OUT;
 
 my $found = keys %sp;
 
-# retrieve swissprot seq_info into sp.seq_info file
-my (@info, $all_ids);
-print STDERR "Fetching seq_info for ". scalar(%sp) . " matches, writing to sp.seq_info file\n";
-foreach my $id (keys %sp){
+# Retrieve Swiss-Prot seq_info into sp.seq_info file using UniProt REST API
+my @ids = keys %sp;
 
-    select(undef, undef, undef, 0.25); # This command makes a 250ms pause. So that UniProt server is not overloaded.
+open(my $SIO, ">", "sp.seq_info") or die "Cannot write to sp.seq_info file: $!";
 
-    open(PFETCH, "wget -q -O - \"https://www.uniprot.org/uniprot/$id.txt\" |") or warn "Cannot wget $id\n";
-    my $fail=0;
-    while (<PFETCH>){
-        if (/</){
-            $fail=1;
-            print STDERR "Failed to fetch $id\n";
-            next; # Skip out of loop. This seems to be an xml response.
-        }
-        if ($_ =~ /^(  )\s{3}/){ # Remove sequence lines
-            next;
-        } elsif(/^CC   ---/){
-            next;
-        } elsif (/^CC   Copyrighted/){
-            next;
-        } elsif (/^CC   Distributed/){
-            next;
-        } elsif (/ProtNLM/){
-            push(@info, $_);
-            next;
-        } elsif (/^DT/){
-            next;
-        } elsif (! $fail){
-            push(@info, $_);
+if ($found) {
+    print STDERR "Fetching seq_info for ". scalar @ids . " matches, writing to sp.seq_info file\n";
+
+    my $ua = LWP::UserAgent->new( timeout => 30 );
+
+    my $query;
+    if (scalar @ids == 1) {
+        $query = "accession:$ids[0]";
+    } else {
+        $query = join(" OR ", map { "accession:$_" } @ids);
+    }
+
+    my $url = "https://rest.uniprot.org/uniprotkb/search?format=txt&query=" . uri_escape($query);
+
+    my $res = $ua->get($url);
+    if ($res->is_success) {
+        my $content = $res->decoded_content;
+        my @lines = split /\n/, $content;
+
+        foreach my $line (@lines) {
+            next if $line =~ /^(  )\s{3}/; # Remove sequence lines
+            next if $line =~ /^CC   ---/;
+            next if $line =~ /^CC   Copyrighted/;
+            next if $line =~ /^CC   Distributed/;
+            next if $line =~ /^DT/;
+            print $SIO "$line\n";
         }
     }
-    close (PFETCH);
+    else {
+        warn "Failed to fetch UniProt data: " . $res->status_line . "\n";
+    }
 }
 
-open (SIO, ">sp.seq_info") or die "Cannot write to sp.seq_info file, $!";
+close $SIO;
 
-foreach (@info){
-    chomp ($_);
-    print SIO "$_\n";
-}
-close SIO;
 
 # enrich with trembl and prepare arch file
 if($found==0) {
@@ -162,11 +162,27 @@ sub write_arch_file {
 
   $new_fam_name = sprintf("%-26s", $dir); #To make it line up with the other text
 
+  my $ga_threshold = 0;
+
+  if ( -e "DESC" ) {
+      open(my $DESC, "<", "DESC") or warn "Cannot open DESC file: $!";
+      while (<$DESC>) {
+          if (/^GA\s+([\d.]+)/) {
+              $ga_threshold = $1;
+              last;
+          }
+      }
+      close $DESC;
+      print "Using GA bit score threshold from DESC: $ga_threshold\n";
+  } else {
+      print "DESC file not found, not considering GA bit score threshold\n";
+  }
+
   # Loop over swiss-Prots and write to arch file
   open (ARCH, "> arch") or die "Cannot write to file arch, $!";
 
   foreach my $sp (sort keys %$hash){
-
+    my $best = 0;
     print ARCH "$sp\t$hash->{$sp}\n";
 
     # Get regions from PFAMOUT and add to arch file
@@ -178,6 +194,9 @@ sub write_arch_file {
         $en = sprintf("%6s", $en);
         $bits = sprintf("%8s", $bits);
 
+        # Apply GA bit score threshold
+        next if ($bits < $ga_threshold) && $best;
+        $best = 1;
         print ARCH "\t$new_fam_name\t$st\t$en\t$bits\n";
       }
     }
@@ -186,6 +205,7 @@ sub write_arch_file {
     #Get regions from pfam_live
     my @reg_full=$pfamDB->getSchema->resultset('PfamARegFullSignificant')->search({ pfamseq_acc => $sp }, {order_by => 'seq_start ASC'});
     foreach my $row (@reg_full) {
+
       my $pfamA_id = $accmap{$row->pfama_acc->pfama_acc};
       $pfamA_id = sprintf("%-16s", $pfamA_id);
 
@@ -216,6 +236,9 @@ top scoring TrEMBL sequences until it contains num sequences. For example if
 num=5, and 3 Swiss-Prot sequences are found, the 2 highest scoring TrEMBL 
 proteins will be added to the arch file to make it up to 5. The value of
 num can be set on the command line (see below).
+Arch file will always show the best hit from PFAMOUT file and If DESC file is
+present, will show any additional hits over GA threshold. Otherwhise all hits
+will be shown.
 
 usage:
 
