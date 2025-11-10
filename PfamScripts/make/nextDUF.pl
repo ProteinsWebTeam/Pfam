@@ -37,7 +37,7 @@ my @dufNos;
 my $pfams    = $pfamDB->getAllPfamFamilyDataLike('DUF%');
 my $deadFams = $pfamDB->getAllDeadFamilyData; 
 foreach my $fam (@{$pfams}, @{$deadFams}){
-  if($fam->pfama_id =~ /^DUF(\d+)$/){
+  if($fam->pfama_id =~ /^DUF(\d+).*$/){
     push(@dufNos, $1); 
   }
 }
