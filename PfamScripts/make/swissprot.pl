@@ -182,7 +182,7 @@ sub write_arch_file {
   open (ARCH, "> arch") or die "Cannot write to file arch, $!";
 
   foreach my $sp (sort keys %$hash){
-    # my $best = 0;
+    my $best = 0;
     print ARCH "$sp\t$hash->{$sp}\n";
 
     # Filter sequences based on score
@@ -201,8 +201,8 @@ sub write_arch_file {
         $bits = sprintf("%8s", $bits);
 
         # Apply GA bit score threshold
-        # next if ($bits < $ga_threshold) && $best;
-        # $best = 1;
+        next if ($bits < $ga_threshold) && $best;
+        $best = 1;
         print ARCH "\t$new_fam_name\t$st\t$en\t$bits\n";
       }
     }
@@ -242,7 +242,7 @@ top scoring TrEMBL sequences until it contains num sequences. For example if
 num=5, and 3 Swiss-Prot sequences are found, the 2 highest scoring TrEMBL 
 proteins will be added to the arch file to make it up to 5. The value of
 num can be set on the command line (see below).
-If DESC file is present, will filter out proteins with score under GA threshold.
+If DESC file is present, will filter out proteins/hits with score under GA threshold.
 
 usage:
 
