@@ -5,10 +5,24 @@ use warnings;
 
 use LWP::UserAgent;
 use URI::Escape;
+use Getopt::Long;
 
 $|=1;
 
+
+my $help;
+my $maxprot;
+
+GetOptions(
+  'maxprot=i' => \$maxprot,
+  'help'  => \$help);
+
+if($help) {
+  help();
+}
+
 my $dir = shift @ARGV;
+
 
 my %oc_hash;
 my %oc_rank;
@@ -21,8 +35,9 @@ print STDERR "Running $0 on $dir\n";
 # Does seq_info file exist?
 if (! -e "$dir/seq_info"){
     get_seq_info($dir);
+} else {
+	print STDERR "seq_info file already exists.\n";
 }
-
 
 my $oc;
 open (FH, "$dir/seq_info") or die "Cannot open $dir/seq_info";
@@ -52,9 +67,7 @@ while(<FH>){
 }
 close FH;
 
-if (-e "species"){
-    print STDERR "species file exists. SKipping\n";
-}
+
 
 open (OUT, "> $dir/species.tmp") or warn "Cannot write to $dir/species.tmp\n";
 open (ANN, "> $dir/speciesann") or warn "Cannot write to $dir/speciesann\n";
@@ -87,6 +100,8 @@ print ANN $ann_line;
 system("echo \"Number  Rank    Taxon\" > $dir/species");
 system ("sort -nrk2 $dir/species.tmp >> $dir/species");
 
+unlink("$dir/species.tmp");
+
 system("echo \"Total of $num proteins found\" >> $dir/species");
 
 # A subroutine to do equivalent of get_ALIGN_info
@@ -108,6 +123,12 @@ sub get_seq_info {
 
 	# Retrieve Swiss-Prot seq_info file using UniProt REST API
 	my @ids = keys %ids;
+
+    if ($maxprot) {
+        print STDERR "Found ". scalar(@ids) . " sequences, will limit to $maxprot\n";
+        @ids = @ids[0 .. $maxprot -1];
+    }
+
 	my $batch_size = 100;
 
 	open(my $OUTPUT, ">", "$dir/seq_info") or die "Could not open seq_info: $!";
@@ -154,6 +175,26 @@ sub get_seq_info {
 	close $OUTPUT;
 
 
+}
+
+
+sub help {
+  print<<EOF;
+
+This script fetches from uniprot the sequence info for the sequences in the ALIGN file into the seq_info file.
+It will then create a species file, with the species summary information, and a speciesann with the CC line.
+
+
+usage:
+
+$0 /path/to/family/folder
+
+Options:
+  -maxprot <integer>: Limit fetching of sequences to maxprot
+  -help             : Shows this help
+EOF
+
+exit;
 }
 
 
