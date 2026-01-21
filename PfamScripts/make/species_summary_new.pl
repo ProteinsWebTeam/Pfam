@@ -21,6 +21,10 @@ if($help) {
   help();
 }
 
+if (!@ARGV) {
+	help();
+}
+
 my $dir = shift @ARGV;
 
 
@@ -141,7 +145,7 @@ sub get_seq_info {
 		for (my $i = 0; $i < @ids; $i += $batch_size) {
 		    my $end = $i + $batch_size - 1;
 		    $end = $#ids if $end > $#ids;
-		    my @batch = @ids[$i .. $end];
+		    my @batch = grep { defined } @ids[$i .. $end];
 
 		    my $query = @batch == 1 ? "accession:$batch[0]" : join(" OR ", map { "accession:$_" } @batch);
 		    my $url = "https://rest.uniprot.org/uniprotkb/search?format=txt&query=" . uri_escape($query);
