@@ -183,13 +183,13 @@ sub write_arch_file {
 
   foreach my $sp (sort keys %$hash){
     my $best = 0;
-    print ARCH "$sp\t$hash->{$sp}\n";
+    my $length = $pfamDB->getSchema->resultset('Pfamseq')->search({ pfamseq_acc => $sp })->single->length;
+    print ARCH "$sp\t$hash->{$sp}\t(length:$length)\n";
 
     # Filter sequences based on score
     my $item = $hash->{$sp};
     my ($sp_score) = $item =~ /(\S+)\s+\S+\s+\S+\s+\S+\s+\S+$/;
     next if ($sp_score < $ga_threshold);
-
 
     # Get regions from PFAMOUT and add to arch file
     open (PFAMOUT, "PFAMOUT") or die "Cannot read PFAMOUT file, $!";
@@ -209,7 +209,7 @@ sub write_arch_file {
     close PFAMOUT;
 
     #Get regions from pfam_live
-    my @reg_full=$pfamDB->getSchema->resultset('PfamARegFullSignificant')->search({ pfamseq_acc => $sp }, {order_by => 'seq_start ASC'});
+    my @reg_full=$pfamDB->getSchema->resultset('PfamARegFullSignificant')->search({ pfamseq_acc => $sp, in_full => 1 }, {order_by => 'seq_start ASC'});
     foreach my $row (@reg_full) {
 
       my $pfamA_id = $accmap{$row->pfama_acc->pfama_acc};
