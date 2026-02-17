@@ -26,7 +26,7 @@ my $logger = get_logger();
 
 my $config = Bio::Pfam::Config->new;
 
-my ( $help, $newRelease, $oldRelease, $relDir, $updateDir );
+my ( $help, $newRelease, $oldRelease, $updateDir, $relDir );
 
 GetOptions(
   "new=s"    => \$newRelease,
@@ -46,11 +46,7 @@ if ($relDir) {
   }
 }
 else {
-  $relDir = '.';
-}
-
-unless ( $updateDir and -d $updateDir ) {
-  $logger->logdie("Please specify an update directory.\n");
+  $relDir = getcwd;
 }
 
 #This takes the input release numbers and checks that the are sensible.
@@ -136,7 +132,7 @@ $logger->info("Got relnotes and userman");
 
 my ( $numSeqs, $numRes );
 
-unless ( -e "$logDir/checkedseqsize" ){
+unless ( -e "$logDir/checkedseqsize" || !defined($updateDir) ) {
     if ( -e $logDir . "/pfamseqSize" ) {
      open( S, $logDir . "/pfamseqSize" )
       or $logger->logdie("Could not open $logDir./pfamseqSize:[$!]");
@@ -149,7 +145,12 @@ unless ( -e "$logDir/checkedseqsize" ){
     }
 
     foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat)) {
-     unless ( -s "$thisRelDir/$f.gz" ) {
+      if ($relDir) {
+        unless ( -s "$thisRelDir/$f.gz" ) {
+          $logger->info("Fetching the the sequence files");
+          getPfamseqFiles( $thisRelDir, $updateDir, $config );
+        }
+      }
       if ( $f eq 'pfamseq' ) {
        ( $numSeqs, $numRes ) = checkPfamseqSize( $updateDir, $pfamDB );
           open( N, ">" . $logDir . "/pfamseqSize" )
@@ -159,15 +160,12 @@ unless ( -e "$logDir/checkedseqsize" ){
           close(N);
 
      }
-     $logger->info("Fetching the the sequence files");
-     getPfamseqFiles( $thisRelDir, $updateDir, $config );
-     }
     }
 
     touch("$logDir/checkedseqsize");
 }
 
-unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full.uniprot") {
+unless ( -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full") {
     makePfamAFlat( $thisRelDir, $pfamDB );
 }
 
@@ -181,14 +179,18 @@ unless ( -e "$logDir/checkedA" ) {
 
 #Make the stats for the release
 unless ( -s "$thisRelDir/stats.txt" ) {
-  unless ( $numSeqs and $numRes ) {  #This could be undefined if the script had to be restarted
+  unless ( $numSeqs and $numRes ) {
+    unless ($updateDir) {
+      my $old_logDir = $logDir;
+      $old_logDir =~ s/$major\.$point/$old_major\.$old_point/;
+      system("cp ${old_logDir}/pfamseqSize ${logDir}/pfamseqSize");
+    }
     open( S, $logDir . "/pfamseqSize" ) or $logger->logdie("Could not open $logDir./pfamseqSize:[$!]");
     while (<S>) {
       $numSeqs = $1 if (/sequences\: (\d+)/);
       $numRes  = $1 if (/residues\: (\d+)/);
-    } 
+    }
   }
-
 
   unless ( $numSeqs and $numRes ) { 
     $logger->logdie(
@@ -197,6 +199,7 @@ unless ( -s "$thisRelDir/stats.txt" ) {
   makeStats( "$thisRelDir", $numSeqs, $numRes );
 }
 $logger->info("Made stats!");
+
 
 #Make the indexes HMMs
 unless ( -e "$logDir/checkedA.hmm" ) {
@@ -267,9 +270,8 @@ unless ( -s "$thisRelDir/diff" ) {
   $logger->info("Making diff file");
   my $archive = $relDir =~ s/$major.$point/$old_major.$old_point/r;
   $archive .= "/$old_major.$old_point/ftp/diff.gz";
-  system(
-"make_diff.pl -file $archive -old_rel $old_major -new_rel $major > $thisRelDir/diff"
-  ) and $logger->logdie("Could not run make_diff.pl:[$!]");
+  system("make_diff.pl -file $archive -old_rel $old_major -new_rel $major > $thisRelDir/diff")
+    and $logger->logdie("Could not run make_diff.pl:[$!]");
 }
 $logger->info("Made diff file.");
 
@@ -297,49 +299,49 @@ unless ( -s "$thisRelDir/Pfam-C" ) {
 }
 $logger->info("Made Pfam-C");
 
-unless ( -e "$logDir/updatedClans" ) {
-  $logger->info("Updating clan information");
-  $logger->info("Updating number if architectures");
-  $dbh->do(
-"UPDATE clan c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a  WHERE c.clan_acc=a.clan_acc);"
-    )
-    or $logger->logdie(
-    "Error updating clan architecture counts: " . $dbh->errstr );
-  $logger->info("Updating number of structures");
-  $dbh->do(
-"UPDATE clan c SET number_structures =( select count(DISTINCT pdb_id, chain) from pdb_pfamA_reg r, clan_membership m where m.clan_acc=c.clan_acc and m.pfamA_acc=r.pfamA_acc);"
-    )
-    or
-    $logger->logdie( "Error updating clan structure counts: " . $dbh->errstr );
-  open( L, ">$logDir/updatedClans" )
-    or $logger->logdie("Could not open $logDir/updatedClans for writing.:[$!]");
-  print L "Done\n";
-  close(L);
-}
-$logger->info("Updated clans table");
+# unless ( -e "$logDir/updatedClans" ) {
+#   $logger->info("Updating clan information");
+#   $logger->info("Updating number if architectures");
+#   $dbh->do(
+# "UPDATE clan c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a  WHERE c.clan_acc=a.clan_acc);"
+#     )
+#     or $logger->logdie(
+#     "Error updating clan architecture counts: " . $dbh->errstr );
+#   $logger->info("Updating number of structures");
+#   $dbh->do(
+# "UPDATE clan c SET number_structures =( select count(DISTINCT pdb_id, chain) from pdb_pfamA_reg r, clan_membership m where m.clan_acc=c.clan_acc and m.pfamA_acc=r.pfamA_acc);"
+#     )
+#     or
+#     $logger->logdie( "Error updating clan structure counts: " . $dbh->errstr );
+#   open( L, ">$logDir/updatedClans" )
+#     or $logger->logdie("Could not open $logDir/updatedClans for writing.:[$!]");
+#   print L "Done\n";
+#   close(L);
+# }
+# $logger->info("Updated clans table");
 
 
 #Make pdbmap file
-unless ( -e "$thisRelDir/pdbmap" ) {
-  $logger->info("Making pdbmap");
-  # my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
-  my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), pdb_res_start, pdb_start_icode, pdb_res_end, pdb_end_icode, concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
+# unless ( -e "$thisRelDir/pdbmap" ) {
+#   $logger->info("Making pdbmap");
+#   # my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
+#   my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), pdb_res_start, pdb_start_icode, pdb_res_end, pdb_end_icode, concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
 
-  $stpdb->execute() or die "Can't executre statement\n";
-  my $arrayref = $stpdb->fetchall_arrayref();
-    open (PDBFILE, ">$thisRelDir/pdbmap") or die "Can't open file to write\n";
-    foreach my $row (@$arrayref){
-      my $st = $row->[2];
-      my $st_icode = $row->[3] // '';
-      $st_icode =~ s/^\s+|\s+$//g;
-      my $en = $row->[4];
-      my $en_icode = $row->[5] // '';
-      $en_icode =~ s/^\s+|\s+$//g ;
-      my $st_en_icode = "${st}${st_icode}-${en}${en_icode};";
-      print PDBFILE $row->[0] . "\t" . $row->[1] . "\t" . $st_en_icode . "\t" . $row->[6] . "\t" . $row->[7] . "\t" . $row->[8] . "\t" . $row->[9] . "\n";
-   }
-   close PDBFILE;
-}
+#   $stpdb->execute() or die "Can't executre statement\n";
+#   my $arrayref = $stpdb->fetchall_arrayref();
+#     open (PDBFILE, ">$thisRelDir/pdbmap") or die "Can't open file to write\n";
+#     foreach my $row (@$arrayref){
+#       my $st = $row->[2];
+#       my $st_icode = $row->[3] // '';
+#       $st_icode =~ s/^\s+|\s+$//g;
+#       my $en = $row->[4];
+#       my $en_icode = $row->[5] // '';
+#       $en_icode =~ s/^\s+|\s+$//g ;
+#       my $st_en_icode = "${st}${st_icode}-${en}${en_icode};";
+#       print PDBFILE $row->[0] . "\t" . $row->[1] . "\t" . $st_en_icode . "\t" . $row->[6] . "\t" . $row->[7] . "\t" . $row->[8] . "\t" . $row->[9] . "\n";
+#    }
+#    close PDBFILE;
+# }
 
 unless ( -e "$thisRelDir/Pfam.version" ) {
   $logger->info("Making Pfam.version file");
@@ -368,38 +370,42 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
     mkdir("Regions") or $logger->logdie("Could not make 'Regions' directory $!");
     chdir("Regions") or die "Couldn't chdir into 'Regions, $!";
 
-    my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select pfamseq_acc, pfamA_acc, seq_start, seq_end from pfamA_reg_full_significant where in_full=1\" > regions";
+    my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select pfamseq_acc, pfamA_acc, seq_start, seq_end, ali_start, ali_end from pfamA_reg_full_significant where in_full=1\" > regions";
     system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
 
-    #split regions file
-    system("split -d -l 1000000 regions regions_") and $logger->logdie("Could not split regions file");
-    my $dir = getcwd;
-    my %filenames;
-
-    opendir(DIR, $dir) or $logger->logdie("Couldn't open $dir $!");
-    my @files = readdir(DIR);
-    closedir(DIR);
-    
-    foreach my $file (@files){
-      if ( $file =~ /regions_(\d+)/ ){
-          $filenames{$1}=1;
-      }
-    }
+    #split regions file in 100 pieces (00 to 99)
+    system("split -d -a 2 -n l/100 regions regions_") and $logger->logdie("Could not split regions file");
 
     #submit jobs to farm
-    my $queue = $config->{farm}->{lsf}->{queue};
-    my $job_name = "regions";
-    foreach my $number (keys %filenames){
-      my $fh         = IO::File->new();
-      my $group = "/PfamViewGroup";
-      $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -o regions_$number.log -M 2000 -g $group -J$job_name") or $logger->logdie("Couldn't open file handle [$!]\n");
-      $fh->print( "get_regions.pl -num $number\n"); 
-      $fh->close;        
+    my $fh = IO::File->new("> regions.sbatch");
+
+    $fh->print( '#!/bin/bash
+#SBATCH --job-name=regions
+#SBATCH --output=regions_%a.log
+#SBATCH --error=regions_%a.log
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
+#SBATCH --time=6:00:00
+#SBATCH --array=0-99%25
+
+printf -v NUM %.2d $SLURM_ARRAY_TASK_ID
+get_regions.pl -num $NUM
+
+');
+
+    $fh->close;
+
+    my $jobid;
+    my $job_res = `sbatch regions.sbatch`;
+
+    if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+      $jobid = $1;
     }
-    
+    unlink("regions.sbatch");
+
     #Touch file in log dir when regions jobs have finished
-    system("bsub -q $queue -o touch.log -Jregions_done -w 'done($job_name)' touch $logDir/finishedregions");
-   
+    system("sbatch --job-name=regions_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o './touch.log' -e './touch.log' --wrap=\"touch $logDir/finishedregions\" ");
+
     #have jobs finished?
     until(-e "$logDir/finishedregions"){
       $logger->info("Regions farm jobs still running - checking again in 10 minutes\n");
@@ -412,7 +418,7 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
 
   #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
   open (REGIONS, ">$thisRelDir/Pfam-A.regions.tsv") or $logger->logdie("Can't open file to write");
-  print REGIONS "pfamseq_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
+  print REGIONS "pfamseq_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\tali_start\tali_end\n";
   close (REGIONS);
 
   system("cat Regions/regionsout_* >> $thisRelDir/Pfam-A.regions.tsv") and $logger->logdie("Failed to concatenate regions files");
@@ -439,89 +445,103 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
       $logger->logdie("Incorrect number of lines in Pfam-A.regions.tsv, expected [$total_pfamseq_regions], got [$pfamseq_count]");
   }
 }
+$logger->info("Made Pfam-A.regions.tsv");
 
-unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
-  $logger->info("Making Pfam-A.uniprot.tsv");
-
+unless(-e "$thisRelDir/pfamA.txt" ) {
+  $logger->info("Making pfamA.txt");
   my $host = $pfamDB->{host};
   my $user = $pfamDB->{user};
   my $password = $pfamDB->{password};
   my $port = $pfamDB->{port};
   my $db = $pfamDB->{database};
-
-  unless ( -e "$logDir/finisheduniprotregions" ) {
-    chdir("Regions") or die "Couldn't chdir into 'Regions, $!";
-
-    my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select uniprot_acc, pfamA_acc, seq_start, seq_end from uniprot_reg_full where in_full=1\" > uniprot_regions";
-    system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
-
-    #split regions file
-    system("split -d -l 1000000 uniprot_regions uniprot_regions_") and $logger->logdie("Could not split uniprot regions file");
-    my $dir = getcwd;
-    my %filenames;
-
-    opendir(DIR, $dir) or $logger->logdie("Couldn't open $dir $!");
-    my @files = readdir(DIR);
-    closedir(DIR);
-    
-    foreach my $file (@files){
-      if ( $file =~ /uniprot_regions_(\d+)/ ){
-          $filenames{$1}=1;
-      }    
-    }
-
-    #submit jobs to farm
-    my $queue = $config->{farm}->{lsf}->{queue};
-    my $job_name = "uniprot_regions";
-    foreach my $number (keys %filenames){
-        my $fh         = IO::File->new();
-        my $group = "/PfamViewGroup";
-         $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -o uniprot_regions_$number.log -M 2000 -g $group -J$job_name") or $logger->logdie("Couldn't open file handle [$!]\n");
-         $fh->print( "get_regions.pl -uniprot -num $number\n"); 
-         $fh->close;     
-    }
-
-    #Touch file in log dir when uniprot regions jobs have finished
-    system("bsub -q $queue -o touch.log -Jregions_done -w 'done($job_name)' touch $logDir/finisheduniprotregions");
-
-    #have jobs finished?
-    until(-e "$logDir/finisheduniprotregions"){
-      $logger->info("Uniprot regions farm jobs still running - checking again in 10 minutes\n");
-      sleep(600);
-    }
-    $logger->info("Uniprot regions have finished running");
-    chdir("../") or $logger->logdie("Couldn't chdir up from Regions, $!");
-  }
-  $logger->info("Made uniprot regions files");
-
-  #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
-  open (REGIONS, ">$thisRelDir/Pfam-A.regions.uniprot.tsv") or $logger->logdie("Can't open file to write");
-  print REGIONS "uniprot_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
-  close (REGIONS);
-
-  system("cat Regions/uniprot_regionsout_* >> $thisRelDir/Pfam-A.regions.uniprot.tsv") and $logger->logdie("Failed to concatenate uniprot regions files");
-
-  my $uniprot_count=0;
-  open(U, "$thisRelDir/Pfam-A.regions.uniprot.tsv") or die "Couldn't open fh to $thisRelDir/Pfam-A.regions.uniprot.tsv";
-  while(<U>) {
-      $uniprot_count++;
-  }
-  close U;
-  $uniprot_count--; #File will contain header so remove that from the count
-
-  #Find out how many regions should be in the file
-  my $dbh = $pfamDB->getSchema->storage->dbh;
-  my $uniprot_qc = $dbh->prepare("select count(*) from uniprot_reg_full where in_full=1");
-  $uniprot_qc->execute() or "Failed to query uniprot_reg_full for total regions ".$uniprot_qc->errstr."\n";
-  my $total_uniprot_regions = $uniprot_qc->fetchrow;
-
-  if($uniprot_count == $total_uniprot_regions) {
-      $logger->info("Number of regions in Pfam-A.regions.uniprot.tsv [$uniprot_count] matches that in uniprot_reg_full [$total_uniprot_regions]");
-  }
-  else{
-      $logger->logdie("Incorrect number of lines in Pfam-A.regions.uniprot.tsv, expected [$total_uniprot_regions], got [$uniprot_count]");
-  }
+  my $table = 'pfamA';
+  # select everything, but set num_uniprot, number_rp15, number_rp35, number_rp55, number_rp75 to 0
+  system("mysql -h $host -u $user -p$password -P $port --skip-column-names --max_allowed_packet=1024M --quick $db -e \"select pfamA_acc, pfamA_id, previous_id, description, deposited_by, seed_source, type, comment, sequence_GA, domain_GA, sequence_TC, domain_TC, sequence_NC, domain_NC, buildMethod, model_length, searchMethod, msv_lambda, msv_mu, viterbi_lambda, viterbi_mu, forward_lambda, forward_tau, num_seed, num_full, updated, created, version, number_archs, number_species, number_structures, average_length, percentage_id, average_coverage, change_status, seed_consensus, full_consensus, number_shuffled_hits, 0, rp_seed, 0, 0, 0, 0 from $table\" > $thisRelDir/$table.txt") and $logger->logdie("Couldn't get data from $table, $!");
 }
+$logger->info("Made pfamA.txt");
+
+# unless(-e "$thisRelDir/Pfam-A.regions.uniprot.tsv" ) {
+#   $logger->info("Making Pfam-A.uniprot.tsv");
+
+#   my $host = $pfamDB->{host};
+#   my $user = $pfamDB->{user};
+#   my $password = $pfamDB->{password};
+#   my $port = $pfamDB->{port};
+#   my $db = $pfamDB->{database};
+
+#   unless ( -e "$logDir/finisheduniprotregions" ) {
+#     chdir("Regions") or die "Couldn't chdir into 'Regions, $!";
+
+#     my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select uniprot_acc, pfamA_acc, seq_start, seq_end from uniprot_reg_full where in_full=1\" > uniprot_regions";
+#     system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
+
+#     #split regions file
+#     system("split -d -l 1000000 uniprot_regions uniprot_regions_") and $logger->logdie("Could not split uniprot regions file");
+#     my $dir = getcwd;
+#     my %filenames;
+
+#     opendir(DIR, $dir) or $logger->logdie("Couldn't open $dir $!");
+#     my @files = readdir(DIR);
+#     closedir(DIR);
+    
+#     foreach my $file (@files){
+#       if ( $file =~ /uniprot_regions_(\d+)/ ){
+#           $filenames{$1}=1;
+#       }    
+#     }
+
+#     #submit jobs to farm
+#     my $queue = $config->{farm}->{lsf}->{queue};
+#     my $job_name = "uniprot_regions";
+#     foreach my $number (keys %filenames){
+#         my $fh         = IO::File->new();
+#         my $group = "/PfamViewGroup";
+#          $fh->open( "| bsub -q $queue -R \"select[mem>2000] rusage[mem=2000]\" -o uniprot_regions_$number.log -M 2000 -g $group -J$job_name") or $logger->logdie("Couldn't open file handle [$!]\n");
+#          $fh->print( "get_regions.pl -uniprot -num $number\n"); 
+#          $fh->close;     
+#     }
+
+#     #Touch file in log dir when uniprot regions jobs have finished
+#     system("bsub -q $queue -o touch.log -Jregions_done -w 'done($job_name)' touch $logDir/finisheduniprotregions");
+
+#     #have jobs finished?
+#     until(-e "$logDir/finisheduniprotregions"){
+#       $logger->info("Uniprot regions farm jobs still running - checking again in 10 minutes\n");
+#       sleep(600);
+#     }
+#     $logger->info("Uniprot regions have finished running");
+#     chdir("../") or $logger->logdie("Couldn't chdir up from Regions, $!");
+#   }
+#   $logger->info("Made uniprot regions files");
+
+#   #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
+#   open (REGIONS, ">$thisRelDir/Pfam-A.regions.uniprot.tsv") or $logger->logdie("Can't open file to write");
+#   print REGIONS "uniprot_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
+#   close (REGIONS);
+
+#   system("cat Regions/uniprot_regionsout_* >> $thisRelDir/Pfam-A.regions.uniprot.tsv") and $logger->logdie("Failed to concatenate uniprot regions files");
+
+#   my $uniprot_count=0;
+#   open(U, "$thisRelDir/Pfam-A.regions.uniprot.tsv") or die "Couldn't open fh to $thisRelDir/Pfam-A.regions.uniprot.tsv";
+#   while(<U>) {
+#       $uniprot_count++;
+#   }
+#   close U;
+#   $uniprot_count--; #File will contain header so remove that from the count
+
+#   #Find out how many regions should be in the file
+#   my $dbh = $pfamDB->getSchema->storage->dbh;
+#   my $uniprot_qc = $dbh->prepare("select count(*) from uniprot_reg_full where in_full=1");
+#   $uniprot_qc->execute() or "Failed to query uniprot_reg_full for total regions ".$uniprot_qc->errstr."\n";
+#   my $total_uniprot_regions = $uniprot_qc->fetchrow;
+
+#   if($uniprot_count == $total_uniprot_regions) {
+#       $logger->info("Number of regions in Pfam-A.regions.uniprot.tsv [$uniprot_count] matches that in uniprot_reg_full [$total_uniprot_regions]");
+#   }
+#   else{
+#       $logger->logdie("Incorrect number of lines in Pfam-A.regions.uniprot.tsv, expected [$total_uniprot_regions], got [$uniprot_count]");
+#   }
+# }
 
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
   $logger->info("Making Pfam-A.clans.tsv");
@@ -540,20 +560,21 @@ unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
     print CLFILE $row->[0] . "\t" . $clan_acc . "\t" . $clan_id . "\t" . $row->[3] . "\t" . $row->[4] . "\n";
   }
   close CLFILE;
-
 }
+$logger->info("Pfam-A.clans.tsv");
 
-unless ( -s "$thisRelDir/swisspfam" ) {
-  $logger->info("Going to make swisspfam\n");
-  makeSwissPfam( $thisRelDir, $updateDir );
-}
+# unless ( -s "$thisRelDir/swisspfam" ) {
+#   $logger->info("Going to make swisspfam\n");
+#   makeSwissPfam( $thisRelDir, $updateDir );
+# }
 
 
 # TODO - refactor make_ftp
 unless ( -d "$thisRelDir/ftp" ) {
-    $logger->info("Making ftp files");  
+    $logger->info("Preparing to build ftp distributables");  
     make_ftp( $thisRelDir, $logger );
 }
+$logger->info("Built FTP directory $thisRelDir/ftp");
 
 
 #make SeqInfo
@@ -564,27 +585,27 @@ unless ( -d "$thisRelDir/ftp" ) {
 #     system("makeSeqInfo.pl -all -dir $seqinfo_dir") and $logger->logdie("Could not run makeSeqInfo.pl");
 #     #check farm jobs are complete
 #         if (-e "$seqinfo_dir/finished_seqinfo"){
-# 	    $logger->info("Already checked pfamA_ncbi jobs have finished\n");
+#       $logger->info("Already checked pfamA_ncbi jobs have finished\n");
 #     } else {
-# 	    my $fin = 0;
-# 	    while (!$fin){
-# 	        open( FH, "bjobs -Jseqinfo|" );
-# 	        my $jobs;
-# 	        while (<FH>){
-# 		        if (/^\d+/){
-# 		            $jobs++;
-# 		        }
-# 	        }
-# 	        close FH;
-# 	        if ($jobs){
-# 		        $logger->info("seqinfo jobs still running - checking again in 10 minutes\n");
-# 		        sleep(600);
-# 	        } else {
-# 		        $fin = 1;
-# 		        open( FH, "> $seqinfo_dir/finished_seqinfo" ) or die "Can not write to file finished_seqinfo";
-# 		        close(FH);
-# 	        }
-# 	    }
+#       my $fin = 0;
+#       while (!$fin){
+#           open( FH, "bjobs -Jseqinfo|" );
+#           my $jobs;
+#           while (<FH>){
+#             if (/^\d+/){
+#                 $jobs++;
+#             }
+#           }
+#           close FH;
+#           if ($jobs){
+#             $logger->info("seqinfo jobs still running - checking again in 10 minutes\n");
+#             sleep(600);
+#           } else {
+#             $fin = 1;
+#             open( FH, "> $seqinfo_dir/finished_seqinfo" ) or die "Can not write to file finished_seqinfo";
+#             close(FH);
+#           }
+#       }
 #     }
 
 # }
@@ -598,14 +619,15 @@ unless(-e "$thisRelDir/ftp/md5_checksums") {
 }
 
 #Calculate coverage stats for uniprot
-unless(-e "$logDir/submitted_coverage_job") {
-  $logger->info("Submitting job to calculate coverage for uniprot database to the farm");
-  chdir($thisRelDir) or $logger->logdie("Couldn't chdir into $thisRelDir, $!");
-  my $queue = $config->{farm}->{lsf}->{queue};
-  system("bsub -q $queue -o $pwd/coverage_stats.log -Jstats -M 100000 -R \"rusage[mem=100000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
-  chdir($pwd);
-  touch("$logDir/submitted_coverage_job");
-}
+# unless(-e "$logDir/submitted_coverage_job") {
+#   $logger->info("Submitting job to calculate coverage for uniprot database to the farm");
+#   chdir($thisRelDir) or $logger->logdie("Couldn't chdir into $thisRelDir, $!");
+#   my $queue = $config->{farm}->{lsf}->{queue};
+#   # system("bsub -q $queue -o $pwd/coverage_stats.log -Jstats -M 100000 -R \"rusage[mem=100000]\" 'run_flatfile_stats.pl -flatfile_dir $thisRelDir'");
+#   system("sbatch --mem=16GB --time=3:00:00 -p $queue -o \"$pwd/coverage_stats.log\" -e \"$pwd/coverage_stats.log\" -J stats --wrap=\"run_flatfile_stats.pl -flatfile_dir $thisRelDir\"");
+#   chdir($pwd);
+#   touch("$logDir/submitted_coverage_job");
+# }
 
 #Make keyword indices
 # unless (-d "$thisRelDir/KW_indices"){
@@ -617,66 +639,66 @@ unless(-e "$logDir/submitted_coverage_job") {
 # }
 
 #Make XML files for EBI site search
-my $release_num=$major."_".$point;
-my $site_search_dir = "/nfs/production/agb/pfam/data/site-search/$major".".".$point;
-unless(-d $site_search_dir) {
-  mkdir("$site_search_dir", 0775) or $logger->logdie("Couldn't mkdir site_search_dir, $!");
-}
-unless ( -s "$thisRelDir/PfamFamily.xml" ) {
-  $logger->info("Making site search Pfam entry xml");
-  chdir("$thisRelDir")
-    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+# my $release_num=$major."_".$point;
+# my $site_search_dir = "/nfs/production/agb/pfam/data/site-search/$major".".".$point;
+# unless(-d $site_search_dir) {
+#   mkdir("$site_search_dir", 0775) or $logger->logdie("Couldn't mkdir site_search_dir, $!");
+# }
+# unless ( -s "$thisRelDir/PfamFamily.xml" ) {
+#   $logger->info("Making site search Pfam entry xml");
+#   chdir("$thisRelDir")
+#     or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
 
-  system("pfamSiteSearchXML.pl") and $logger->logdie("Could not run pfamSiteSearchXML.pl:[$!]"); 
-  my $filename = "PfamFamily_".$release_num.".xml";
+#   system("pfamSiteSearchXML.pl") and $logger->logdie("Could not run pfamSiteSearchXML.pl:[$!]"); 
+#   my $filename = "PfamFamily_".$release_num.".xml";
  
-  copy("PfamFamily.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamFamily.xml to $site_search_dir/$filename, $!");
-  chdir($pwd);
-}
-$logger->info("Made site search Pfam entry xml");
+#   copy("PfamFamily.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamFamily.xml to $site_search_dir/$filename, $!");
+#   chdir($pwd);
+# }
+# $logger->info("Made site search Pfam entry xml");
 
-unless ( -s "$thisRelDir/PfamClan.xml" ) {
-  $logger->info("Making site search Pfam Clan xml");
-  chdir("$thisRelDir")
-    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+# unless ( -s "$thisRelDir/PfamClan.xml" ) {
+#   $logger->info("Making site search Pfam Clan xml");
+#   chdir("$thisRelDir")
+#     or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
 
-  system("pfamClanSiteSearchXML.pl") and $logger->logdie("Could not run pfamClanSiteSearchXML.pl:[$!]"); 
+#   system("pfamClanSiteSearchXML.pl") and $logger->logdie("Could not run pfamClanSiteSearchXML.pl:[$!]"); 
 
-  my $filename = "PfamClan_".$release_num.".xml";
-  copy("PfamClan.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamClan.xml to $site_search_dir/$filename, $!");
-  chdir($pwd);
-}
-$logger->info("Made site search Pfam Clan xml");
+#   my $filename = "PfamClan_".$release_num.".xml";
+#   copy("PfamClan.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamClan.xml to $site_search_dir/$filename, $!");
+#   chdir($pwd);
+# }
+# $logger->info("Made site search Pfam Clan xml");
 
-unless ( -s "$thisRelDir/PfamSequence.xml" ) {
-  $logger->info("Making site search Pfam Sequence xml");
-  chdir("$thisRelDir")
-    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+# unless ( -s "$thisRelDir/PfamSequence.xml" ) {
+#   $logger->info("Making site search Pfam Sequence xml");
+#   chdir("$thisRelDir")
+#     or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
 
-  system("pfamSequenceSiteSearchXML.pl") and $logger->logdie("Could not run pfamSequenceSiteSearchXML.pl:[$!]");
+#   system("pfamSequenceSiteSearchXML.pl") and $logger->logdie("Could not run pfamSequenceSiteSearchXML.pl:[$!]");
      
-  my $filename = "PfamSequence_".$release_num.".xml";
-  copy("PfamSequence.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamSequence.xml to $site_search_dir/$filename, $!");
-  chdir($pwd);
-}             
-$logger->info("Made site search Pfam Sequence xml");
+#   my $filename = "PfamSequence_".$release_num.".xml";
+#   copy("PfamSequence.xml", "$site_search_dir/$filename") or $logger->logdie("Couldn't cp PfamSequence.xml to $site_search_dir/$filename, $!");
+#   chdir($pwd);
+# }             
+# $logger->info("Made site search Pfam Sequence xml");
 
-unless(-d "$thisRelDir/ftp/database_files") {
-  $logger->info("Making database files");
-  chdir("$thisRelDir/ftp") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp, $!");
-  system("make_database_files.pl") and $logger->logdie("Couldn't run make_database_files.pl, $!");
-  chdir($pwd);
-}
-$logger->info("Made database files");
+# unless(-d "$thisRelDir/ftp/database_files") {
+#   $logger->info("Making database files");
+#   chdir("$thisRelDir/ftp") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp, $!");
+#   system("make_database_files.pl") and $logger->logdie("Couldn't run make_database_files.pl, $!");
+#   chdir($pwd);
+# }
+# $logger->info("Made database files");
 
 #Make MD5 checksum files for database files
-unless(-e "$thisRelDir/ftp/database_files/md5_checksums") {
-  $logger->info("Generating checksums for ftp/database files");
-  chdir("$thisRelDir/ftp/database_files") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp/database_files, $!");
-  system("MD5checksum.pl -dir .") and $logger->logdie("Couldn't run 'MD5checksum.pl -dir .', $!");
-  chdir($pwd);
-}
-$logger->info("Made checksum files");
+# unless(-e "$thisRelDir/ftp/database_files/md5_checksums") {
+#   $logger->info("Generating checksums for ftp/database files");
+#   chdir("$thisRelDir/ftp/database_files") or $logger->logdie("Couldn't chdir into $thisRelDir/ftp/database_files, $!");
+#   system("MD5checksum.pl -dir .") and $logger->logdie("Couldn't run 'MD5checksum.pl -dir .', $!");
+#   chdir($pwd);
+# }
+# $logger->info("Made checksum files");
 
 #Generate data for InterPro
 # unless(-e "$logDir/done_interpro") {
@@ -733,9 +755,25 @@ sub checkPfamseqSize {
 sub makeStats {
   my ( $releasedir, $num_seqs, $num_res ) = @_;
   $logger->info("Making stats.\n");
-  system("flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt") and $logger->logdie("Couldn't run 'flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt', $!");
+
+  my $jobid;
+  my $job_res = `sbatch --mem=64GB --time=3:00:00 -J stats -o 'stats.log' -e 'stats.log' --wrap="flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt"`;
+
+  if ($job_res =~ /^Submitted batch job (\d+)/ ) {
+    $jobid = $1;
+  }
+  $logger->info("$job_res\n");
+  system("sbatch --job-name=stats_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o './touch.log' -e './touch.log' --wrap=\"touch $logDir/finishedstats\" ");
+
+  # system("flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt") and $logger->logdie("Couldn't run 'flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt', $!");
+    #have jobs finished?
+  until(-e "$logDir/finishedstats"){
+    $logger->info("Stats farm job still running - checking again in 5 minutes\n");
+    sleep(300);
+  }
+
   if ( -s "$releasedir/stats.txt" ) {
-    $logger->info("Made stats");
+    $logger->info("Stats completed");
   }
   else {
     $logger->logdie(
@@ -865,7 +903,7 @@ sub getTxtFiles {
       $logger->debug("Fetching $f\n");
       my $req =
         HTTP::Request->new(
-        GET => "http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/$f" );
+        GET => "https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/$f" );
       my $res = $ua->request($req);
 
       # Check the outcome of the response
@@ -902,10 +940,10 @@ sub getPfamseqFiles {
       }
       
       my $pwd = getcwd;
-      $logger->debug("Present working directory is:$pwd");
-      chdir($relDir) or $logger->logdie("Could not cd to $relDir:[$!]");
-      system("gzip $f") and $logger->logdie("Failed to gz $f:[$!]");
-      chdir($pwd) or $logger->logdie("Could not cd to $pwd:[$!]");
+
+      chdir($relDir) or $logger->logdie("Could not cd to $relDir: [$!]");
+      system("gzip $f") and $logger->logdie("Failed to gz $f: [$!]");
+      chdir($pwd) or $logger->logdie("Could not cd to $pwd: [$!]");
     }
   }
 }
@@ -939,10 +977,10 @@ sub makePfamAFlat {
   makePfamAFlatFull( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full") ;
   makePfamAFasta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.fasta");
   makePfamAHMMs( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.hmm");
-  foreach my $level (qw(rp15 rp35 rp55 rp75)) {
-    makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level ) unless(-e "$thisRelDir/Pfam-A.$level");
-  }
-  makePfamAUniprot( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.uniprot");
+  # foreach my $level (qw(rp15 rp35 rp55 rp75)) {
+  #   makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level ) unless(-e "$thisRelDir/Pfam-A.$level");
+  # }
+  # makePfamAUniprot( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.uniprot");
 }
 
 sub makePfamAFlatSeed {
@@ -1122,7 +1160,7 @@ sub checkStockholmFile {
 
   }
 
-  if ($dbCount) {
+  if ($dbCount && $type ne 'full') {
     if ( $dbCount != $exptCount ) {
       $logger->warn( "The number of sequences in db region table for $acc"
           . " and the number of $type regions do not match ([$dbCount] vs [$exptCount])" );
@@ -1154,8 +1192,8 @@ sub makePfamAFlatFull {
 
     #If it has no members, don't add to file
     if($family->num_full == 0 ) {
-      $logger->info($family->pfama_id." has no members in full");
-      next;
+      $logger->info($family->pfama_acc." has no members in full");
+      # next;
     }
 
     #Get the number of expected regions from pfamA_reg_full
@@ -1187,7 +1225,7 @@ sub makePfamAFlatFull {
     else {
       $logger->warn(
         "Could not find the full row in the alignments and trees table for "
-          . $family->pfama_id );
+          . $family->pfama_acc );
       push(
         @errors,
         {
@@ -1538,37 +1576,65 @@ sub make_ftp {
     system("tar zcf $releasedir/trees.tgz $releasedir/trees")
       and $logger->logdie("Failed to tgz trees directory");
   }
+  # my @list = qw(
+  #   active_site.dat
+  #   diff
+  #   pdbmap
+  #   Pfam-A.dead
+  #   Pfam-A.fasta
+  #   Pfam-A.full
+  #   Pfam-A.full.uniprot
+  #   Pfam-A.hmm.dat
+  #   Pfam-A.hmm
+  #   Pfam-A.seed
+  #   Pfam-A.rp15
+  #   Pfam-A.rp35
+  #   Pfam-A.rp55
+  #   Pfam-A.rp75
+  #   Pfam-C
+  #   pfamseq
+  #   relnotes.txt
+  #   swisspfam
+  #   uniprot
+  #   uniprot_reference_proteomes.dat
+  #   uniprot_sprot.dat
+  #   uniprot_trembl.dat
+  #   userman.txt
+  #   Pfam.version
+  #   Pfam-A.regions.tsv
+  #   Pfam-A.regions.uniprot.tsv
+  #   Pfam-A.clans.tsv
+  #   trees.tgz
+  # );
+
   my @list = qw(
     active_site.dat
     diff
-    pdbmap
     Pfam-A.dead
     Pfam-A.fasta
     Pfam-A.full
-    Pfam-A.full.uniprot
     Pfam-A.hmm.dat
     Pfam-A.hmm
     Pfam-A.seed
-    Pfam-A.rp15
-    Pfam-A.rp35
-    Pfam-A.rp55
-    Pfam-A.rp75
     Pfam-C
-    pfamseq
     relnotes.txt
-    swisspfam
-    uniprot
-    uniprot_reference_proteomes.dat
-    uniprot_sprot.dat
-    uniprot_trembl.dat
     userman.txt
     Pfam.version
     Pfam-A.regions.tsv
-    Pfam-A.regions.uniprot.tsv
     Pfam-A.clans.tsv
     trees.tgz
+    pfamA.txt
   );
 
+  if ($updateDir) {
+    push @list, qw(
+      pfamseq
+      uniprot
+      uniprot_reference_proteomes.dat
+      uniprot_sprot.dat
+      uniprot_trembl.dat
+    );
+  }
 
   my @gzlist;
   foreach my $file (@list) {
@@ -1587,7 +1653,7 @@ sub make_ftp {
       system("cp $releasedir/$file.gz $releasedir/ftp/$file.gz");
       push( @gzlist, $file );
     }
-    elsif ( $file =~ /.*txt/ or $file =~ /\.*\.tgz/ ) {
+    elsif ( $file eq "relnotes.txt" or $file eq "userman.txt" or $file =~ /\.*\.tgz/ ) {
 
       #copy it
       system("cp $releasedir/$file $releasedir/ftp/$file");
@@ -1613,12 +1679,15 @@ sub make_ftp {
 sub help {
   print <<EOF;
   
-  usage: $0 -old <Rel_old> -new <Rel_new> -relDir <dirlocation> -upDir <pfamseqDir>
+  usage: $0 -old <Rel_old> -new <Rel_new> [-upDir <pfamseqDir>] [-relDir <dirlocation>]
   
   Options:
-  old   : Old release number, e.g. Rel25_0
-  
-  
+  old    : Old release number, e.g. Rel25_0
+  new    : New release number, e.g. Rel26_0
+  [upDir]: Update Directory. Required to check and generate sequence database files.
+           (to be used for major releases only)
+  [relDir]: Release Directory. Defaults to current directory.
+
 EOF
   exit;
 }
