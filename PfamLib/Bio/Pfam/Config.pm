@@ -896,6 +896,17 @@ sub familyOverlapRule
   return $self->{overlap_rule}->{family_overlap};
 }
 
+sub pdb_info 
+{
+  my $self = shift;
+
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  return $self->{pdb_info};
+}
+
 sub apicuronKey {
   my $self = shift;
   if ( $#_ >= 0 ) {

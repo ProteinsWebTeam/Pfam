@@ -45,11 +45,11 @@ open(MSD3, ">$output_dir/entryAuthor.dat") or
 #Okay - This is the set up for connecting to the msd database. This should go into the config!!!!
 
 $logger->info("Connecting to the PDBe database");
-my $host = "ocs16";
-my $port = "1530";
-my $db = "msd";
-my $password = "pdbe_ro";
-my $user = "pdbe_ro";
+my $host = "";
+my $port = "";
+my $db = "";
+my $password = "";
+my $user = "";
 
 my $dbh = DBI->connect("dbi:Oracle:host=$host;sid=$db;port=$port", $user, $password)
  or  $logger->logdie("Couldn't connect to database: ".DBI->errstr);

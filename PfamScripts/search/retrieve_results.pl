@@ -12,9 +12,9 @@ my $id = $ARGV[0] || 1403043;
 
 $ENV{DBIC_TRACE} = 1;
 
-my $schema = WebUser->connect( "dbi:mysql:web_user:pfamdb2a:3301",
-                               "pfam",
-                               "mafp1" );
+my $schema = WebUser->connect( "",
+                               "",
+                               "" );
 $schema->storage()->debug( 1 );
 
 
