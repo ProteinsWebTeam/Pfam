@@ -2182,6 +2182,13 @@ sub checkDESCSpell {
   # Move DESC across
   copy( "$fam/DESC.$$", "$fam/DESC" );
 
+  if ($decc =~ /(ED\s+[A-Z0-9]+\.[0-9]+\/\d+-\d+\;)/) {
+    my $misplaced_ed = $1;
+    print "There seems to be a rogue ED line in the CC/DE text.\n";
+    print "Please look the DESC for a rogue '$misplaced_ed'\n";
+    die "Misplaced ED line\n";
+  }
+
   if ($decc =~ /(alcholol|analagous|aparrently|archael|assocaited|bacteriaa|batcer|betwwen|caracterized|chlorplasts|conatins|dependant|doamin|domainss|domian|enrty|fsmily|golbin|haeme|homolog |lenght|phague|portein|potein|protien|releated|repersents|represnts|reveales|siganture|specifacally|supress|variousely|This domains|neighbor)/) {
     my $mispell = $1;
     print "Common misspell word found.\n";
