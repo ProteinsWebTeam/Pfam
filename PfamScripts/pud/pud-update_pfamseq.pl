@@ -96,7 +96,7 @@ else {
 chdir($pfamseq_dir) or $logger->logdie("Couldn't change directory into $pfamseq_dir $!\n");
 
 #Get a copy of refprot
-my @files = qw(uniprot_reference_proteomes.dat.gz);
+my @files = qw(uniprot_reference_proteomes_plus_swissprot.dat.gz);
 
 foreach my $file (@files) {
   if(-s $file) {
