@@ -57,15 +57,15 @@ foreach my $dir ($status_dir, $pfamseq_dir, $logs_dir) {
 
 
 #Lock the database
-# if(-e "$status_dir/db_locked") {
-#   $logger->info("Already locked Pfamlive database");
-# }
-# else {
-#   $logger->info("Locking pfamlive database");
-#   my $user = $ENV{USER};
-#   system("pflock -l -allow_user $user") and $logger->logdie("Couldnt run 'pflock -l -allow_user $user, $!");
-#   system("touch $status_dir/db_locked") and $logger->logdie("Couldn't touch $status_dir/db_locked");
-# }
+if(-e "$status_dir/db_locked") {
+  $logger->info("Already locked Pfamlive database");
+}
+else {
+  $logger->info("Locking pfamlive database");
+  my $user = $ENV{USER};
+  system("pflock -l -allow_user $user") and $logger->logdie("Couldnt run 'pflock -l -allow_user $user, $!");
+  system("touch $status_dir/db_locked") and $logger->logdie("Couldn't touch $status_dir/db_locked");
+}
 
 
 #Make a copy of pfamlive
@@ -323,7 +323,7 @@ else {
 }
 
 
-#To do - code this bit (it was done manually for 32.0)
+# To do manually
 # Update config for pfamseq, uniprot and shuffled db size
 # Update /hps/software/users/agb/pfam/software/conf/pfam_svn.conf with pfamseq and shuffled dbsize with values
 # from $PFAM_CONFIG. Those can be found on the pfamseq_fasta.log, uniprot_fasta.log and shuffled.log
@@ -427,7 +427,6 @@ else {
   }
   $logger->info("Seed surgery script completed. Exiting");
   print "\nReady to start curator SEED surgery and family building.\n\n";
-  exit;
 }
 
 
