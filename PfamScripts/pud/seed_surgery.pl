@@ -325,9 +325,9 @@ sub process_noSEED {
     #which allows the existing editing/presentation code to be reused unchanged
     chdir($noSEED_dir) or die "Couldn't chdir into $noSEED_dir, $!";
 
-    #The Done directory is a sibling of the SeedSurgery directory, so from inside
-    #the noSEED directory it is two levels up (SeedSurgery/noSEED -> ../../Done)
-    $done_dir = "../../Done";
+    #The Done directory sits inside the SeedSurgery directory, so from inside
+    #the noSEED directory it is one level up (SeedSurgery/noSEED -> ../Done)
+    $done_dir = "../Done";
     mkdir($done_dir, 0755) unless(-d $done_dir);
 
     #File to record families that could not be processed
@@ -499,7 +499,7 @@ the family is logged in the 'noSEED_failures.log' file, and the script
 moves on to the next family. If SEED.rp has sequences in it, it is
 copied to SEED and presented to the curator with the usual editing
 options described above. If the curator chooses 'y', the family is moved
-to the 'Done' directory (../Done relative to the SeedSurgery directory).
+to the 'Done' directory, which sits inside the SeedSurgery directory.
 
 Relative paths are used throughout so that the script does not break in
 future releases.
