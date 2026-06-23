@@ -9,14 +9,27 @@ use File::Copy;
 #If the user is happy with the seed, it will get moved to a directory called Done in cwd
 #Else there will be options to extend/wholeseq/create_alignment/pad_ends/go back to original seed
 
-my ($list, $help);
+my ($list, $help, $noSEED);
 GetOptions('list=s' => \$list,
+            'noSEED' => \$noSEED,
             'help'  => \$help);
 
-if($help or !$list) {
+if($help or (!$list and !$noSEED)) {
     help();
 }
-my $done_dir = "Done";
+
+#The 'Done' directory is referenced using a relative path so that the script
+#does not break in future releases (i.e. it does not hard code the release number)
+my $done_dir;
+
+#The -noSEED option works on the Pfam families in the 'noSEED' directory only.
+#It does not look at the SeedSurgery families at all.
+if($noSEED) {
+    process_noSEED();
+    exit;
+}
+
+$done_dir = "Done";
 mkdir($done_dir, 0755) unless(-d $done_dir);
 
 my $count=0;
@@ -295,6 +308,141 @@ sub add_match_states {
 }
 
 
+sub process_noSEED {
+
+    #This subroutine deals with the families in the 'noSEED' directory only.
+    #It is meant to be run from the SeedSurgery directory, so the noSEED directory
+    #is a sub directory of the current working directory, and the Done directory is
+    #a sibling of the SeedSurgery directory. Relative paths are used throughout so
+    #that the script does not break in future releases.
+
+    my $noSEED_dir = "noSEED";
+    unless(-d $noSEED_dir) {
+        die "Couldn't find the '$noSEED_dir' directory in the current working directory.\nPlease run this script from the SeedSurgery directory.\n";
+    }
+
+    #Move into the noSEED directory so that each family is a direct sub directory,
+    #which allows the existing editing/presentation code to be reused unchanged
+    chdir($noSEED_dir) or die "Couldn't chdir into $noSEED_dir, $!";
+
+    #The Done directory sits inside the SeedSurgery directory, so from inside
+    #the noSEED directory it is one level up (SeedSurgery/noSEED -> ../Done)
+    $done_dir = "../Done";
+    mkdir($done_dir, 0755) unless(-d $done_dir);
+
+    #File to record families that could not be processed
+    my $failures = "noSEED_failures.log";
+
+    #Get a sorted list of the families in the noSEED directory
+    opendir(my $dh, ".") or die "Couldn't open current directory, $!";
+    my @families = sort grep { /^PF\d{5}$/ and -d $_ } readdir($dh);
+    closedir($dh);
+
+    unless(@families) {
+        print STDERR "No families found in the '$noSEED_dir' directory\n";
+        return;
+    }
+
+    my $total = scalar(@families);
+    my $count = 0;
+    foreach my $pfamA_acc (@families) {
+        $count++;
+        print STDERR "\n$count/$total: *** $pfamA_acc ***\n\n";
+
+        #Build the RP filtered SEED for this family. If this fails (no usable
+        #sequences) the family is logged and we move on to the next one.
+        next unless(make_rp_seed($pfamA_acc, $failures));
+
+        #Present the SEED to the curator, exactly as in the normal workflow
+        print STDERR "Opening $pfamA_acc/SEED in belvu";
+        system("belvu $pfamA_acc/SEED");
+        user_response($pfamA_acc);
+    }
+}
+
+
+sub make_rp_seed {
+
+    #For a family in the noSEED directory this performs:
+    #  cp ALIGN SEED
+    #  seedRP.pl        (creates SEED.rp)
+    #If SEED.rp has sequences in it, it is copied to SEED and we return 1.
+    #If SEED.rp is empty (no RP sequences in the ALIGN), a warning is given,
+    #the family is logged in the failures file, and we return 0.
+
+    my ($pfamA_acc, $failures) = @_;
+
+    unless(-s "$pfamA_acc/ALIGN") {
+        warn "$pfamA_acc: no ALIGN file (or it is empty), skipping\n";
+        log_failure($failures, $pfamA_acc, "no ALIGN file");
+        return 0;
+    }
+
+    #cp ALIGN SEED
+    copy("$pfamA_acc/ALIGN", "$pfamA_acc/SEED") or die "Couldn't copy $pfamA_acc/ALIGN to $pfamA_acc/SEED, $!";
+
+    #seedRP.pl reads SEED and writes SEED.rp, both in the current directory,
+    #so we have to run it from inside the family directory
+    chdir($pfamA_acc) or die "Couldn't chdir into $pfamA_acc, $!";
+    my $rv = system("seedRP.pl");
+    chdir("..") or die "Couldn't chdir back out of $pfamA_acc, $!";
+
+    if($rv) {
+        warn "$pfamA_acc: seedRP.pl failed\n";
+        log_failure($failures, $pfamA_acc, "seedRP.pl failed");
+        return 0;
+    }
+
+    #If SEED.rp has no aligned sequences then there are no sequences in the ALIGN
+    #that can be used to make the SEED alignment
+    unless(seed_rp_has_sequences("$pfamA_acc/SEED.rp")) {
+        warn "$pfamA_acc: no sequences in SEED.rp, none of the ALIGN sequences can be used to make the SEED\n";
+        log_failure($failures, $pfamA_acc, "no sequences in SEED.rp");
+        return 0;
+    }
+
+    #SEED.rp has sequences, so use it as the SEED
+    copy("$pfamA_acc/SEED.rp", "$pfamA_acc/SEED") or die "Couldn't copy $pfamA_acc/SEED.rp to $pfamA_acc/SEED, $!";
+
+    #Keep a copy of the SEED before any manual editing so the 'o' option works
+    copy("$pfamA_acc/SEED", "$pfamA_acc/SEED.original") or die "Couldn't copy $pfamA_acc/SEED to $pfamA_acc/SEED.original, $!";
+
+    return 1;
+}
+
+
+sub seed_rp_has_sequences {
+
+    #Returns true if the file contains at least one aligned sequence line
+    #(e.g. B5W3F0.1/12-152 ....), false otherwise. Note that SEED.rp can still
+    #contain #=GF lines (for nested families) even when there are no sequences.
+
+    my ($file) = @_;
+
+    return 0 unless(-s $file);
+
+    open(my $fh, $file) or die "Couldn't open fh to $file, $!";
+    while(<$fh>) {
+        if(/^\S+\.\d+\/\d+-\d+/) {
+            close $fh;
+            return 1;
+        }
+    }
+    close $fh;
+
+    return 0;
+}
+
+
+sub log_failure {
+
+    my ($failures, $pfamA_acc, $reason) = @_;
+
+    open(my $fh, ">>", $failures) or die "Couldn't open fh to $failures, $!";
+    print $fh "$pfamA_acc\t$reason\n";
+    close $fh;
+}
+
 
 sub help {
     print<<EOF;
@@ -332,9 +480,34 @@ will copy SEED.original to SEED.
 
 The script will create the 'Done' directory if not already present.
 
+-noSEED option:
+
+Use the -noSEED option to handle the Pfam families in the 'noSEED'
+directory (the families that were left with no SEED after seed surgery).
+With this option the script does NOT look at the SeedSurgery families at
+all. It should be run from the SeedSurgery directory (the one that
+contains the 'noSEED' directory).
+
+For each family in the 'noSEED' directory the script will:
+
+  1. cp ALIGN SEED
+  2. run seedRP.pl (this creates SEED.rp)
+
+If SEED.rp has no sequences in it, then none of the sequences in the
+ALIGN can be used to make the SEED alignment. A warning is given and
+the family is logged in the 'noSEED_failures.log' file, and the script
+moves on to the next family. If SEED.rp has sequences in it, it is
+copied to SEED and presented to the curator with the usual editing
+options described above. If the curator chooses 'y', the family is moved
+to the 'Done' directory, which sits inside the SeedSurgery directory.
+
+Relative paths are used throughout so that the script does not break in
+future releases.
+
 Usage:
 
 $0 -list <list of families>
+$0 -noSEED
 
 EOF
 
