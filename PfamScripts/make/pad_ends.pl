@@ -32,7 +32,10 @@ my $count =0;
 my %done;
 open(ALN, $aln) or die "Couldn't open fh to $aln, $!";
 while(<ALN>) {
-    if(/^((\S+)\/(\d+)-(\d+))\s+(.+)$/) {
+    if(/^\#=RF\s+(\S+)\s*$/ or /^\#=GC\s+RF\s+(\S+)\s*$/) {
+        printf("%-${max_length}s"."$1\n", "#=RF");
+    }
+    elsif(/^((\S+)\/(\d+)-(\d+))\s+(.+)$/) {
         my ($acc_se, $seq_acc, $st, $en, $aligned_sequence) = ($1, $2, $3, $4, $5); 
 
         #Removed annoying whitespace that is sometimes at the end of the alignment
