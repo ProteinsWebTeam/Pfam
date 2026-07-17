@@ -132,10 +132,10 @@ sub msas_uncompressed {
   #print A Compress::Zlib::memGunzip($self->full) or warn "Failed to uncompress hits: $gzerrno";
   #close(A);
 
-  open(A, '>', 'ALIGN.gz') or die "Failed to open ALIGN:[$!]\n";
+  open(A, '>', 'ALIGN.xz') or die "Failed to open ALIGN:[$!]\n";
   print A $self->full;
   close(A);
-  system("gunzip ALIGN.gz") and die "Failed to uncompress ALIGN:[$!]\n";
+  system("xz -d ALIGN.xz") and die "Failed to uncompress ALIGN:[$!]\n";
 
   #Seed is always small, so do in memory.
   open(S, '>', 'SEED') or die "Failed to open SEED for writing:[$!]\n";

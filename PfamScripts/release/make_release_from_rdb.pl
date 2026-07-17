@@ -1097,11 +1097,11 @@ sub checkStockholmFile {
   my $fileCount = 0;
   my $fileSQCount = 0;
 
-  open( TMP, "+>/tmp/$$.ali" ) or $logger->logdie("Could not open /tmp/$$.ali:[$!]");
+  open( TMP, "+>/tmp/$$.ali.xz" ) or $logger->logdie("Could not open /tmp/$$.ali.xz:[$!]");
   print TMP $row->alignment; #This will print it in gzipped format 
   close TMP;
 
-  open(TMP, "gunzip -c /tmp/$$.ali |" ) or $logger->logdie("Could not open 'gunzip -c /tmp/$$.ali |':[$!]");
+  open(TMP, "xz -dc /tmp/$$.ali.xz |" ) or $logger->logdie("Could not uncompress /tmp/$$.ali.xz :[$!]");
   while(<TMP>) {
     if (/^#=GF\s+SQ\s+(\d+)/) {
       $fileSQCount = $1;

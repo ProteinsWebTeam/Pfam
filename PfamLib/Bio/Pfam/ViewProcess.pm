@@ -2383,20 +2383,20 @@ sub uploadTreesAndAlign {
 
   # prepare compressed file and copy to Alignments location
   my $pfamA_acc = $self->pfam->pfama_acc;
-  system("gzip -c $filename.ann > $filename.ann.gz") and $self->mailUserAndFail("Failed to gzip -c $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
+  system("xz -k -0 -T0 $filename.ann") and $self->mailUserAndFail("Failed to xz compress $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
 
   if ($self->{config}->alignmentsLoc) {
     my $destination_folder = $self->{config}->alignmentsLoc . "/${pfamA_acc}";
-    my $destination_file = $self->{config}->alignmentsLoc . "/${pfamA_acc}/${pfamA_acc}.${type}.gz";
+    my $destination_file = $self->{config}->alignmentsLoc . "/${pfamA_acc}/${pfamA_acc}.${type}.xz";
     system("mkdir -p $destination_folder"); 
     $self->logger->debug("Copying alignment file to $destination_file");
-    copy("$filename.ann.gz", $destination_file) or die "Failed to copy $filename.ann.gz: $!";
+    copy("$filename.ann.xz", $destination_file) or die "Failed to copy $filename.ann.xz: $!";
   } else {
     $self->logger->debug("alignmentsLocation not set on config file. Skip filesystem alignment copy.");
   }
 
   my $file;
-  open(ANN, "$filename.ann.gz") or $self->mailUserAndFail("Failed to open $filename.ann.gz, $!" );
+  open(ANN, "$filename.ann.xz") or $self->mailUserAndFail("Failed to open $filename.ann.xz, $!" );
   while(<ANN>) {
     $file .= $_;
   }
@@ -2419,8 +2419,8 @@ sub uploadTreesAndAlign {
   #   }
   #   close(ANN);
   # }
-  my $file_size = -s "$filename.ann.gz";
-  $self->logger->debug("Size of gzip $filename.ann.gz is: ".$file_size);
+  my $file_size = -s "$filename.ann.xz";
+  $self->logger->debug("Size of compressed $filename.ann.xz file is: ".$file_size);
 
   # upload file only if size is under 1.1GB
   # if ($file_size < 1500000000 ) {
