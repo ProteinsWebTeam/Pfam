@@ -325,7 +325,7 @@ sub parseCLANDESC {
 
         if ( $db eq 'Pfam' ) {
           $acc =~ s/\.|\,//g;
-          unless ( $acc =~ /^PF\d{5}/ ) {
+          unless ( $acc =~ /^(?:PF\d{5}|CL\d{4})/ ) {
             warn(
 "\nDESC file format for link to Pfam is wrong $acc is not a valid accession\n"
                 . "-" x 80
