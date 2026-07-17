@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 use File::Copy;
-use LWP::Simple;
+use LWP::Simple qw(getstore is_success $ua);
 use XML::LibXML 1.70;
 use Getopt::Long;
 use Pod::Usage;
@@ -38,10 +38,14 @@ my $log = get_logger();
 #-------------------------------------------------------------------------------
 # config
 
+$ua->agent('Pfam-pud-buildInterproAndGo/1.0');
+$ua->timeout(120);
+$ua->env_proxy;
+
 my $config = Bio::Pfam::Config->new;
 
 my $IP_URL_ROOT = 'https://ftp.ebi.ac.uk/pub/databases/interpro/current_release/';
-my $GO_URL_ROOT = 'http://current.geneontology.org/ontology';
+my $GO_URL_ROOT = 'https://current.geneontology.org/ontology';
 my $FILE_ROOT = $config->localDbsLoc . '/interpro';
 
 # URLs that will be substituted into the abstract
@@ -281,7 +285,7 @@ sub retrieve_file {
 
   # retrieve the new file
   my $rv = getstore( $file_url, $file_path );
-  $log->logdie( "Failed to download '$file_url': $rv" )
+  $log->logdie( "Failed to download '$file_url' to '$file_path': $rv" )
     unless is_success( $rv );
 
   # gunzip it in situ
