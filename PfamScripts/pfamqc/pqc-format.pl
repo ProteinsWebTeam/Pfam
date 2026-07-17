@@ -36,7 +36,7 @@ if( !-w "$pwd/$family" ) {
 #-------------------------------------------------------------------------------
 
 if( !Bio::Pfam::PfamQC::checkFamilyFiles( $family) ){
-    print "pfci: $family contains errors.  You should rebuild this family.\n";
+    print "ERROR: $family contains file errors.  You should rebuild this family.\n";
     exit(1);
 }
   
@@ -52,5 +52,6 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
 }
 
 unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, $family, undef, undef, $pfamDB)){
+	print "ERROR: $family contains format errors.  You should rebuild this family.\n";
     exit(1); 
 }

@@ -31,7 +31,7 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
   unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
-    print "$family contains sequence errors.  You should rebuild this family.\n";
+    print "ERROR: $family contains sequence errors.  You should rebuild this family.\n";
     exit(1);
   }
 }
