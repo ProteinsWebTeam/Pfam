@@ -2387,7 +2387,7 @@ sub checkReferences {
   my $famObj = shift;
 
   my $error;
-  my $cc = $famObj->DESC->CC;
+  my $cc = $famObj->DESC->CC // '';
 
   # Ignore brackets that are bordered by a word character or dash
   my @bracket_blocks = $cc =~ /[^\w-]\[([^\]]+)\][^\w-]/g;
