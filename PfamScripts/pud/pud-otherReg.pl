@@ -238,18 +238,23 @@ if(-e "$statusdir/otherReg/doneUpload"){
 }else{
   #Now load the file....
   $logger->info('preparing to upload the file');
-  $dbh->do("delete from other_reg");
+  $dbh->do("TRUNCATE TABLE other_reg");
+  $dbh->do("ALTER TABLE other_reg AUTO_INCREMENT = 1");
 
-  my $sthInsert = $dbh->prepare("INSERT INTO other_reg (pfamseq_acc, 
-    seq_start, 
-    seq_end, 
-    type_id, 
-    source_id, 
-    score, 
-    orientation) VALUES ( ?,?,?,?,?,?,?)"); #mySQL statement updated due to db schema change - replaced auto_pfamseq with pfamseq_acc
+  # my $sthInsert = $dbh->prepare("INSERT INTO other_reg (pfamseq_acc, 
+  #   seq_start, 
+  #   seq_end, 
+  #   type_id, 
+  #   source_id, 
+  #   score, 
+  #   orientation) VALUES ( ?,?,?,?,?,?,?)"); #mySQL statement updated due to db schema change - replaced auto_pfamseq with pfamseq_acc
 
-  _loadTable($dbh, "$orDir/allOtherReg.dat" , $sthInsert, 7);
+  # _loadTable($dbh, "$orDir/allOtherReg.dat" , $sthInsert, 7);
+  $logger->info('uploading file');
+  my $sth_load = $dbh->prepare("LOAD DATA LOCAL INFILE '$orDir/allOtherReg.dat' INTO TABLE other_reg;");
+  $sth_load->execute() or $logger->logdie("Failed to set up for LOAD DATA ".$sth_load->errstr."\n");
 
+  $logger->info('Completed Successfully');
   system("touch $statusdir/otherReg/doneUpload");
 
 }
@@ -402,45 +407,45 @@ sub parseIupred {
   close (DIS);
 }
 
-sub _loadTable {
-  my ( $dbh, $file, $sth, $cols ) = @_;
+# sub _loadTable {
+#   my ( $dbh, $file, $sth, $cols ) = @_;
 
-  my $batchsize = 5000;
-  my $report    = 100000;
-  my $reportNo  = 1000000;
-  my $count     = 0;
+#   my $batchsize = 5000;
+#   my $report    = 100000;
+#   my $reportNo  = 1000000;
+#   my $count     = 0;
 
 
-  $dbh->begin_work;    # start a transaction
+#   $dbh->begin_work;    # start a transaction
 
-  open( my $input, '<', $file ) or die "Could not open $file:[$!]";
+#   open( my $input, '<', $file ) or die "Could not open $file:[$!]";
 
-  print STDERR "\nProgress: ";
-  while ( my $record = <$input> ) {
-    chomp $record;
-    my @values = split( /\t/, $record );
-    shift(@values); #Take the first element off.
-    for ( my $i = 0; $i < $cols ; $i++ ) {
-      $values[$i] = undef if ( !defined($values[$i]) or $values[$i] eq '\N');
-    } 
-    $sth->execute(@values);
+#   print STDERR "\nProgress: ";
+#   while ( my $record = <$input> ) {
+#     chomp $record;
+#     my @values = split( /\t/, $record );
+#     shift(@values); #Take the first element off.
+#     for ( my $i = 0; $i < $cols ; $i++ ) {
+#       $values[$i] = undef if ( !defined($values[$i]) or $values[$i] eq '\N');
+#     } 
+#     $sth->execute(@values);
 
-    $count += 1;
-    if ( $count % $batchsize == 0 ) {
-      $dbh->commit;    # doublecheck the commit statement too
-      if ( $count % $report == 0 ) {
-        if ( $count % $reportNo == 0 ) {
-          print STDERR "$count";
-        }
-        else {
-          print STDERR ".";
-        }
-      }
+#     $count += 1;
+#     if ( $count % $batchsize == 0 ) {
+#       $dbh->commit;    # doublecheck the commit statement too
+#       if ( $count % $report == 0 ) {
+#         if ( $count % $reportNo == 0 ) {
+#           print STDERR "$count";
+#         }
+#         else {
+#           print STDERR ".";
+#         }
+#       }
 
-      $dbh->begin_work;
+#       $dbh->begin_work;
 
-    }
-  }
-  $dbh->commit;
-  print STDERR "\n\n Uploaded $count records\n";
-}
+#     }
+#   }
+#   $dbh->commit;
+#   print STDERR "\n\n Uploaded $count records\n";
+# }
