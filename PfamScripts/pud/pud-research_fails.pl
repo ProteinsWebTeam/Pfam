@@ -63,13 +63,13 @@ foreach (readdir(DIR))  {
   }
 
   unless($check{"HMM"} and $check{"PFAMOUT"}) {
-    $logger->info("$_ is missing the HMM and/or PFAMOUT file, running pfbuild -withpfmake on family");
+    $logger->info("$_ is missing the HMM and/or PFAMOUT file, running pfbuild -withpfmake -removeBadEd on family");
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
     if($memory_gb) {
-      system("pfbuild -withpfmake -M $memory_gb") and $logger->warn("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
+      system("pfbuild -withpfmake -removeBadEd -M $memory_gb") and $logger->warn("pfbuild -withpfmake -removeBadEd -M $memory_gb on $_ failed:[$!]");
     }
     else {
-      system("pfbuild -withpfmake") and $logger->warn("pfbuild -withpfmake on $_ failed:[$!]");
+      system("pfbuild -withpfmake -removeBadEd") and $logger->warn("pfbuild -withpfmake -removeBadEd on $_ failed:[$!]");
     }
     chdir("../");
     $fail++;
@@ -77,13 +77,13 @@ foreach (readdir(DIR))  {
   }
 
   if(-M "$_/SEED" < -M "$_/HMM") {
-    $logger->info("$_ has a HMM that is younger than SEED, running pfbuild -withpfmake on family");
+    $logger->info("$_ has a HMM that is younger than SEED, running pfbuild -withpfmake -removeBadEd on family");
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
     if($memory_gb) {
-      system("pfbuild -withpfmake -M $memory_gb") and $logger->warn("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
+      system("pfbuild -withpfmake -removeBadEd -M $memory_gb") and $logger->warn("pfbuild -withpfmake -removeBadEd -M $memory_gb on $_ failed:[$!]");
     }   
     else {
-      system("pfbuild -withpfmake") and $logger->warn("pfbuild -withpfmake on $_ failed:[$!]");
+      system("pfbuild -withpfmake -removeBadEd") and $logger->warn("pfbuild -withpfmake -removeBadEd on $_ failed:[$!]");
     }
     chdir("../");
     $fail++;
@@ -91,13 +91,13 @@ foreach (readdir(DIR))  {
   }
 
   if(-M "$_/HMM" < -M "$_/PFAMOUT") {
-    $logger->info("$_ has a PFAMOUT that is younger than HMM, running pfbuild -withpfmake on family"); 
+    $logger->info("$_ has a PFAMOUT that is younger than HMM, running pfbuild -withpfmake -removeBadEd on family"); 
     chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
     if($memory_gb) {
-      system("pfbuild -withpfmake -M $memory_gb") and $logger->warn("pfbuild -withpfmake -M $memory_gb on $_ failed:[$!]");
+      system("pfbuild -withpfmake -removeBadEd -M $memory_gb") and $logger->warn("pfbuild -withpfmake -removeBadEd -M $memory_gb on $_ failed:[$!]");
     }   
     else {
-      system("pfbuild -withpfmake") and $logger->warn("pfbuild -withpfmake on $_ failed:[$!]");
+      system("pfbuild -withpfmake -removeBadEd") and $logger->warn("pfbuild -withpfmake -removeBadEd on $_ failed:[$!]");
     }
     chdir("../");
     $fail++;
@@ -145,7 +145,7 @@ This script loops through all the families contained within the
 directory specified on the command line, and checks to see that 
 all the family files are present. If any of the family files 
 are missing, or are not in the correct timestamp order, 
-it will run a pfbuild -withpfmake. If the PFAMOUT file is younger
+it will run a pfbuild -withpfmake -removeBadEd. If the PFAMOUT file is younger
 than the ALIGN file, it will run a pfmake.
 
 Usage: $0 -dir <dir>
@@ -171,6 +171,6 @@ sub pfmake {
       $memory_mb=4000;
   }
   # system("bsub -q $queue -o pfmake.log -J$fam -M $memory_mb -R \"rusage[mem=$memory_mb]\" pfmake");
-  system("sbatch -p $queue --mem=$memory_mb --time=3:00:00 -o \"pfmake.log\" -e \"pfmake.log\" -J $fam pfmake");
+  system("sbatch -p $queue --mem=$memory_mb --time=3:00:00 -o \"pfmake.log\" -e \"pfmake.log\" -J $fam --wrap=\"pfmake -removeBadEd\"");
 
 }
