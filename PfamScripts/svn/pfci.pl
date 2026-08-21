@@ -362,10 +362,15 @@ unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, un
   exit(1);
 }
 
-# Check the sequences always
-unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB, $ignore ) ) {
-  print "pfci: $family contains errors.  You should rebuild this family.\n";
-  exit(1);
+# Check the sequences -- but not for a DESC-only commit, where they are neither
+# changed nor committed, and the seedcheck this computes is discarded anyway:
+# the server rebuilds the family object from the transaction and sets
+# seedcheck('ignore') for a DESC-only commit, so rp_seed is left untouched.
+unless ($onlydesc) {
+  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB, $ignore ) ) {
+    print "pfci: $family contains errors.  You should rebuild this family.\n";
+    exit(1);
+  }
 }
 
 
