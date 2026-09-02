@@ -68,7 +68,9 @@ else {
   my $memory_mb = 4000;
 
   my $job_name = "Liftover_$alignment";
-  system("bsub -q $queue -M 4000 -R \"rusage[mem=$memory_mb]\" -o liftover.log -J$job_name $0 -align $alignment -local -evalue $evalue_threshold");
+  # system("bsub -q $queue -M 4000 -R \"rusage[mem=$memory_mb]\" -o liftover.log -J$job_name $0 -align $alignment -local -evalue $evalue_threshold");
+  system("sbatch --job-name=${job_name} --time=4:00:00 --mem=4G -o 'liftover.log' -e 'liftover.log' --wrap=\"$0 -align ${alignment} -local -evalue ${evalue_threshold}\" ");
+
 }
 
 sub help {
