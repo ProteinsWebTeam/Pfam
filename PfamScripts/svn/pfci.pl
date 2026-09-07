@@ -311,6 +311,18 @@ if ( $upFamObj->DESC->CL ) {
 
 #-------------------------------------------------------------------------------
 
+#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
+unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, undef, $pfamDB ) ) {
+  exit(1);
+}
+
+#Get pfamDB object, use this for various qc checks
+my $pfamDB;
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
+  my $connect = $config->pfamlive;
+  $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+}
+
 if ($onlydesc) {
 
   #Check that none of the lines that should not be touch are not
@@ -343,29 +355,12 @@ if ($onlydesc) {
     }
   }
 
-  #Check ascii only characters
-  unless(Bio::Pfam::PfamQC::onlyASCII($upFamObj->DESC, $family)) {
-      die "|$family|: desc file contains illegal characters\n";
+} else {
+  # Check the sequences if it is not a onlydesc
+  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB, $ignore ) ) {
+    print "pfci: $family contains errors.  You should rebuild this family.\n";
+    exit(1);
   }
-
-}
-
-#Get pfamDB object, use this for various qc checks
-my $pfamDB;
-if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
-  my $connect = $config->pfamlive;
-  $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
-}
-
-#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, undef, $pfamDB ) ) {
-  exit(1);
-}
-
-# Check the sequences always
-unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB, $ignore ) ) {
-  print "pfci: $family contains errors.  You should rebuild this family.\n";
-  exit(1);
 }
 
 
@@ -427,7 +422,7 @@ unless ($ignore) {
     if ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $upFamObj ) ) {
       print STDERR "SEED alignment is not ragged\n";
     } else {
-	print STDERR "SEED alignment is ragged\n";
+      print STDERR "SEED alignment is ragged\n";
     }
 
   }
