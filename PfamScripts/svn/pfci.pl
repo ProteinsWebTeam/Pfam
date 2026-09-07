@@ -311,16 +311,16 @@ if ( $upFamObj->DESC->CL ) {
 
 #-------------------------------------------------------------------------------
 
-#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, undef, $pfamDB ) ) {
-  exit(1);
-}
-
 #Get pfamDB object, use this for various qc checks
 my $pfamDB;
 if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect = $config->pfamlive;
   $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+}
+
+#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
+unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, undef, $pfamDB ) ) {
+  exit(1);
 }
 
 if ($onlydesc) {
