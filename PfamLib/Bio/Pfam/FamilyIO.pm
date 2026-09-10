@@ -388,6 +388,7 @@ sub parseDESC {
       next;
     }
     elsif ( $file[$i] =~ /^D\w\s{3}/ ) {
+      confess("DC/DR lines have been deprecated, please remove them\n");
       for ( ; $i <= $#file ; $i++ ) {
         my $com;
         for ( ; $i <= $#file ; $i++ ) {
