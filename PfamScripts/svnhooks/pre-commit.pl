@@ -51,13 +51,13 @@ unless ($msg) {
 my $config  = Bio::Pfam::Config->new;
 my $connect = $config->pfamlive;
 
-if ($DEBUG) {
-  print STDERR Dumper($connect);
-}
+# if ($DEBUG) {
+#   print STDERR Dumper($connect);
+# }
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
 if ($DEBUG) {
-  print STDERR "*** $msg ***\n";
+  print STDERR "*** $msg\n";
 
   #$msg = "$msg";
 
