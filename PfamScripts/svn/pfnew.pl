@@ -224,7 +224,7 @@ unless ($ignore) {
   }
 
   if ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $newFamObj)){
-      print "SEED alignment is not ragged\n";
+      ;
   } else {
       print "SEED alignment is ragged\n";
   }

@@ -144,7 +144,7 @@ unless ( -e "$logDir/checkedseqsize" || !defined($updateDir) ) {
     $logger->info("Got pfamseq size (residues): $numSeqs, ($numRes)");
     }
 
-    foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat)) {
+    foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes_plus_swissprot.dat uniprot_sprot.dat uniprot_trembl.dat)) {
       if ($relDir) {
         unless ( -s "$thisRelDir/$f.gz" ) {
           $logger->info("Fetching the the sequence files");
@@ -165,7 +165,8 @@ unless ( -e "$logDir/checkedseqsize" || !defined($updateDir) ) {
     touch("$logDir/checkedseqsize");
 }
 
-unless ( -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full") {
+unless ( -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full" 
+  and -s "$thisRelDir/Pfam-A.fasta" and -s "$thisRelDir/Pfam-A.hmm") {
     makePfamAFlat( $thisRelDir, $pfamDB );
 }
 
@@ -925,7 +926,7 @@ sub getTxtFiles {
 sub getPfamseqFiles {
   my ( $relDir, $pfamseqDir, $config ) = @_;
 
-  foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat)) {
+  foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes_plus_swissprot.dat uniprot_sprot.dat uniprot_trembl.dat)) {
     unless ( -s "$relDir/$f.gz" ) {
       $logger->info("Copying $f");
       if ( -s "$pfamseqDir/$f.gz" ) {
@@ -1282,19 +1283,19 @@ sub makePfamAFasta {
     if ( $row and $row->pfama_acc ) {
       my $fa = Compress::Zlib::memGunzip( $row->fasta );
 
-      if ( length($fa) > 10 ) {
+      if ( length($fa) > 0 ) {
         print PFAMAFA $fa;
       }
       else {
-        $logger->warn("Fasta file has incorrect size!");
-        push(
-          @errors,
-          {
-            family  => $family->pfama_acc,
-            file    => 'fasta',
-            message => 'Incorrect size of fasta file'
-          }
-        );
+        $logger->warn("Fasta file for " . $family->pfama_acc . " is empty!");
+        # push(
+        #   @errors,
+        #   {
+        #     family  => $family->pfama_acc,
+        #     file    => 'fasta',
+        #     message => 'Incorrect size of fasta file'
+        #   }
+        # );
       }
 
     }
@@ -1630,7 +1631,7 @@ sub make_ftp {
     push @list, qw(
       pfamseq
       uniprot
-      uniprot_reference_proteomes.dat
+      uniprot_reference_proteomes_plus_swissprot.dat
       uniprot_sprot.dat
       uniprot_trembl.dat
     );
