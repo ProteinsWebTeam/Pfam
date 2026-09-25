@@ -143,6 +143,7 @@ LINE: while(<>) {
 	/^\#=GF\s+RT\s{3}/ && next;
 	/^\#=GF\s+RA\s{3}/ && next;
 	/^\#=GF\s+RL\s{3}/ && next;
+	/^\#=GF\s+PI\s{3}/ && next;
 	
 	
 	# Comments, free text
