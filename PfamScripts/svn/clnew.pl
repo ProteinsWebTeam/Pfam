@@ -6,6 +6,7 @@ use warnings;
 use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::ClanIO;
+use Bio::Pfam::PfamQC;
 
 my $config = Bio::Pfam::Config->new;
 my $client = Bio::Pfam::SVN::Client->new;
@@ -21,6 +22,10 @@ unless(-d $clan){
 }
 
 my $clanIO = Bio::Pfam::ClanIO->new;
+
+# Check spelling!
+&Bio::Pfam::PfamQC::checkCLANDESCSpell( $clan, $clanIO );
+
 my $clanObj = $clanIO->loadClanFromLocalFile($clan, ".", "file");
 print STDERR "Successfully loaded $clan through middleware\n";
 

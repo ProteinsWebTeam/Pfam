@@ -70,7 +70,8 @@ coerce 'DESCClan'
          eval { 
            $desc = $clanDescIO->parseCLANDESC( $_ );
          };
-         return $@ ? undef : $desc;
+         die $@ if $@;
+         return $desc;
          
        }
   => from 'GlobRef'
@@ -80,7 +81,8 @@ coerce 'DESCClan'
          eval { 
            $desc = $clanDescIO->parseCLANDESC( $_ );
          };
-         return $@ ? undef : $desc;
+         die $@ if $@;
+         return $desc;
          
        }
   => from 'HashRef'
@@ -89,7 +91,8 @@ coerce 'DESCClan'
       eval{
         $desc = Bio::Pfam::Clan::DESC->new( $_ );
       };
-      return $@ ? undef : $desc; 
+      die $@ if $@;
+      return $desc;
     };   
     
 
