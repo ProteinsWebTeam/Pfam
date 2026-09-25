@@ -42,7 +42,7 @@ sub main {
     $help,  $evalCut,    $dbsize,     $max,     $bFilt,
     $null2, $f1,         $f2,         $f3,      $ibm,
     $ism,   $withpfmake, $makeEvalue, $removeBadEd, $db,      $cpu,
-    $copy,  $pfamseq_local, $memory_gb, $modelLength
+    $copy,  $pfamseq_local, $memory_gb, $modelLength, $nowait
   );
 
   &GetOptions(
@@ -68,7 +68,8 @@ sub main {
     'removeBadEd'=> \$removeBadEd,     
     'pfamseq=s'  => \$pfamseq_local,
     'M=i'        => \$memory_gb,
-    'db=s'       => \$db
+    'db=s'       => \$db,
+    "nowait"     => \$nowait,
   )
     or die "Unknown option, try running -help for more infortmation.\n";
 
@@ -592,7 +593,8 @@ sub main {
 
         my $memory_mb=$memory_gb*1000;
         my $memory_kb=$memory_mb*1000;
-
+        my $wait = '--wait';
+        $wait = '' if $nowait;
 
         if( $config->location eq "WTSI") {
           $fh->open( "| bsub -q "
@@ -610,7 +612,7 @@ sub main {
           } else {
             $fh->open( "| sbatch -p "
               . $farmConfig->{lsf}->{queue}
-              . " --cpus-per-task=$cpu --mem=$memory_mb -o \"pfbuild.log\" -e \"pfbuild.log\" -J hmmsearch$$ --time=4:00:00 "
+              . " --cpus-per-task=$cpu --mem=$memory_mb -o \"pfbuild.log\" -e \"pfbuild.log\" -J hmmsearch$$ --time=4:00:00 $wait "
             );
             $fh->print( "#!/bin/bash\n" );
           }
@@ -683,6 +685,14 @@ sub main {
             "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
         }
         $fh->close();
+        unless ($nowait) {
+          if ($? == 0) {
+              print "Batch job completed\n";
+          }
+          else {
+              die "Error (exit status: $?)\nCheck pfbuild.log for more details.\n";
+          }
+        }
       }
       else {
 
@@ -771,6 +781,7 @@ And Finally:
   -makeEval   : Will run pfmake with the specified evalue cut-off   
   -removeBadEd: Will run pfmake with -removeBadEd option (need to use this option in conjuction with -withpfmake option)
   -M <int>    : Amount of memory in Gb to request (this option is only for EBI farm)
+  -nowait     : Submits pfmake job and exits immediatly
 
 EOF
 
