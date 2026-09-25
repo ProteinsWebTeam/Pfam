@@ -2383,7 +2383,13 @@ sub uploadTreesAndAlign {
 
   # prepare compressed file and copy to Alignments location
   my $pfamA_acc = $self->pfam->pfama_acc;
-  system("xz -k -0 -T0 $filename.ann") and $self->mailUserAndFail("Failed to xz compress $filename.ann, $!"); #Need to do this otherwise it doesn't fit into a longblob
+
+  # These families are too big, need extra compression...
+  if ($pfamA_acc eq 'PF00069' || $pfamA_acc eq 'PF07690') {
+      system("xz -k -0 -T0 -7 $filename.ann") and $self->mailUserAndFail("Failed to xz compress $filename.ann, $!");
+  } else {
+      system("xz -k -0 -T0 $filename.ann") and $self->mailUserAndFail("Failed to xz compress $filename.ann, $!");
+  }
 
   if ($self->{config}->alignmentsLoc) {
     my $destination_folder = $self->{config}->alignmentsLoc . "/${pfamA_acc}";
