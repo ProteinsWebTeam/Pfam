@@ -434,6 +434,7 @@ my $caught_cntrl_c;
 $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 
 if ($onlydesc) {
+  print "Going to commit family (DESC)\n";
   $client->commitFamilyDESC($family);
 }
 else {
