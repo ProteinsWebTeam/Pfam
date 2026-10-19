@@ -62,7 +62,7 @@ my $ua = LWP::UserAgent->new();
 my $res = $ua->request($r);
 
 if ($res->is_success) {
-	print "Success";
+    print "Success\n";
 } else {
-	print "Apicuron request failed: " . $res->status_line;
+    die "Apicuron request failed: " . $res->status_line . "\n" . $res->decoded_content . "\n";
 }
