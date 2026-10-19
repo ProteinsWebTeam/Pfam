@@ -36,7 +36,7 @@ my $event_map = {
 };
 my $uri = $event_map->{$event} . $acc;
 
-my $date = strftime "%Y-%m-%d %H:%M:%S", localtime;
+my $date = strftime "%Y-%m-%dT%H:%M:%SZ", gmtime;
 
 my $config = Bio::Pfam::Config->new;
 
