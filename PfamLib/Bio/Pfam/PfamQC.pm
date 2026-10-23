@@ -2389,6 +2389,12 @@ sub checkReferences {
   my $error;
   my $cc = $famObj->DESC->CC // '';
 
+  if ($cc =~ /\[\]/) {
+    print STDERR "\n*** ERROR: found empty [] literature reference in CC. "
+      . " ***\n\n";
+    $error = 1;
+  }
+
   # Ignore brackets that are bordered by a word character or dash
   my @bracket_blocks = $cc =~ /[^\w-]\[([^\]]+)\][^\w-]/g;
 
@@ -2420,8 +2426,8 @@ sub checkReferences {
   }
 
   if (keys %cc_refs) {
-    print STDERR "\n*** ERROR: found literature references in CC that have not been added to the DESC file: "
-      . join(", ", sort { $a <=> $b } keys %cc_refs) . " ***\n\n";
+    print STDERR "\n*** ERROR: found literature reference [". join(", ", sort { $a <=> $b } keys %cc_refs)
+        . "] in CC that has not been added to the DESC file. ***\n\n";
     $error = 1;
   }
 
