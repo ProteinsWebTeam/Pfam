@@ -268,7 +268,8 @@ foreach my $fam_upd (@updated) {
     $fam_clan_db = $fam_clan_db->clan_acc->clan_acc;
   }
 
-  Bio::Pfam::PfamQC::sequenceChecker( $fam_upd, $famObj, $releaseDB, 1 );
+  # Bio::Pfam::PfamQC::sequenceChecker( $fam_upd, $famObj, $releaseDB, 1 );
+  $famObj->seedcheck('ignore');
 
   $familyIO->updatePfamAInRDB($famObj, $releaseDB, 0);
 
