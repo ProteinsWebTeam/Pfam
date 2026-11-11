@@ -62,7 +62,7 @@ while(<FH>){
     my $id=$2;
     my $desc=$3;
 
-    if ($i<$n){
+    if ($id{$acc} and @order < $n){
       push(@order, $acc);
       $top{$acc}=$desc;
     }
@@ -162,69 +162,87 @@ sub write_arch_file {
 
   $new_fam_name = sprintf("%-26s", $dir); #To make it line up with the other text
 
-  my $ga_threshold = 0;
+  my ($ga_threshold, $dom_ga) = (0, 0);
 
   if ( -e "DESC" ) {
-      open(my $DESC, "<", "DESC") or warn "Cannot open DESC file: $!";
-      while (<$DESC>) {
-          if (/^GA\s+([\d.]+)/) {
-              $ga_threshold = $1;
-              last;
-          }
+    open(my $DESC, "<", "DESC") or warn "Cannot open DESC file: $!";
+
+    while (<$DESC>) {
+      if (/^GA\s+([\d.]+)\s+([\d.]+)/) {
+        ($ga_threshold, $dom_ga) = ($1, $2);
+        last;
       }
-      close $DESC;
-      print "Using GA bit score threshold from DESC: $ga_threshold\n";
+    }
+
+    close $DESC;
+    print "Using GA bit score thresholds from DESC: sequence=$ga_threshold, domain=$dom_ga\n";
   } else {
-      print "DESC file not found, not considering GA bit score threshold\n";
+    print "DESC file not found, not considering bit score thresholds\n";
   }
 
   # Loop over swiss-Prots and write to arch file
   open (ARCH, "> arch") or die "Cannot write to file arch, $!";
 
-  foreach my $sp (sort keys %$hash){
-    my $best = 0;
-    my $length = $pfamDB->getSchema->resultset('Pfamseq')->search({ pfamseq_acc => $sp })->single->length;
+  foreach my $sp (sort keys %$hash) {
+
+    my $length = $pfamDB->getSchema->resultset('Pfamseq')->search(
+      { pfamseq_acc => $sp }
+    )->single->length;
+
     print ARCH "$sp\t$hash->{$sp}\t(length:$length)\n";
 
-    # Filter sequences based on score
+    # Filter sequences based on sequence GA score
     my $item = $hash->{$sp};
     my ($sp_score) = $item =~ /(\S+)\s+\S+\s+\S+\s+\S+\s+\S+$/;
     next if ($sp_score < $ga_threshold);
 
     # Get regions from PFAMOUT and add to arch file
     open (PFAMOUT, "PFAMOUT") or die "Cannot read PFAMOUT file, $!";
-    while(<PFAMOUT>){
-      if (/^$sp\.\d+\s+(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+(\S+)/){
+
+    while (<PFAMOUT>) {
+      if (/^$sp\.\d+\s+(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+(\S+)/) {
         my ($st, $en, $bits) = ($1, $2, $3);
+
+        # Apply domain GA bit score threshold
+        next if $bits < $dom_ga;
+
         $st = sprintf("%6s", $st);
         $en = sprintf("%6s", $en);
         $bits = sprintf("%8s", $bits);
 
-        # Apply GA bit score threshold
-        next if ($bits < $ga_threshold) && $best;
-        $best = 1;
         print ARCH "\t$new_fam_name\t$st\t$en\t$bits\n";
       }
     }
+
     close PFAMOUT;
 
-    #Get regions from pfam_live
-    my @reg_full=$pfamDB->getSchema->resultset('PfamARegFullSignificant')->search({ pfamseq_acc => $sp, in_full => 1 }, {order_by => 'seq_start ASC'});
+    # Get regions from pfam_live
+    my @reg_full = $pfamDB->getSchema->resultset('PfamARegFullSignificant')->search(
+      { pfamseq_acc => $sp, in_full => 1 },
+      { order_by => 'seq_start ASC' }
+    );
+
     foreach my $row (@reg_full) {
 
       my $pfamA_id = $accmap{$row->pfama_acc->pfama_acc};
       $pfamA_id = sprintf("%-16s", $pfamA_id);
 
-      my ($st, $en, $bits) = ($row->seq_start, $row->seq_end, $row->domain_bits_score);
+      my ($st, $en, $bits) = (
+        $row->seq_start,
+        $row->seq_end,
+        $row->domain_bits_score
+      );
 
-      $st = sprintf("%6s", $st); #Allow for the maximum start/end in the db
+      $st = sprintf("%6s", $st);
       $en = sprintf("%6s", $en);
-      $bits = sprintf("%8s", $bits); #Allows for the maximum bits score in the db
+      $bits = sprintf("%8s", $bits);
 
       print ARCH "\t".$row->pfama_acc->pfama_acc."\t$pfamA_id\t$st\t$en\t$bits\n";
     }
+
     print ARCH "\n";
   }
+
   close ARCH;
 }
 
