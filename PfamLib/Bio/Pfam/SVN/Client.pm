@@ -388,7 +388,7 @@ sub checkAllFamilyFiles {
   my $url = $self->familyLocation . "/" . $family;
 
   #Todo Change this for a call
-  foreach my $file ( keys %{ $self->{config}->{files}->{family} } ) {
+  foreach my $file ( @{ $self->{config}->mandatoryFamilyFiles } ) {
     eval {
 
 #$self->{txn}->info($url."/".$file, undef, $self->revision , $self->_checkFile, 0 );
@@ -575,7 +575,6 @@ sub commitFamily {
   my $cinfo;
 
   my @files;
-  push(@files, $family);
   foreach my $file ( @{ $self->{config}->mandatoryFamilyFiles } ) {
     push(@files, "$family/$file");
   }

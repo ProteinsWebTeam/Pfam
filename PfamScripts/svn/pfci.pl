@@ -391,16 +391,6 @@ unless ($ignore) {
 
     }
 
-    if(-z "$family/ALIGN") {
-      print "$0: your family has an empty ALIGN file?\n";
-      print "Do you still want to check it in? [y/n]  ";
-      my $reply = <STDIN>;
-      chomp $reply;
-      if ( $reply ne "y" ) {
-        exit(1);
-      }
-    }
-
     unless ( Bio::Pfam::PfamQC::noMissing( $upFamObj, $oldFamObj, $family ) ) {
       print(
 "$0: your family seems to be missing members compared to the SVN copy\n(see $family/missing). Please inspect loss of members.\n"
