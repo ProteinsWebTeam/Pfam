@@ -102,19 +102,6 @@ my $newFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
 print STDERR "Successfully loaded $family through middleware\n";
 
 
-#-------------------------------------------------------------------------------
-#Check ALIGN files has size
-#If not, ask user to confirm they still want to check it in
-unless(-s "$family/ALIGN") {
-  print "$0: Your family has an empty ALIGN file?\n";
-  print "Do you still want to check it in? [y/n]  ";
-  my $reply = <STDIN>;
-  chomp $reply;
-  if ( $reply ne "y" ) { 
-    exit(1);
-  }   
-}  
-
 #------------------------------------------------------------------------------------
 #Check user has filled in all the fields in DESC file
 if($newFamObj->DESC->ID eq "ShortName") {

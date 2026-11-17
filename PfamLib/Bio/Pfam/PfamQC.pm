@@ -94,16 +94,16 @@ sub passesAllFormatChecks {
     $error = 1;
   }
 
-  # check seed alignment
-  foreach my $aln (qw(SEED ALIGN)) {
-    next if($aln eq "ALIGN" and -z "$family/$aln"); #ALIGN0 ALIGN can be empty for families that do not have any reference proteome matches
-    if ( !&mulFormatIsOK( $aln, $family ) ) {
-      warn "$family: Bad format for $aln!\n";
-      $error = 1;
-    }
+  if ( !&mulFormatIsOK( 'SEED', $family ) ) {
+    warn "$family: Bad format for SEED!\n";
+    $error = 1;
   }
 
-  unless(-z "$family/ALIGN") { #ALIGN0 Skip these checks if ALIGN is empty
+  if (-s "$family/ALIGN") {
+    if ( !&mulFormatIsOK( 'ALIGN', $family ) ) {
+      warn "$family: Bad format for ALIGN!\n";
+      $error = 1;
+    }
     if ( !&moreInSEEDthanALIGN($famObj, $pfamDB) ) {
       warn "$family: You have more sequences in SEED than ALIGN\n";
       $error = 1;
@@ -1527,38 +1527,8 @@ sub seedIntOverlaps{
 sub noMissing {
   my ( $newFamObj, $oldFamObj, $family ) = @_;
 
-  my (@allnewseqs, @alloldseqs);
-
-  if(ref($newFamObj->ALIGN) eq 'Bio::Pfam::AlignPfamLite'){  
-    push(@allnewseqs, @{$newFamObj->ALIGN->all_seq_accs});          
-  }elsif(ref($newFamObj->ALIGN) eq 'Bio::Pfam::AlignPfam'){
-    my $previous_id = '';
-    foreach my $seq ( sort{$a cmp $b} $newFamObj->ALIGN->each_seq ) {
-      push(@allnewseqs, $seq->id) if($seq->id ne $previous_id);
-      $previous_id = $seq->id;
-    }
-  }
-  elsif(!$newFamObj->ALIGN) {
-    # ALIGN0 This is not populated for families that do not have any reference proteome matches
-  }else{
-    die "Did not get a Bio::Pfam::AlignPfamLite or Bio::Pfam::AlignPfam object\n";  
-  }
-
-
-  if(ref($oldFamObj->ALIGN) eq 'Bio::Pfam::AlignPfamLite'){  
-    push(@alloldseqs, @{$oldFamObj->ALIGN->all_seq_accs});          
-  }elsif(ref($oldFamObj->ALIGN) eq 'Bio::Pfam::AlignPfam'){
-    my $previous_id = '';
-    foreach my $seq ( sort{$a cmp $b} $oldFamObj->ALIGN->each_seq ) {
-      push(@alloldseqs, $seq->id) if($seq->id ne $previous_id);
-      $previous_id = $seq->id;
-    }
-  }
-  elsif(!$oldFamObj->ALIGN) {
-    # ALIGN0 This is not populated for families that do not have any reference proteome matches
-  } else{
-    die "Did not get a Bio::Pfam::AlignPfamLite or Bio::Pfam::AlignPfam object\n";  
-  }
+  my @allnewseqs = sort keys %{ $newFamObj->scores->regions };
+  my @alloldseqs = sort keys %{ $oldFamObj->scores->regions };
 
   my (@found);
   NEW:
@@ -1724,7 +1694,7 @@ sub checkFamilyFiles {
         $error = 1;
       }
     }
-    if ( -M "$family/PFAMOUT" < -M "$family/ALIGN" ) {
+    if ( -e "$family/ALIGN" and -M "$family/PFAMOUT" < -M "$family/ALIGN" ) {
       warn
       "$family: Your PFAMOUT [$family/PFAMOUT] is younger than your full alignment [$family/ALIGN].\n";
       $error = 1;
@@ -1734,7 +1704,7 @@ sub checkFamilyFiles {
       "$family: Your OUTPUT [$family/PFAMOUT] is younger than your scores [$family/scores].\n";
       $error = 1;
     }
-    if ( -M "$family/scores" < -M "$family/ALIGN" ) {
+    if ( -e "$family/ALIGN" and -M "$family/scores" < -M "$family/ALIGN" ) {
       warn
       "$family: Your scores [$family/scores] is younger than your full alignment [$family/ALIGN].\n";
       $error = 1;

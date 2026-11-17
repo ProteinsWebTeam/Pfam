@@ -86,8 +86,8 @@ sub loadPfamAFromLocalFile {
 
 
     #Check files exist
-    if($f eq "scores" or $f eq "ALIGN") {
-      unless(-e "$dir/$family/$f") {#Going to allow empty scores and ALIGN files
+    if($f eq "scores") {
+      unless(-e "$dir/$family/$f") {#Going to allow empty scores files
         confess("Could not find $dir/$family/$f\n");
       }
     }
@@ -98,16 +98,14 @@ sub loadPfamAFromLocalFile {
     }
 
     #Populate %params with fh or filepaths for each file
-    if($f ne 'ALIGN'){
-      my $fh;
-      open( $fh, "$dir/$family/$f" )
-        or confess("Could not open $dir/$family/$f:[$!]");
-      $params{$f} = $fh;
-    }else{
-      if(-s "$dir/$family/$f") {
-        $params{$f}= "$dir/$family/$f";
-      }
-    }
+    my $fh;
+    open( $fh, "$dir/$family/$f" )
+      or confess("Could not open $dir/$family/$f:[$!]");
+    $params{$f} = $fh;
+  }
+
+  if ( -s "$dir/$family/ALIGN" ) {
+    $params{ALIGN} = "$dir/$family/ALIGN";
   }
 
   if ($source) {
@@ -848,22 +846,6 @@ sub uploadPfamAAligns {
     $family = $famObj->DESC->AC;
   }
 
-  #Read the FULL alignment into a string
-  unlink "$dir/$family/ALIGN.xz";
-
-  # These families are too big, need extra compression...
-  if ($family eq 'PF00069' || $family eq 'PF07690') {
-      system("xz -k -0 -T0 -7 $dir/$family/ALIGN");
-  } else {
-      system("xz -k -0 -T0 $dir/$family/ALIGN");
-  }
-
-  open( FULL, "$dir/$family/ALIGN.xz" )
-    or die "Could not open $dir/$family/ALIGN.xz:[$!]\n";
-  my $full = join '', <FULL>;
-  close FULL;
-  
-
   #Read the SEED alignment into a string;
   system("gzip -c $dir/$family/SEED > $dir/$family/SEED.gz");
   open( SEED, "$dir/$family/SEED.gz" )
@@ -871,7 +853,7 @@ sub uploadPfamAAligns {
   my $seed = join '', <SEED>;
   close SEED;
 
-  $pfamDB->uploadPfamAInternal( $famObj, $seed, $full );
+  $pfamDB->uploadPfamAInternal( $famObj, $seed, undef );
 }
 
 1;
