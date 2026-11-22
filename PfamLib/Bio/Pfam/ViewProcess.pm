@@ -2483,7 +2483,7 @@ sub versionFiles {
   my ( $self ) = @_;
 
   my %fileCheckSums;
-  foreach my $f (qw(SEED ALIGN)) {
+  foreach my $f (qw(SEED)) {
     open( F, $f )
       or $self->mailUserAndFail( $self->job,
       "Could not version $f:[$!]" );
@@ -2520,7 +2520,7 @@ sub versionFiles {
     {
       pfama_acc => $self->pfam->pfama_acc,
       seed       => $fileCheckSums{SEED},
-      align      => $fileCheckSums{ALIGN},
+      align      => $fileCheckSums{ALIGN} ? $fileCheckSums{ALIGN} : '',
       desc_file  => $fileCheckSums{DESC} ? $fileCheckSums{DESC} : '',
       hmm        => $fileCheckSums{HMM},
     }, { key => "pfamA_acc" }
@@ -2543,7 +2543,7 @@ sub versionFiles {
     }
     else {
       if ( ( $releasedVersions->seed ne $currentVersions->seed )
-        or ( $releasedVersions->align     ne $currentVersions->align )
+        # or ( $releasedVersions->align     ne $currentVersions->align )
         or ( $releasedVersions->desc_file ne $currentVersions->desc_file ) )
       {
         $changeStatus = 'CHANGED';
@@ -3327,7 +3327,7 @@ sub getAllFiles {
     ->find( { pfama_acc => $self->pfam->pfama_acc } );
 
   eval{
-    $row->msas_uncompressed;
+    $row->seed_uncompressed;
   };
   if ($@) {
     $self->mailUserAndFail( "Failed to uncompress all files: $@" );
@@ -3343,10 +3343,8 @@ sub getAllFiles {
 
 #Check that all of the files are present in the directory, this script assumes that all of the files
 #are in the cwd.
-  foreach my $f (qw(ALIGN SEED HMM)) {
+  foreach my $f (qw(SEED HMM)) {
     unless ( -e $f and -s $f ) {
-      next if($f eq "ALIGN" and -e $f and $self->{noALIGN});
-
       $self->mailUserAndFail(
         "View process failed as $f was not present\n" );
     }

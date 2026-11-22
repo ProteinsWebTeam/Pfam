@@ -65,7 +65,7 @@ my $GFAnn = $view->getGFAnnotations;
 
 #Active site prediction object
 $view->initiateActiveSiteObj();
-$view->processALIGNlite( $GFAnn );
+# $view->processALIGNlite( $GFAnn );
 $view->processSEED( $GFAnn );
 $view->processHMMs( );
 #-------------------------------------------------------------------------------

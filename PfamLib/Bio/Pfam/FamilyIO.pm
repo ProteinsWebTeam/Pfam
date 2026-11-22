@@ -84,7 +84,6 @@ sub loadPfamAFromLocalFile {
   my %params;
   foreach my $f ( @{ $self->{config}->mandatoryFamilyFiles } ) {
 
-
     #Check files exist
     if($f eq "scores") {
       unless(-e "$dir/$family/$f") {#Going to allow empty scores files

@@ -63,7 +63,7 @@ my @current = $pfamDB->getSchema
 my (%current, %pfamA);
 foreach my $row (@current) {
     $current{$row->get_column('pfama_acc')}{'seed'}=$row->seed;
-    $current{$row->get_column('pfama_acc')}{'align'}=$row->align;
+    # $current{$row->get_column('pfama_acc')}{'align'}=$row->align;
     $current{$row->get_column('pfama_acc')}{'desc'}=$row->desc_file;
     $current{$row->get_column('pfama_acc')}{'hmm'}=$row->hmm;
     $current{$row->get_column('pfama_acc')}{'pfamA_id'}=$row->pfama_acc->pfama_id;
@@ -81,7 +81,7 @@ my @released = $pfamDB->getSchema
 my %released;
 foreach my $row (@released) {
     $released{$row->get_column('pfama_acc')}{'seed'}=$row->seed;
-    $released{$row->get_column('pfama_acc')}{'align'}=$row->align;
+    # $released{$row->get_column('pfama_acc')}{'align'}=$row->align;
     $released{$row->get_column('pfama_acc')}{'desc'}=$row->desc_file;
     $released{$row->get_column('pfama_acc')}{'hmm'}=$row->hmm;
 }
@@ -98,7 +98,7 @@ foreach my $auto (sort keys %current) {
 
         $change .= "SEED " unless($released{$auto}{'seed'} eq $current{$auto}{'seed'});
         $change .= "HMM "  unless($released{$auto}{'hmm'} eq $current{$auto}{'hmm'});
-        $change .= "FULL " unless($released{$auto}{'align'} eq $current{$auto}{'align'});
+        # $change .= "FULL " unless($released{$auto}{'align'} eq $current{$auto}{'align'});
         $change .= "DESC " unless($released{$auto}{'desc'} eq $current{$auto}{'desc'});
 
 	my $c;
@@ -122,7 +122,7 @@ foreach my $auto (sort keys %current) {
 
 foreach my $auto (sort keys %current) {
     unless(exists($released{$auto})) {
-	my $c = "NEW      SEED HMM FULL DESC";
+	my $c = "NEW      SEED HMM DESC";
 	print sprintf ("%2s  %-11s  %-17s  %-30s \n", "FI", $current{$auto}{'pfamA_acc'}, $current{$auto}{'pfamA_id'}, $c);
     }
 }
