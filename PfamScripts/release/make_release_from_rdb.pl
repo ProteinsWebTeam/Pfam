@@ -144,7 +144,7 @@ unless ( -e "$logDir/checkedseqsize" || !defined($updateDir) ) {
     $logger->info("Got pfamseq size (residues): $numSeqs, ($numRes)");
     }
 
-    foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes_plus_swissprot.dat uniprot_sprot.dat uniprot_trembl.dat)) {
+    foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat)) {
       if ($relDir) {
         unless ( -s "$thisRelDir/$f.gz" ) {
           $logger->info("Fetching the the sequence files");
@@ -165,16 +165,14 @@ unless ( -e "$logDir/checkedseqsize" || !defined($updateDir) ) {
     touch("$logDir/checkedseqsize");
 }
 
-unless ( -s "$thisRelDir/Pfam-A.seed" and -s "$thisRelDir/Pfam-A.full" 
-  and -s "$thisRelDir/Pfam-A.fasta" and -s "$thisRelDir/Pfam-A.hmm") {
+unless ( -s "$thisRelDir/Pfam-A.seed"
+  and -s "$thisRelDir/Pfam-A.hmm" ) {
     makePfamAFlat( $thisRelDir, $pfamDB );
 }
 
 unless ( -e "$logDir/checkedA" ) {
-  foreach my $f ( "$thisRelDir/Pfam-A.seed", "$thisRelDir/Pfam-A.full" ) {
-    checkflat($f);
-    touch("$logDir/checkedA");
-  }
+  checkflat("$thisRelDir/Pfam-A.seed");
+  touch("$logDir/checkedA");
 }
 
 
@@ -186,7 +184,7 @@ unless ( -s "$thisRelDir/stats.txt" ) {
       $old_logDir =~ s/$major\.$point/$old_major\.$old_point/;
       system("cp ${old_logDir}/pfamseqSize ${logDir}/pfamseqSize");
     }
-    open( S, $logDir . "/pfamseqSize" ) or $logger->logdie("Could not open $logDir./pfamseqSize:[$!]");
+    open( S, $logDir . "/pfamseqSize" ) or $logger->logdie("Could not open $logDir/pfamseqSize:[$!]");
     while (<S>) {
       $numSeqs = $1 if (/sequences\: (\d+)/);
       $numRes  = $1 if (/residues\: (\d+)/);
@@ -279,16 +277,16 @@ $logger->info("Made diff file.");
 my $pwd = cwd;
 
 #Index the fasta files!
-my $f = 'Pfam-A.fasta';
-  unless ( -s "$thisRelDir/$f.00.phr" or -s "$thisRelDir/$f.phr" ) {
-    chdir("$thisRelDir")
-      || $logger->logdie("Could not change into $thisRelDir:[$!]");
-    $logger->info("Indexing $f (formatdb)");
-    system("makeblastdb -dbtype prot -in  $f")
-      and $logger->logdie("Failed to index $f:[$!]");
-    chdir("$pwd") || $logger->logdie("Could not change into $pwd:[$!]");
-  }
-  $logger->info("Indexed $f");
+# my $f = 'Pfam-A.fasta';
+#   unless ( -s "$thisRelDir/$f.00.phr" or -s "$thisRelDir/$f.phr" ) {
+#     chdir("$thisRelDir")
+#       || $logger->logdie("Could not change into $thisRelDir:[$!]");
+#     $logger->info("Indexing $f (formatdb)");
+#     system("makeblastdb -dbtype prot -in  $f")
+#       and $logger->logdie("Failed to index $f:[$!]");
+#     chdir("$pwd") || $logger->logdie("Could not change into $pwd:[$!]");
+#   }
+#   $logger->info("Indexed $f");
 
 #Make the Pfam-C file......
 unless ( -s "$thisRelDir/Pfam-C" ) {
@@ -758,7 +756,7 @@ sub makeStats {
   $logger->info("Making stats.\n");
 
   my $jobid;
-  my $job_res = `sbatch --mem=64GB --time=3:00:00 -J stats -o 'stats.log' -e 'stats.log' --wrap="flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt"`;
+  my $job_res = `sbatch --mem=16GB --time=2:00:00 -J stats -o 'stats.log' -e 'stats.log' --wrap="database_stats.pl $num_seqs $num_res > $releasedir/stats.txt"`;
 
   if ($job_res =~ /^Submitted batch job (\d+)/ ) {
     $jobid = $1;
@@ -766,7 +764,7 @@ sub makeStats {
   $logger->info("$job_res\n");
   system("sbatch --job-name=stats_done --dependency=afterok:${jobid} --time=1:00 --mem=100 -o './touch.log' -e './touch.log' --wrap=\"touch $logDir/finishedstats\" ");
 
-  # system("flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt") and $logger->logdie("Couldn't run 'flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt', $!");
+  # system("database_stats.pl $num_seqs $num_res > $releasedir/stats.txt") and $logger->logdie("Couldn't run database_stats.pl, $!");
     #have jobs finished?
   until(-e "$logDir/finishedstats"){
     $logger->info("Stats farm job still running - checking again in 5 minutes\n");
@@ -778,7 +776,7 @@ sub makeStats {
   }
   else {
     $logger->logdie(
-      "Run flatfile_stats.pl, but stats.txt does not exist or has no file size"
+      "Run database_stats.pl, but stats.txt does not exist or has no file size"
     );
   }
 }
@@ -975,8 +973,8 @@ sub makePfamAFlat {
     "There will be " . scalar(@families) . " families in this release" );
 
   makePfamAFlatSeed( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.seed") ;
-  makePfamAFlatFull( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full") ;
-  makePfamAFasta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.fasta");
+  # makePfamAFlatFull( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full") ;
+  # makePfamAFasta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.fasta");
   makePfamAHMMs( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.hmm");
   # foreach my $level (qw(rp15 rp35 rp55 rp75)) {
   #   makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level ) unless(-e "$thisRelDir/Pfam-A.$level");
@@ -1612,8 +1610,6 @@ sub make_ftp {
     active_site.dat
     diff
     Pfam-A.dead
-    Pfam-A.fasta
-    Pfam-A.full
     Pfam-A.hmm.dat
     Pfam-A.hmm
     Pfam-A.seed
