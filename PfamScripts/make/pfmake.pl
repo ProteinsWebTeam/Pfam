@@ -20,7 +20,7 @@ main( @ARGV ) unless caller(  );
 
 
 sub main {
-  my( $seqThrs, $domThrs, $evalue, $seqDB, $help, $removeBadEd);
+  my( $seqThrs, $domThrs, $evalue, $seqDB, $help, $removeBadEd, $align);
 #-----------------------------------------------------------------------------------------
 #Read options
 
@@ -32,7 +32,8 @@ sub main {
         "t=s" => \$domThrs,
         "d=s" => \$seqDB,
           "h" => \$help,
-"removeBadEd" => \$removeBadEd    
+"removeBadEd" => \$removeBadEd,
+      "align" => \$align
   );
 
   if($help){
@@ -140,8 +141,10 @@ sub main {
   if($noSeqsFound != $noSeqsRequested){
     die "Did not find all the sequences you requested: Requested $noSeqsRequested; Got $noSeqsFound\n";
   }  
-  
-  makeALIGN($config, $fasta);              
+
+  if ($align) {
+    makeALIGN($config, $fasta);
+  }
   # Remove files that allow clan to be unmade.  If family thresholds
   # have been changed or ED lines added this can lead to ALIGN and DESC
   # getting out of sync.  THis was an issue during overlap resolution.
@@ -184,6 +187,7 @@ print<<EOF;
       -d             set the full path to pfamseq, e.g. /data/blastdb/pfamseq
       -h             prints this help
       -removeBadEd   Remove ED lines that do not correspond to a valid HMM unit, or that have out of range co-ordinates
+      -align         Build the full alignment ALIGN file
 
 
 EOF
